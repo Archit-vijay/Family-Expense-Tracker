@@ -1,12 +1,33 @@
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+
+import DashboardLayout from "./layouts/DashboardLayout";
+import Dashboard from "./pages/Dashboard";
+import Transactions from "./pages/Transactions";
+import Budgets from "./pages/Budgets";
+import Reports from "./pages/Reports";
+import Family from "./pages/Family";
+import Settings from "./pages/Settings";
 
 function App() {
   return (
-    <div className="min-h-screen">
-      <h1 className="text-3xl font-bold">
-        Family Expense Tracker
-      </h1>
-    </div>
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route element={<DashboardLayout />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/transactions" element={<Transactions />} />
+          <Route path="/budgets" element={<Budgets />} />
+          <Route path="/reports" element={<Reports />} />
+          <Route path="/family" element={<Family />} />
+          <Route path="/settings" element={<Settings />} />
+        </Route>
+
+        <Route
+          path="*"
+          element={<Navigate to="/dashboard" replace />}
+        />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;
