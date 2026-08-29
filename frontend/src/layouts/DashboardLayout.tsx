@@ -5,15 +5,20 @@ import MobileHeader from "../components/MobileHeader";
 
 function DashboardLayout() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="flex">
+    <div className="h-screen overflow-hidden bg-[#f5f7fb]">
+      <div className="flex h-full">
+        {/* Fixed sidebar */}
         <Sidebar />
 
-        <div className="flex min-h-screen flex-1 flex-col">
+        {/* Main application area */}
+        <div className="flex min-w-0 flex-1 flex-col">
           <MobileHeader />
 
-          <main className="flex-1 p-4 md:p-6 lg:p-8">
-            <Outlet />
+          {/* Only this area scrolls */}
+          <main className="min-h-0 flex-1 overflow-y-auto">
+            <div className="mx-auto w-full max-w-[1600px] p-4 sm:p-6 lg:p-8 xl:p-10">
+              <Outlet />
+            </div>
           </main>
         </div>
       </div>

@@ -1,66 +1,55 @@
+import { ArrowRight } from "lucide-react";
 import TransactionItem from "./TransactionItem";
+import { transactions } from "../data/transactions";
 
-import type { Transaction } from "../types/Transaction";
 
-const recentTransactions: Transaction[] = [
-  {
-    id: "1",
-    title: "Groceries",
-    category: "Food",
-    amount: 2450,
-    type: "expense",
-    date: "Aug 21",
-  },
-  {
-    id: "2",
-    title: "Monthly Salary",
-    category: "Income",
-    amount: 65000,
-    type: "income",
-    date: "Aug 20",
-  },
-  {
-    id: "3",
-    title: "Electricity Bill",
-    category: "Bills",
-    amount: 2800,
-    type: "expense",
-    date: "Aug 19",
-  },
-  {
-    id: "4",
-    title: "Fuel",
-    category: "Transport",
-    amount: 1200,
-    type: "expense",
-    date: "Aug 18",
-  },
-];
 
 function RecentTransactions() {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-      <div className="mb-4 flex items-center justify-between">
+    <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition-shadow duration-300 hover:shadow-md sm:p-6">
+      {/* Header */}
+      <div className="mb-2 flex items-center justify-between">
         <div>
-          <h3 className="font-semibold text-gray-900">
+          <h3 className="text-base font-bold text-slate-900">
             Recent Transactions
           </h3>
 
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-xs text-slate-500 sm:text-sm">
             Your latest family transactions
           </p>
         </div>
 
         <button
           type="button"
-          className="text-sm font-medium text-gray-600 hover:text-gray-900"
+          className="
+            group
+            flex items-center gap-1
+            rounded-lg
+            px-2.5 py-2
+            text-xs font-semibold
+            text-violet-600
+
+            transition-all duration-200
+
+            hover:bg-violet-50
+            hover:text-violet-700
+          "
         >
           View all
+
+          <ArrowRight
+            size={14}
+            className="
+              transition-transform duration-200
+              group-hover:translate-x-1
+            "
+          />
         </button>
       </div>
 
-      <div>
-        {recentTransactions.map((transaction) => (
+      {/* Transactions */}
+      <div className="mt-2">
+        {transactions.slice(0, 4).map((transaction) => (
           <TransactionItem
             key={transaction.id}
             transaction={transaction}

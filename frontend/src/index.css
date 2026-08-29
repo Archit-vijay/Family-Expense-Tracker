@@ -1,1 +1,404 @@
 @import "tailwindcss";
+
+:root {
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: #172033;
+    background: #f5f7fb;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    min-width: 320px;
+    min-height: 100vh;
+    background: #f5f7fb;
+}
+
+button, a {
+    -webkit-tap-highlight-color: transparent;
+}
+
+button {
+    font: inherit;
+}
+
+::selection {
+    background: #c4b5fd;
+    color: #172033;
+}
+
+/* Subtle scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+@keyframes page-enter {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.page-enter {
+    animation: page-enter 0.35s ease-out;
+}
+
+@keyframes fade-up {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-up {
+    animation: fade-up 0.5s ease-out both;
+}
+
+/* =========================================
+   STAT CARD ANIMATIONS
+   ========================================= */
+
+.stat-card {
+  position: relative;
+  overflow: hidden;
+
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 1rem;
+
+  background: linear-gradient(
+    135deg,
+    #ffffff 0%,
+    #ffffff 70%,
+    #f8f7ff 100%
+  );
+
+  padding: 1.25rem;
+
+  box-shadow:
+    0 1px 3px rgba(15, 23, 42, 0.06),
+    0 4px 12px rgba(15, 23, 42, 0.04);
+
+  transform: translateY(0) scale(1);
+
+  transition:
+    transform 300ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 300ms ease,
+    border-color 300ms ease;
+}
+
+/* Main card hover */
+.stat-card:hover {
+  transform: translateY(-8px) scale(1.025);
+
+  border-color: rgba(139, 92, 246, 0.3);
+
+  box-shadow:
+    0 12px 25px rgba(15, 23, 42, 0.10),
+    0 25px 50px rgba(99, 102, 241, 0.12);
+}
+
+/* Top animated accent line */
+.stat-card-accent {
+  position: absolute;
+
+  top: 0;
+  left: 0;
+
+  width: 0;
+  height: 3px;
+
+  border-radius: 0 999px 999px 0;
+
+  background: linear-gradient(
+    90deg,
+    #8b5cf6,
+    #6366f1,
+    #a855f7
+  );
+
+  transition:
+    width 450ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.stat-card:hover .stat-card-accent {
+  width: 100%;
+}
+
+/* Background glow */
+.stat-card-glow {
+  position: absolute;
+
+  width: 120px;
+  height: 120px;
+
+  right: -60px;
+  top: -60px;
+
+  border-radius: 999px;
+
+  background: rgba(139, 92, 246, 0);
+
+  filter: blur(25px);
+
+  transition:
+    transform 500ms ease,
+    background 500ms ease;
+}
+
+.stat-card:hover .stat-card-glow {
+  transform: scale(2);
+
+  background: rgba(139, 92, 246, 0.13);
+}
+
+/* Content */
+.stat-card-content {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+/* Title */
+.stat-card-title {
+  color: #64748b;
+
+  font-size: 0.875rem;
+  font-weight: 500;
+
+  transition:
+    color 250ms ease,
+    transform 250ms ease;
+}
+
+.stat-card:hover .stat-card-title {
+  color: #475569;
+  transform: translateX(2px);
+}
+
+/* Amount */
+.stat-card-amount {
+  margin-top: 0.75rem;
+
+  color: #0f172a;
+
+  font-size: 1.875rem;
+  font-weight: 700;
+
+  letter-spacing: -0.025em;
+
+  transition:
+    transform 300ms ease,
+    color 300ms ease;
+}
+
+.stat-card:hover .stat-card-amount {
+  transform: translateX(4px);
+}
+
+/* Description */
+.stat-card-description {
+  margin-top: 0.5rem;
+
+  color: #64748b;
+
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Icon */
+.stat-card-icon {
+  display: flex;
+
+  width: 46px;
+  height: 46px;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 0.8rem;
+
+  transition:
+    transform 350ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 350ms ease,
+    background 250ms ease,
+    color 250ms ease;
+}
+
+.stat-card:hover .stat-card-icon {
+  transform: scale(1.18) rotate(5deg);
+
+  box-shadow:
+    0 8px 18px rgba(15, 23, 42, 0.12);
+}
+
+/* Income */
+.stat-icon-income {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.stat-card:hover .stat-icon-income {
+  background: #10b981;
+  color: white;
+}
+
+/* Expense */
+.stat-icon-expense {
+  background: #ffe4e6;
+  color: #e11d48;
+}
+
+.stat-card:hover .stat-icon-expense {
+  background: #f43f5e;
+  color: white;
+}
+
+/* Balance */
+.stat-icon-balance {
+  background: #ede9fe;
+  color: #7c3aed;
+}
+
+.stat-card:hover .stat-icon-balance {
+  background: #8b5cf6;
+  color: white;
+}
+
+/* Active/press state */
+.stat-card:active {
+  transform: translateY(-2px) scale(0.99);
+}
+
+/* Don't animate for users who request reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .stat-card,
+  .stat-card-icon,
+  .stat-card-accent,
+  .stat-card-glow,
+  .stat-card-title,
+  .stat-card-amount {
+    transition: none;
+  }
+
+  .stat-card:hover {
+    transform: none;
+  }
+}
+
+/* =========================================
+   TRANSACTION ANIMATIONS
+   ========================================= */
+
+.transaction-item {
+  position: relative;
+
+  border-radius: 0.9rem;
+
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+
+  transition:
+    background-color 200ms ease,
+    transform 200ms ease,
+    box-shadow 200ms ease;
+}
+
+.transaction-item:hover {
+  background: rgba(248, 250, 252, 0.9);
+
+  transform: translateX(4px);
+
+  box-shadow:
+    0 6px 18px rgba(15, 23, 42, 0.05);
+}
+
+.transaction-icon {
+  transition:
+    transform 250ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 250ms ease;
+}
+
+.transaction-item:hover .transaction-icon {
+  transform: scale(1.12) rotate(-4deg);
+
+  box-shadow:
+    0 6px 14px rgba(15, 23, 42, 0.10);
+}
+
+/* =========================================
+   MODAL ANIMATION
+   ========================================= */
+
+@keyframes modal-enter {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-enter {
+  animation: modal-enter 250ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.dropdown-options {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(203 213 225) transparent;
+}
+
+.dropdown-options::-webkit-scrollbar {
+  width: 5px;
+}
+
+.dropdown-options::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dropdown-options::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgb(203 213 225);
+}
+
+.dropdown-options::-webkit-scrollbar-thumb:hover {
+  background: rgb(148 163 184);
+}

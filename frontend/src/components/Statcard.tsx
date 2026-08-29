@@ -1,38 +1,66 @@
-import type {LucideIcon} from 'lucide-react';
+import type { LucideIcon } from "lucide-react";
 
-interface StatcardProps {
-    title: string;
-    amount: string;
-    description: string;
-    icon: LucideIcon;
+interface StatCardProps {
+  title: string;
+  amount: string;
+  description: string;
+  icon: LucideIcon;
+  variant?: "income" | "expense" | "balance";
 }
 
-function Statcard({
-    title, 
-    amount,
-    description,
-    icon: Icon,
-}: StatcardProps) {
-    return (
-        <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-            <div className="flex items-start justify-between">
-                <div>
-                    <p className="text-sm font-medium text-gray-500">
-                        {title}
-                    </p>
-                    <p className="mt-2 text-2xl font-bold text-gray-900">
-                        {amount}
-                    </p>
-                    <p className="mt-1 text-sm text-gray-500">
-                        {description}
-                    </p>
-                </div>
-                <div className="rounded-lg bg-gray-100 p-3">
-                    <Icon size={20} />
-                </div>
-            </div>
+function StatCard({
+  title,
+  amount,
+  description,
+  icon: Icon,
+  variant = "balance",
+}: StatCardProps) {
+  const styles = {
+    income: {
+      icon: "stat-icon-income",
+      glow: "stat-glow-income",
+    },
+    expense: {
+      icon: "stat-icon-expense",
+      glow: "stat-glow-expense",
+    },
+    balance: {
+      icon: "stat-icon-balance",
+      glow: "stat-glow-balance",
+    },
+  };
+
+  const currentStyle = styles[variant];
+
+  return (
+    <div className={`stat-card ${currentStyle.glow}`}>
+      {/* Top accent */}
+      <div className="stat-card-accent" />
+
+      {/* Background glow */}
+      <div className="stat-card-glow" />
+
+      <div className="stat-card-content">
+        <div>
+          <p className="stat-card-title">
+            {title}
+          </p>
+
+          <p className="stat-card-amount">
+            {amount}
+          </p>
+
+          <p className="stat-card-description">
+            {description}
+          </p>
         </div>
-    );
+
+        <div className={`stat-card-icon ${currentStyle.icon}`}>
+          <Icon size={21} />
+        </div>
+      </div>
+    </div>
+  );
 }
 
-export default Statcard;
+export default StatCard;

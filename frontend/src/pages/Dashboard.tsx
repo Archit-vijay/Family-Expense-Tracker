@@ -4,30 +4,45 @@ import {
   TrendingUp,
 } from "lucide-react";
 
-import StatCard from "../components/StatCard";
 import RecentTransactions from "../components/RecentTransactions";
+import StatCard from "../components/Statcard";
+import CategorySpending from "../components/CategorySpending";
+import SpendingOverview from "../components/SpendingOverview";
 
 function Dashboard() {
   return (
-    <div>
-      {/* Header */}
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-900">
-          Good evening 👋
-        </h2>
+    <div className="page-enter">
+      {/* Page heading */}
+      <section className="mb-8 fade-up">
+        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+          <div>
+            <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-violet-600">
+              Financial overview
+            </p>
 
-        <p className="mt-1 text-gray-500">
-          Here's what's happening with your family finances.
-        </p>
-      </div>
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+              Good evening 👋
+            </h1>
+
+            <p className="mt-2 max-w-xl text-sm leading-6 text-slate-500 sm:text-base">
+              Here's what's happening with your family's finances.
+            </p>
+          </div>
+
+          <div className="cursor-pointer rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-violet-200 hover:bg-violet-50/50 hover:text-violet-700 hover:shadow-md active:translate-y-0">
+            August 2026
+          </div>
+        </div>
+      </section>
 
       {/* Statistics */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 fade-up" style={{ animationDelay: "100ms" }}>
         <StatCard
           title="Total Income"
           amount="₹72,400"
           description="This month"
           icon={TrendingUp}
+          variant="income"
         />
 
         <StatCard
@@ -35,6 +50,7 @@ function Dashboard() {
           amount="₹41,200"
           description="This month"
           icon={TrendingDown}
+          variant="expense"
         />
 
         <StatCard
@@ -42,13 +58,19 @@ function Dashboard() {
           amount="₹31,200"
           description="Available balance"
           icon={CreditCard}
+          variant="balance"
         />
-      </div>
+      </section>
+      {/* Analytics */}
+      <section className="mt-6 grid gap-6 lg:grid-cols-[1.5fr_1fr] fade-up" style={{ animationDelay: "150ms" }}>
+        <SpendingOverview />
+        <CategorySpending />
+      </section>
 
-      {/* Recent Transactions */}
-      <div className="mt-6">
+      {/* Recent transactions */}
+      <section className="mt-6 fade-up" style={{ animationDelay: "200ms" }}>
         <RecentTransactions />
-      </div>
+      </section>
     </div>
   );
 }
