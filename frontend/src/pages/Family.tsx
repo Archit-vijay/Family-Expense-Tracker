@@ -3,15 +3,17 @@ import {
   Edit3,
   Loader2,
   Plus,
-  UserRound,
+  Trash2,
   Users,
   X,
+  MoreVertical,
 } from "lucide-react";
 
 import {
   createFamilyMember,
   getFamilyMembers,
   updateFamilyMember,
+  deactivateFamilyMember,
   type FamilyMember,
 } from "../services/familyMemberService";
 
@@ -30,6 +32,14 @@ function Family() {
   const [isAdding, setIsAdding] = useState(false);
 
   const [modalError, setModalError] = useState("");
+
+  const [menuMemberId, setMenuMemberId] =
+    useState<number | null>(null);
+
+  const [removingMember, setRemovingMember] =
+    useState<FamilyMember | null>(null);
+
+  const [isRemoving, setIsRemoving] = useState(false);
 
   useEffect(() => {
     async function loadMembers() {
@@ -136,6 +146,41 @@ function Family() {
       );
     } finally {
       setIsAdding(false);
+    }
+  }
+
+  async function handleRemoveMember() {
+    if (!removingMember) return;
+
+    try {
+      setIsRemoving(true);
+
+      await deactivateFamilyMember(
+        removingMember.id,
+      );
+
+      setMembers((currentMembers) =>
+        currentMembers.filter(
+          (member) =>
+            member.id !== removingMember.id,
+        ),
+      );
+
+      setRemovingMember(null);
+      setMenuMemberId(null);
+    } catch (error) {
+      console.error(
+        "Failed to remove family member:",
+        error,
+      );
+
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Unable to remove family member.",
+      );
+    } finally {
+      setIsRemoving(false);
     }
   }
 
@@ -282,28 +327,100 @@ function Family() {
                     </p>
                   </div>
 
-                  {/* Edit button */}
-                  <button
-                    type="button"
-                    onClick={() =>
-                      openEditModal(member)
-                    }
-                    className="
-                      rounded-lg
-                      p-2
-                      text-slate-400
-                      opacity-70
-                      transition-all
-                      duration-200
-                      hover:bg-violet-50
-                      hover:text-violet-600
-                      hover:opacity-100
-                      active:scale-95
-                    "
-                    aria-label={`Edit ${member.name}`}
-                  >
-                    <Edit3 size={17} />
-                  </button>
+                  {/* Actions */}
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setMenuMemberId((current) =>
+                          current === member.id
+                            ? null
+                            : member.id,
+                        )
+                      }
+                      className="
+                        rounded-lg
+                        p-2
+                        text-slate-400
+                        transition-all
+                        duration-200
+                        hover:bg-slate-100
+                        hover:text-slate-700
+                        active:scale-95
+                      "
+                      aria-label={`Actions for ${member.name}`}
+                    >
+                      <MoreVertical size={18} />
+                    </button>
+
+                    {/* Action menu */}
+                    {menuMemberId === member.id && (
+                      <div
+                        className="
+                          absolute
+                          right-0
+                          top-full
+                          z-20
+                          mt-2
+                          w-36
+                          origin-top-right
+                          animate-[dropdown-in_150ms_ease-out]
+                          rounded-xl
+                          border
+                          border-slate-200
+                          bg-white
+                          p-1.5
+                          shadow-xl
+                          shadow-slate-900/10
+                        "
+                      >
+                        <button
+                          type="button"
+                          onClick={() => {
+                            openEditModal(member);
+                            setMenuMemberId(null);
+                          }}
+                          className="
+                            flex w-full
+                            items-center gap-2
+                            rounded-lg
+                            px-3 py-2.5
+                            text-left
+                            text-sm font-medium
+                            text-slate-600
+                            transition-colors
+                            hover:bg-slate-50
+                            hover:text-slate-900
+                          "
+                        >
+                          <Edit3 size={16} />
+                          Edit
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setRemovingMember(member);
+                            setMenuMemberId(null);
+                          }}
+                          className="
+                            flex w-full
+                            items-center gap-2
+                            rounded-lg
+                            px-3 py-2.5
+                            text-left
+                            text-sm font-medium
+                            text-red-600
+                            transition-colors
+                            hover:bg-red-50
+                          "
+                        >
+                          <Trash2 size={16} />
+                          Remove
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -488,6 +605,121 @@ function Family() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Remove confirmation dialog */}
+      {removingMember && (
+        <div
+          className="
+            fixed inset-0 z-[60]
+            flex items-center justify-center
+            bg-slate-950/50
+            p-4
+            backdrop-blur-sm
+          "
+          onMouseDown={(event) => {
+            if (
+              event.target === event.currentTarget &&
+              !isRemoving
+            ) {
+              setRemovingMember(null);
+            }
+          }}
+        >
+          <div
+            className="
+              modal-enter
+              w-full max-w-sm
+              rounded-2xl
+              border border-white/20
+              bg-white
+              p-6
+              shadow-2xl
+            "
+          >
+            {/* Warning icon */}
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-red-50">
+              <Trash2
+                size={20}
+                className="text-red-600"
+              />
+            </div>
+
+            <h2 className="mt-5 text-lg font-bold text-slate-900">
+              Remove family member?
+            </h2>
+
+            <p className="mt-2 text-sm leading-6 text-slate-500">
+              Are you sure you want to remove{" "}
+              <span className="font-semibold text-slate-700">
+                {removingMember.name}
+              </span>
+              ? They will no longer appear when
+              adding new transactions.
+            </p>
+
+            {/* Confirmation actions */}
+            <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                disabled={isRemoving}
+                onClick={() =>
+                  setRemovingMember(null)
+                }
+                className="
+                  rounded-xl
+                  border border-slate-200
+                  px-5 py-3
+                  text-sm font-semibold
+                  text-slate-600
+                  transition-all duration-200
+                  hover:bg-slate-50
+                  active:scale-[0.98]
+                  disabled:cursor-not-allowed
+                  disabled:opacity-50
+                "
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                disabled={isRemoving}
+                onClick={handleRemoveMember}
+                className="
+                  inline-flex
+                  items-center
+                  justify-center
+                  gap-2
+                  rounded-xl
+                  bg-red-600
+                  px-5 py-3
+                  text-sm font-semibold
+                  text-white
+                  shadow-lg
+                  shadow-red-600/20
+                  transition-all duration-200
+                  hover:bg-red-700
+                  hover:shadow-xl
+                  active:scale-[0.98]
+                  disabled:cursor-not-allowed
+                  disabled:opacity-60
+                "
+              >
+                {isRemoving && (
+                  <Loader2
+                    size={16}
+                    className="animate-spin"
+                  />
+                )}
+
+                {isRemoving
+                  ? "Removing..."
+                  : "Remove member"}
+              </button>
+            </div>
           </div>
         </div>
       )}

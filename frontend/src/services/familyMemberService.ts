@@ -102,3 +102,34 @@ export async function updateFamilyMember(
 
   return result.data;
 }
+
+export async function deactivateFamilyMember(
+  memberId: number,
+): Promise<FamilyMember> {
+  const response = await fetch(
+    `${API_URL}/family-members/${memberId}`,
+    {
+      method: "DELETE",
+      headers: getAuthHeaders(),
+    },
+  );
+
+  const result: {
+    success: boolean;
+    data?: FamilyMember;
+    message?: string;
+  } = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      result.message ||
+        "Failed to remove family member",
+    );
+  }
+
+  if (!result.data) {
+    throw new Error("Invalid server response");
+  }
+
+  return result.data;
+}
