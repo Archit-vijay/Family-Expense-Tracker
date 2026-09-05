@@ -1,0 +1,385 @@
+# PROJECT_CONTEXT.md
+
+# Family Finance — Project Context
+
+## Purpose
+
+Family Finance is a full-stack application for managing a family's income and expenses.
+
+The project has two goals:
+1. Learn full-stack development by building a real application end to end.
+2. Produce a polished portfolio project with a coherent architecture and professional UI.
+
+The application is intended to grow beyond a basic CRUD expense tracker into a useful family-finance product with budgeting and reporting capabilities.
+
+---
+
+# Current Technology
+
+## Frontend
+
+- React
+- TypeScript
+- Vite
+- Tailwind CSS
+- Lucide React
+- react-router-dom
+
+## Backend
+
+- Node.js
+- Express
+- TypeScript
+- JWT
+- bcrypt
+
+## Database
+
+- PostgreSQL
+- pgAdmin is used during development/testing.
+- Database changes are represented by SQL migration files.
+
+---
+
+# Completed Work
+
+## 1. Project Foundation
+
+The repository and application foundation were created.
+
+The initial meaningful Git milestone was:
+
+`feat: build family finance application foundation`
+
+The foundation includes the frontend/backend separation, TypeScript setup, PostgreSQL integration, authentication foundation, routing, services/types, and the initial application structure.
+
+---
+
+## 2. Authentication
+
+Authentication is implemented using JWT and bcrypt.
+
+Current behavior includes:
+- user authentication,
+- JWT token handling,
+- frontend authentication state,
+- localStorage persistence for token/user state,
+- protected frontend routes.
+
+The application has a `ProtectedRoute` and `AuthContext`.
+
+Unauthenticated direct navigation to `/dashboard` was fixed so protected pages cannot simply be opened without authentication.
+
+The login page is intentionally separate from the dashboard layout and does not display the dashboard sidebar.
+
+---
+
+## 3. Family Management
+
+Family-member management is implemented.
+
+The family feature supports adding/managing family members.
+
+Important business rule:
+
+Family members are deactivated instead of hard-deleted.
+
+The database has:
+
+`is_active BOOLEAN NOT NULL DEFAULT TRUE`
+
+Family-member retrieval only returns active members.
+
+This preserves historical relationships and transaction history.
+
+Meaningful Git milestone:
+
+`feat: add family member management`
+
+---
+
+## 4. Transaction System
+
+The transaction feature is implemented end to end.
+
+### Database
+
+The transactions table contains relationships to:
+- family,
+- family member,
+- category,
+- user who created the transaction.
+
+It also contains:
+- title,
+- amount,
+- type,
+- transaction date,
+- created/updated timestamps.
+
+The database validates:
+- positive amounts,
+- valid transaction types.
+
+Transaction soft deletion was later added with:
+
+`is_deleted BOOLEAN NOT NULL DEFAULT FALSE`
+
+### Backend
+
+Transaction functionality includes:
+- GET transactions
+- POST/create transaction
+- PUT/update transaction
+- DELETE/deactivate transaction
+
+Routes are protected by authentication middleware.
+
+The controller validates transaction input and checks family ownership/relationships.
+
+The service filters out soft-deleted transactions from normal transaction retrieval.
+
+### Frontend
+
+The transaction page supports:
+- viewing transactions,
+- adding transactions,
+- editing transactions,
+- removing transactions,
+- searching,
+- category filtering,
+- income/expense type filtering,
+- summary totals,
+- family-member association,
+- transaction dates.
+
+Transaction data is represented by a `Transaction` TypeScript type with:
+- id
+- title
+- amount
+- type
+- date
+- category
+- categoryId
+- member
+- memberId
+
+The transaction modal supports both add and edit modes.
+
+Transaction date defaults to the current date but can be changed by the user.
+
+Categories are filtered according to transaction type.
+
+---
+
+# UI / UX Work Completed
+
+## Brand Palette
+
+The application was moved toward a new palette:
+
+- Dark blue: `#2A234F`
+- Dark-blue hover: `#1F1A3B`
+- Blush pink: `#FFB3C3`
+- Blush hover: `#FF9FB4`
+- Page background: `#F8F7FB`
+- White cards: `#FFFFFF`
+- Main text: `#2A234F`
+- Secondary text: `#77738A`
+- Borders: `#E8E5EF`
+
+The intended visual balance is approximately:
+- 70% neutral surfaces,
+- 20% dark blue,
+- 10% blush pink.
+
+Emerald remains the semantic color for income/success and rose/red remains the semantic color for destructive actions.
+
+Do not treat the brand palette as a replacement for semantic status colors.
+
+---
+
+## Typography
+
+The chosen font is:
+
+**Plus Jakarta Sans**
+
+It is used as the primary application font.
+
+---
+
+## Login Page
+
+The original split-screen/3D concepts were abandoned.
+
+The current direction is a full-page editorial-style layout using a slow animated linear gradient.
+
+The gradient direction uses the dark-blue/purple/blush palette rather than a hard left/right color split.
+
+The page has:
+- branding,
+- a prominent headline,
+- login form/card,
+- supporting feature/footer content.
+
+A cursor-following glow was tried and rejected.
+
+A circular gradient approach was also rejected.
+
+The design preference is a controlled, normal linear gradient with subtle motion.
+
+---
+
+## Sidebar
+
+The desktop sidebar was redesigned to resemble a modern collapsible application sidebar.
+
+Behavior:
+- expanded: `w-72`
+- collapsed: `w-20`
+- animated width transition,
+- labels disappear when collapsed,
+- icons remain visible,
+- tooltips use the native `title` attribute,
+- user section becomes compact when collapsed,
+- user menu closes when collapsing,
+- the pink `F` logo acts as the expand control when collapsed,
+- expanded state has a collapse control.
+
+Mobile sidebar/header behavior remains separate.
+
+Current sidebar palette uses the dark blue as the dominant surface and blush pink for the brand/logo accent.
+
+---
+
+## Custom Animated Dropdown
+
+A reusable `AnimatedDropdown` component was created.
+
+It provides:
+- custom dropdown UI,
+- outside-click closing,
+- smart positioning,
+- upward placement when there is insufficient space below,
+- scrollable menu,
+- fade/scale/translate animation,
+- selected-option styling.
+
+It is used instead of native selects in relevant transaction UI.
+
+---
+
+## Transaction Item
+
+Transaction list items have:
+- income/expense icons,
+- semantic income/expense colors,
+- category badge,
+- member/date information,
+- amount,
+- animated action menu,
+- edit action,
+- remove action.
+
+The action menu closes when clicking outside.
+
+The transaction item styling has been updated to the new design palette while preserving semantic income/expense colors.
+
+---
+
+## Add/Edit Transaction Modal
+
+The modal supports:
+- add mode,
+- edit mode,
+- validation,
+- title,
+- amount,
+- transaction type,
+- category,
+- family member,
+- date.
+
+Its styling was updated to the new palette.
+
+The modal uses the custom animated dropdown.
+
+The existing validation and API behavior must be preserved during future UI changes.
+
+---
+
+## Transactions Page
+
+The Transactions page styling has been updated to the new palette.
+
+It includes:
+- page header,
+- Add transaction button,
+- transaction summary cards,
+- search,
+- category dropdown,
+- type dropdown,
+- active filter information,
+- transaction list,
+- loading state,
+- error state,
+- empty state,
+- add/edit modal,
+- remove confirmation modal.
+
+The transaction milestone is functionally complete.
+
+The transaction feature has not yet been committed as a final milestone at the point this documentation was created because the UI palette work was being completed around the same time.
+
+---
+
+# Current Routes
+
+The frontend routing currently includes:
+
+- `/login`
+- `/dashboard`
+- `/transactions`
+- `/budgets`
+- `/reports`
+- `/family`
+- `/settings`
+
+Protected application pages use the dashboard layout.
+
+The login page is outside that layout.
+
+Some routes/pages are placeholders or are not yet fully implemented.
+
+---
+
+# Current Development State
+
+The project has completed its:
+- foundation,
+- authentication,
+- family member management,
+- transaction management,
+- initial visual design system refresh.
+
+The next work should follow `ROADMAP.md`.
+
+Do not assume that a route existing means its functionality is complete.
+
+---
+
+# Important Development Philosophy
+
+This project is being built deliberately rather than by blindly generating an entire application.
+
+When implementing a feature:
+- understand the existing code,
+- make architectural decisions explicit,
+- build backend/database functionality before depending on it in the UI where appropriate,
+- keep business rules consistent,
+- test important behavior,
+- maintain a clean Git history,
+- update project documentation after meaningful milestones.
+
+The goal is not simply to make the application work; it should also demonstrate that the developer understands why the system is designed the way it is.
