@@ -16,20 +16,20 @@ function Dashboard() {
       <section className="mb-8 fade-up">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div>
-            <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-violet-600">
+            <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-[#77738a]">
               Financial overview
             </p>
 
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+            <h1 className="text-3xl font-bold tracking-tight text-[#2a234f] sm:text-4xl">
               Good evening 👋
             </h1>
 
-            <p className="mt-2 max-w-xl text-sm leading-6 text-slate-500 sm:text-base">
+            <p className="mt-2 max-w-xl text-sm leading-6 text-[#77738a] sm:text-base">
               Here's what's happening with your family's finances.
             </p>
           </div>
 
-          <div className="cursor-pointer rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-violet-200 hover:bg-violet-50/50 hover:text-violet-700 hover:shadow-md active:translate-y-0">
+          <div className="cursor-pointer rounded-xl border border-[#e8e5ef] bg-white px-4 py-2.5 text-sm font-medium text-[#77738a] shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[#ffb3c3] hover:bg-[#f8f7fb] hover:text-[#2a234f] hover:shadow-md active:translate-y-0">
             August 2026
           </div>
         </div>

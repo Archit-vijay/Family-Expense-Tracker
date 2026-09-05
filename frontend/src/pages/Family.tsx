@@ -4,7 +4,6 @@ import {
   Loader2,
   Plus,
   Trash2,
-  Users,
   X,
   MoreVertical,
 } from "lucide-react";
@@ -16,6 +15,7 @@ import {
   deactivateFamilyMember,
   type FamilyMember,
 } from "../services/familyMemberService";
+import ContentState from "../components/ContentState";
 
 function Family() {
   const [members, setMembers] = useState<FamilyMember[]>([]);
@@ -190,15 +190,15 @@ function Family() {
       <section className="mb-8">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div>
-            <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-violet-600">
+            <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-[#77738a]">
               Family
             </p>
 
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+            <h1 className="text-3xl font-bold tracking-tight text-[#2a234f] sm:text-4xl">
               Family members
             </h1>
 
-            <p className="mt-2 max-w-xl text-sm leading-6 text-slate-500 sm:text-base">
+            <p className="mt-2 max-w-xl text-sm leading-6 text-[#77738a] sm:text-base">
               Manage the people in your family and
               keep track of who makes each
               transaction.
@@ -210,14 +210,14 @@ function Family() {
             onClick={openAddModal}
             className="
               inline-flex items-center justify-center gap-2
-              rounded-xl bg-slate-900
+              rounded-xl bg-[#2a234f]
               px-4 py-3
               text-sm font-semibold text-white
-              shadow-lg shadow-slate-900/10
+              shadow-lg shadow-[#2a234f]/10
               transition-all duration-200
               hover:-translate-y-0.5
-              hover:bg-violet-600
-              hover:shadow-xl hover:shadow-violet-500/20
+              hover:bg-[#1f1a3b]
+              hover:shadow-xl hover:shadow-[#2a234f]/20
               active:translate-y-0
               active:scale-[0.98]
             "
@@ -228,21 +228,14 @@ function Family() {
         </div>
       </section>
 
-      {/* Error */}
-      {error && (
-        <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-          {error}
-        </div>
-      )}
-
       {/* Members */}
-      <section className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6">
+      <section className="rounded-2xl border border-[#e8e5ef] bg-white p-5 shadow-sm sm:p-6">
         <div className="mb-5">
-          <h2 className="text-base font-bold text-slate-900">
+          <h2 className="text-base font-bold text-[#2a234f]">
             Your family
           </h2>
 
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-[#77738a]">
             {members.length}{" "}
             {members.length === 1
               ? "member"
@@ -250,56 +243,41 @@ function Family() {
           </p>
         </div>
 
-        {/* Loading */}
-        {isLoading && (
-          <div className="flex items-center justify-center py-12">
-            <Loader2
-              size={28}
-              className="animate-spin text-violet-600"
-            />
-          </div>
-        )}
-
-        {/* Empty state */}
-        {!isLoading &&
-          !error &&
-          members.length === 0 && (
-            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50 py-12 text-center">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-violet-50">
-                <Users
-                  size={22}
-                  className="text-violet-600"
-                />
-              </div>
-
-              <h3 className="text-sm font-semibold text-slate-900">
-                No family members yet
-              </h3>
-
-              <p className="mt-1 max-w-sm text-xs text-slate-500">
-                Add a family member to start
-                assigning transactions to them.
-              </p>
-            </div>
-          )}
+        {isLoading ? (
+          <ContentState
+            variant="loading"
+            title="Loading family members"
+            description="Getting your household ready."
+          />
+        ) : error ? (
+          <ContentState
+            variant="error"
+            title="Unable to load family members"
+            description={error}
+          />
+        ) : members.length === 0 ? (
+          <ContentState
+            variant="empty"
+            title="No family members yet"
+            description="Add a family member to start assigning transactions to them."
+          />
+        ) : null}
 
         {/* Member list */}
-        {!isLoading &&
-          !error &&
-          members.length > 0 && (
+        {!isLoading && !error && members.length > 0 && (
             <div className="grid gap-3 sm:grid-cols-2">
               {members.map((member) => (
                 <div
                   key={member.id}
                   className="
                     group flex items-center gap-4
-                    rounded-xl border border-slate-200
+                    rounded-xl border border-[#e8e5ef]
                     bg-white p-4
                     transition-all duration-200
                     hover:-translate-y-0.5
-                    hover:border-violet-200
+                    hover:border-[#ffb3c3]
                     hover:shadow-md
-                    hover:shadow-slate-900/5
+                    hover:shadow-[#2a234f]/5
                   "
                 >
                   {/* Avatar */}
@@ -307,8 +285,8 @@ function Family() {
                     className="
                       flex h-11 w-11 shrink-0
                       items-center justify-center
-                      rounded-full bg-violet-50
-                      text-sm font-bold text-violet-600
+                      rounded-full bg-[#ffb3c3]/20
+                      text-sm font-bold text-[#2a234f]
                     "
                   >
                     {member.name
@@ -318,11 +296,11 @@ function Family() {
 
                   {/* Details */}
                   <div className="min-w-0 flex-1">
-                    <h3 className="truncate text-sm font-semibold text-slate-900">
+                    <h3 className="truncate text-sm font-semibold text-[#2a234f]">
                       {member.name}
                     </h3>
 
-                    <p className="mt-0.5 text-xs text-slate-500">
+                    <p className="mt-0.5 text-xs text-[#77738a]">
                       Family member
                     </p>
                   </div>
@@ -341,11 +319,11 @@ function Family() {
                       className="
                         rounded-lg
                         p-2
-                        text-slate-400
+                        text-[#9a96a8]
                         transition-all
                         duration-200
-                        hover:bg-slate-100
-                        hover:text-slate-700
+                        hover:bg-[#f8f7fb]
+                        hover:text-[#2a234f]
                         active:scale-95
                       "
                       aria-label={`Actions for ${member.name}`}
@@ -367,11 +345,11 @@ function Family() {
                           animate-[dropdown-in_150ms_ease-out]
                           rounded-xl
                           border
-                          border-slate-200
+                          border-[#e8e5ef]
                           bg-white
                           p-1.5
                           shadow-xl
-                          shadow-slate-900/10
+                          shadow-[#2a234f]/10
                         "
                       >
                         <button
@@ -387,10 +365,10 @@ function Family() {
                             px-3 py-2.5
                             text-left
                             text-sm font-medium
-                            text-slate-600
+                            text-[#77738a]
                             transition-colors
-                            hover:bg-slate-50
-                            hover:text-slate-900
+                            hover:bg-[#f8f7fb]
+                            hover:text-[#2a234f]
                           "
                         >
                           <Edit3 size={16} />
@@ -433,7 +411,7 @@ function Family() {
           className="
             fixed inset-0 z-50
             flex items-center justify-center
-            bg-slate-950/50
+            bg-[#2a234f]/50
             p-4
             backdrop-blur-sm
           "
@@ -455,15 +433,15 @@ function Family() {
             "
           >
             {/* Modal header */}
-            <div className="flex items-start justify-between border-b border-slate-100 px-5 py-5 sm:px-6">
+            <div className="flex items-start justify-between border-b border-[#e8e5ef] px-5 py-5 sm:px-6">
               <div>
-                <h2 className="text-lg font-bold text-slate-900">
+                <h2 className="text-lg font-bold text-[#2a234f]">
                   {editingMember
                     ? "Edit family member"
                     : "Add family member"}
                 </h2>
 
-                <p className="mt-1 text-xs text-slate-500">
+                <p className="mt-1 text-xs text-[#77738a]">
                   {editingMember
                     ? "Update this family member's name."
                     : "Add someone to your family."}
@@ -476,10 +454,10 @@ function Family() {
                 disabled={isAdding}
                 className="
                   rounded-xl p-2
-                  text-slate-400
+                  text-[#9a96a8]
                   transition-all duration-200
-                  hover:bg-slate-100
-                  hover:text-slate-700
+                  hover:bg-[#f8f7fb]
+                  hover:text-[#2a234f]
                   active:scale-95
                   disabled:cursor-not-allowed
                   disabled:opacity-50
@@ -503,7 +481,7 @@ function Family() {
               <div>
                 <label
                   htmlFor="memberName"
-                  className="mb-2 block text-xs font-semibold text-slate-600"
+                  className="mb-2 block text-xs font-semibold text-[#77738a]"
                 >
                   Member name
                 </label>
@@ -523,17 +501,17 @@ function Family() {
                   className="
                     h-11 w-full
                     rounded-xl
-                    border border-slate-200
-                    bg-slate-50
+                    border border-[#e8e5ef]
+                    bg-[#f8f7fb]
                     px-4
-                    text-sm text-slate-700
+                    text-sm text-[#2a234f]
                     outline-none
                     transition-all duration-200
-                    placeholder:text-slate-400
-                    focus:border-violet-400
+                    placeholder:text-[#9a96a8]
+                    focus:border-[#ffb3c3]
                     focus:bg-white
                     focus:ring-4
-                    focus:ring-violet-500/10
+                    focus:ring-[#ffb3c3]/20
                     disabled:cursor-not-allowed
                     disabled:opacity-60
                   "
@@ -548,12 +526,12 @@ function Family() {
                   disabled={isAdding}
                   className="
                     rounded-xl
-                    border border-slate-200
+                    border border-[#e8e5ef]
                     px-5 py-3
                     text-sm font-semibold
-                    text-slate-600
+                    text-[#77738a]
                     transition-all duration-200
-                    hover:bg-slate-50
+                    hover:bg-[#f8f7fb]
                     active:scale-[0.98]
                     disabled:cursor-not-allowed
                     disabled:opacity-50
@@ -571,17 +549,17 @@ function Family() {
                     justify-center
                     gap-2
                     rounded-xl
-                    bg-slate-900
+                    bg-[#2a234f]
                     px-5 py-3
                     text-sm font-semibold
                     text-white
                     shadow-lg
-                    shadow-slate-900/10
+                    shadow-[#2a234f]/10
                     transition-all duration-200
                     hover:-translate-y-0.5
-                    hover:bg-violet-600
+                    hover:bg-[#1f1a3b]
                     hover:shadow-xl
-                    hover:shadow-violet-500/20
+                    hover:shadow-[#2a234f]/20
                     active:translate-y-0
                     active:scale-[0.98]
                     disabled:cursor-not-allowed
@@ -615,7 +593,7 @@ function Family() {
           className="
             fixed inset-0 z-[60]
             flex items-center justify-center
-            bg-slate-950/50
+            bg-[#2a234f]/50
             p-4
             backdrop-blur-sm
           "
@@ -647,13 +625,13 @@ function Family() {
               />
             </div>
 
-            <h2 className="mt-5 text-lg font-bold text-slate-900">
+            <h2 className="mt-5 text-lg font-bold text-[#2a234f]">
               Remove family member?
             </h2>
 
-            <p className="mt-2 text-sm leading-6 text-slate-500">
+            <p className="mt-2 text-sm leading-6 text-[#77738a]">
               Are you sure you want to remove{" "}
-              <span className="font-semibold text-slate-700">
+              <span className="font-semibold text-[#2a234f]">
                 {removingMember.name}
               </span>
               ? They will no longer appear when
@@ -670,12 +648,12 @@ function Family() {
                 }
                 className="
                   rounded-xl
-                  border border-slate-200
+                  border border-[#e8e5ef]
                   px-5 py-3
                   text-sm font-semibold
-                  text-slate-600
+                  text-[#77738a]
                   transition-all duration-200
-                  hover:bg-slate-50
+                  hover:bg-[#f8f7fb]
                   active:scale-[0.98]
                   disabled:cursor-not-allowed
                   disabled:opacity-50

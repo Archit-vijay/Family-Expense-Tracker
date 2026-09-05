@@ -18,7 +18,9 @@ interface TransactionApiResponse {
     amount: string;
     type: "income" | "expense";
     transaction_date: string;
+    category_id: number;
     category: string;
+    member_id: number;
     member_name: string;
   }[];
 }
@@ -32,7 +34,8 @@ export async function getTransactions(): Promise<Transaction[]> {
     throw new Error("Failed to fetch transactions");
   }
 
-  const result: TransactionApiResponse = await response.json();
+  const result: TransactionApiResponse =
+    await response.json();
 
   return result.data.map((transaction) => ({
     id: transaction.id,
@@ -40,7 +43,9 @@ export async function getTransactions(): Promise<Transaction[]> {
     amount: Number(transaction.amount),
     type: transaction.type,
     date: transaction.transaction_date,
+    categoryId: transaction.category_id,
     category: transaction.category,
+    memberId: transaction.member_id,
     member: transaction.member_name,
   }));
 }
@@ -73,6 +78,63 @@ export async function createTransaction(
 
     throw new Error(
       result.message || "Failed to create transaction",
+    );
+  }
+}
+
+export interface UpdateTransactionInput {
+  memberId: number;
+  categoryId: number;
+  title: string;
+  amount: number;
+  type: "income" | "expense";
+  transactionDate: string;
+}
+
+export async function updateTransaction(
+  transactionId: number,
+  transaction: UpdateTransactionInput,
+): Promise<void> {
+  const response = await fetch(
+    `${API_URL}/transactions/${transactionId}`,
+    {
+      method: "PUT",
+
+      headers: {
+        "Content-Type": "application/json",
+        ...getAuthHeaders(),
+      },
+
+      body: JSON.stringify(transaction),
+    },
+  );
+
+  if (!response.ok) {
+    const result = await response.json();
+
+    throw new Error(
+      result.message || "Failed to update transaction",
+    );
+  }
+}
+
+export async function deactivateTransaction(
+  transactionId: number,
+): Promise<void> {
+  const response = await fetch(
+    `${API_URL}/transactions/${transactionId}`,
+    {
+      method: "DELETE",
+
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (!response.ok) {
+    const result = await response.json();
+
+    throw new Error(
+      result.message || "Failed to remove transaction",
     );
   }
 }

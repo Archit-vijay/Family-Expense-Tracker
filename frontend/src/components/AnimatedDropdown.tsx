@@ -94,15 +94,12 @@ function AnimatedDropdown({
 
       const spaceAbove = trigger.top;
 
-      // Open upward when there isn't enough
-      // room below and there is more room above.
       setOpenUpward(
         spaceBelow < menuHeight + 16 &&
           spaceAbove > spaceBelow,
       );
     }
 
-    // Wait for the menu to be rendered.
     requestAnimationFrame(determinePosition);
 
     window.addEventListener(
@@ -158,22 +155,25 @@ function AnimatedDropdown({
           border
           px-4
           text-sm
+          font-medium
           outline-none
-          transition-all duration-200
+          transition-all
+          duration-200
+
           ${
             isOpen
               ? `
-                border-violet-400
+                border-[#ffb3c3]
                 bg-white
-                text-slate-700
+                text-[#2a234f]
                 ring-4
-                ring-violet-500/10
+                ring-[#ffb3c3]/20
               `
               : `
-                border-slate-200
-                bg-slate-50
-                text-slate-600
-                hover:border-slate-300
+                border-[#e8e5ef]
+                bg-[#f8f7fb]
+                text-[#77738a]
+                hover:border-[#d9d5e3]
                 hover:bg-white
               `
           }
@@ -188,12 +188,13 @@ function AnimatedDropdown({
           strokeWidth={2}
           className={`
             shrink-0
-            text-slate-400
+            text-[#9a96a8]
             transition-all
             duration-200
+
             ${
               isOpen
-                ? "rotate-180 text-violet-500"
+                ? "rotate-180 text-[#2a234f]"
                 : ""
             }
           `}
@@ -225,11 +226,13 @@ function AnimatedDropdown({
               : `
                 pointer-events-none
                 invisible
+
                 ${
                   openUpward
                     ? "translate-y-1"
                     : "-translate-y-1"
                 }
+
                 scale-[0.98]
                 opacity-0
               `
@@ -241,10 +244,10 @@ function AnimatedDropdown({
             overflow-hidden
             rounded-xl
             border
-            border-slate-200
+            border-[#e8e5ef]
             bg-white
             shadow-xl
-            shadow-slate-900/10
+            shadow-[#2a234f]/10
           "
         >
           <div
@@ -284,14 +287,15 @@ function AnimatedDropdown({
                     ${
                       isSelected
                         ? `
-                          bg-violet-50
+                          bg-[#ffb3c3]/20
                           font-semibold
-                          text-violet-600
+                          text-[#2a234f]
                         `
                         : `
-                          text-slate-600
-                          hover:bg-slate-50
-                          hover:text-slate-900
+                          font-medium
+                          text-[#77738a]
+                          hover:bg-[#f8f7fb]
+                          hover:text-[#2a234f]
                         `
                     }
                   `}
@@ -307,7 +311,7 @@ function AnimatedDropdown({
                       className="
                         ml-3
                         shrink-0
-                        text-violet-600
+                        text-[#2a234f]
                       "
                     />
                   )}

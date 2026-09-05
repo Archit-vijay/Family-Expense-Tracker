@@ -135,7 +135,7 @@ Transaction functionality includes:
 
 Routes are protected by authentication middleware.
 
-The controller validates transaction input and checks family ownership/relationships.
+The controller validates transaction input and scopes transaction retrieval, updates, and soft removal to the authenticated user's family.
 
 The service filters out soft-deleted transactions from normal transaction retrieval.
 
@@ -176,7 +176,7 @@ Categories are filtered according to transaction type.
 
 ## Brand Palette
 
-The application was moved toward a new palette:
+The dark-blue/blush-pink palette has been applied across the current application UI:
 
 - Dark blue: `#2A234F`
 - Dark-blue hover: `#1F1A3B`
@@ -196,6 +196,10 @@ The intended visual balance is approximately:
 Emerald remains the semantic color for income/success and rose/red remains the semantic color for destructive actions.
 
 Do not treat the brand palette as a replacement for semantic status colors.
+
+The palette refresh now covers global surfaces, the login page, desktop and mobile navigation, the dashboard and its chart components, transaction UI, family management, and the current budget/report/settings placeholder pages. Chart surfaces and interactive states use the same palette; data/status colors remain semantic where applicable.
+
+Shared loading, empty, and error-state presentation is now used across the data-backed family and transaction pages, and the current placeholder pages use the same empty-state treatment. Mobile navigation is available through a dedicated drawer, while the desktop sidebar retains its collapsible behavior.
 
 ---
 
@@ -249,6 +253,8 @@ Behavior:
 
 Mobile sidebar/header behavior remains separate.
 
+On mobile, the header provides a dedicated navigation drawer containing the same primary routes as the desktop sidebar.
+
 Current sidebar palette uses the dark blue as the dominant surface and blush pink for the brand/logo accent.
 
 ---
@@ -267,6 +273,14 @@ It provides:
 - selected-option styling.
 
 It is used instead of native selects in relevant transaction UI.
+
+---
+
+## Shared Content States
+
+The reusable `ContentState` component provides consistent loading, empty, and error presentation.
+
+It is used by the Family and Transactions pages and supplies the current placeholder states for Budgets, Reports, and Settings. New asynchronous pages should use the same treatment unless they have a documented reason to differ.
 
 ---
 
@@ -361,7 +375,9 @@ The project has completed its:
 - authentication,
 - family member management,
 - transaction management,
-- initial visual design system refresh.
+- visual design system and color-palette refresh.
+
+Phase 5 (Design System & UI Polish) is complete. The next roadmap milestone is the dashboard, which should replace its current static presentation with purposeful, live family-finance information.
 
 The next work should follow `ROADMAP.md`.
 

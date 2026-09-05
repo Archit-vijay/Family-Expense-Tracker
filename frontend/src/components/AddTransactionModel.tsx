@@ -1,12 +1,16 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
 import { X } from "lucide-react";
 
 import AnimatedDropdown from "./AnimatedDropdown";
+
 import type { TransactionType } from "../types/Transaction";
+import type { Transaction } from "../types/Transaction";
+
 import type { Category } from "../services/categoryService";
 import type { FamilyMember } from "../services/familyMemberService";
 
-interface AddTransactionFormData {
+interface TransactionFormData {
   title: string;
   amount: number;
   categoryId: number;
@@ -17,7 +21,18 @@ interface AddTransactionFormData {
 
 interface AddTransactionModalProps {
   onClose: () => void;
-  onAdd: (transaction: AddTransactionFormData) => void;
+
+  onAdd: (
+    transaction: TransactionFormData,
+  ) => void | Promise<void>;
+
+  onEdit?: (
+    transactionId: number,
+    transaction: TransactionFormData,
+  ) => void | Promise<void>;
+
+  transaction?: Transaction | null;
+
   categories: Category[];
   members: FamilyMember[];
 }
@@ -26,9 +41,11 @@ function getTodayDate() {
   const today = new Date();
 
   const year = today.getFullYear();
+
   const month = String(
     today.getMonth() + 1,
   ).padStart(2, "0");
+
   const day = String(
     today.getDate(),
   ).padStart(2, "0");
@@ -39,78 +56,170 @@ function getTodayDate() {
 function AddTransactionModal({
   onClose,
   onAdd,
+  onEdit,
+  transaction,
   categories,
   members,
 }: AddTransactionModalProps) {
-  const [title, setTitle] = useState("");
-  const [amount, setAmount] = useState("");
-  const [category, setCategory] = useState("");
-  const [type, setType] =
-    useState<TransactionType>("expense");
-  const [member, setMember] = useState("");
-  const [date, setDate] = useState(getTodayDate());
-  const [error, setError] = useState("");
-  const filteredCategories = categories.filter(
-    (category) => category.type === type,
+  const isEditMode = Boolean(transaction);
+
+  const [title, setTitle] = useState(
+    transaction?.title ?? "",
   );
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  const [amount, setAmount] = useState(
+    transaction
+      ? String(transaction.amount)
+      : "",
+  );
+
+  const [category, setCategory] = useState(
+    transaction
+      ? String(transaction.categoryId)
+      : "",
+  );
+
+  const [type, setType] =
+    useState<TransactionType>(
+      transaction?.type ?? "expense",
+    );
+
+  const [member, setMember] = useState(
+    transaction
+      ? String(transaction.memberId)
+      : "",
+  );
+
+  const [date, setDate] = useState(
+    transaction?.date ?? getTodayDate(),
+  );
+
+  const [error, setError] = useState("");
+
+  const filteredCategories =
+    categories.filter(
+      (item) => item.type === type,
+    );
+
+  useEffect(() => {
+    if (transaction) {
+      setTitle(transaction.title);
+      setAmount(String(transaction.amount));
+      setCategory(String(transaction.categoryId));
+      setType(transaction.type);
+      setMember(String(transaction.memberId));
+      setDate(transaction.date);
+    } else {
+      setTitle("");
+      setAmount("");
+      setCategory("");
+      setType("expense");
+      setMember("");
+      setDate(getTodayDate());
+    }
+
+    setError("");
+  }, [transaction]);
+
+  function handleSubmit(
+    event: React.FormEvent<HTMLFormElement>,
+  ) {
     event.preventDefault();
+
+    setError("");
 
     const numericAmount = Number(amount);
 
     if (!title.trim()) {
-      setError("Please enter a transaction title.");
+      setError(
+        "Please enter a transaction title.",
+      );
       return;
     }
 
     if (!amount || numericAmount <= 0) {
-      setError("Please enter a valid amount.");
+      setError(
+        "Please enter a valid amount.",
+      );
       return;
     }
 
     if (!category) {
-      setError("Please select a category.");
+      setError(
+        "Please select a category.",
+      );
       return;
     }
 
     if (!member) {
-    setError("Please select a family member.");
-    return;
+      setError(
+        "Please select a family member.",
+      );
+      return;
     }
 
-    const newTransaction = {
+    const transactionData = {
       title: title.trim(),
-      categoryId: Number(category),
       amount: numericAmount,
+      categoryId: Number(category),
       type,
-      date,
       memberId: Number(member),
+      date,
     };
 
-    onAdd(newTransaction);
-    onClose();
+    if (isEditMode && transaction && onEdit) {
+      onEdit(
+        transaction.id,
+        transactionData,
+      );
+    } else {
+      onAdd(transactionData);
+    }
   }
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm"
+      className="
+        fixed inset-0 z-50
+        flex items-center justify-center
+        bg-[#2a234f]/50
+        p-4
+        backdrop-blur-sm
+      "
       onMouseDown={(event) => {
-        if (event.target === event.currentTarget) {
+        if (
+          event.target ===
+          event.currentTarget
+        ) {
           onClose();
         }
       }}
     >
-      <div className="modal-enter w-full max-w-lg overflow-visible rounded-2xl border border-white/20 bg-white shadow-2xl">
+      <div
+        className="
+          modal-enter
+          w-full max-w-lg
+          overflow-visible
+          rounded-2xl
+          border border-[#e8e5ef]
+          bg-white
+          shadow-2xl
+          shadow-[#2a234f]/20
+        "
+      >
         {/* Header */}
-        <div className="flex items-start justify-between border-b border-slate-100 px-5 py-5 sm:px-6">
+        <div className="flex items-start justify-between border-b border-[#e8e5ef] px-5 py-5 sm:px-6">
           <div>
-            <h2 className="text-lg font-bold text-slate-900">
-              Add transaction
+            <h2 className="text-lg font-bold text-[#2a234f]">
+              {isEditMode
+                ? "Edit transaction"
+                : "Add transaction"}
             </h2>
 
-            <p className="mt-1 text-xs text-slate-500">
-              Add an income or expense for your family.
+            <p className="mt-1 text-xs text-[#77738a]">
+              {isEditMode
+                ? "Update the details of this transaction."
+                : "Add an income or expense for your family."}
             </p>
           </div>
 
@@ -118,10 +227,11 @@ function AddTransactionModal({
             type="button"
             onClick={onClose}
             className="
-              rounded-xl p-2 text-slate-400
+              rounded-xl p-2
+              text-[#9a96a8]
               transition-all duration-200
-              hover:bg-slate-100
-              hover:text-slate-700
+              hover:bg-[#f8f7fb]
+              hover:text-[#2a234f]
               active:scale-95
             "
           >
@@ -130,7 +240,10 @@ function AddTransactionModal({
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-5 sm:p-6">
+        <form
+          onSubmit={handleSubmit}
+          className="p-5 sm:p-6"
+        >
           {error && (
             <div className="mb-5 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-600">
               {error}
@@ -139,7 +252,7 @@ function AddTransactionModal({
 
           {/* Type */}
           <div className="mb-5">
-            <label className="mb-2 block text-xs font-semibold text-slate-600">
+            <label className="mb-2 block text-xs font-semibold text-[#77738a]">
               Transaction type
             </label>
 
@@ -151,12 +264,14 @@ function AddTransactionModal({
                   setCategory("");
                 }}
                 className={`
-                  rounded-xl border px-4 py-3 text-sm font-semibold
+                  rounded-xl border px-4 py-3
+                  text-sm font-semibold
                   transition-all duration-200
+
                   ${
                     type === "expense"
                       ? "border-rose-300 bg-rose-50 text-rose-600 shadow-sm"
-                      : "border-slate-200 bg-white text-slate-500 hover:bg-slate-50"
+                      : "border-[#e8e5ef] bg-[#f8f7fb] text-[#77738a] hover:bg-white hover:text-[#2a234f]"
                   }
                 `}
               >
@@ -170,12 +285,14 @@ function AddTransactionModal({
                   setCategory("");
                 }}
                 className={`
-                  rounded-xl border px-4 py-3 text-sm font-semibold
+                  rounded-xl border px-4 py-3
+                  text-sm font-semibold
                   transition-all duration-200
+
                   ${
                     type === "income"
                       ? "border-emerald-300 bg-emerald-50 text-emerald-600 shadow-sm"
-                      : "border-slate-200 bg-white text-slate-500 hover:bg-slate-50"
+                      : "border-[#e8e5ef] bg-[#f8f7fb] text-[#77738a] hover:bg-white hover:text-[#2a234f]"
                   }
                 `}
               >
@@ -188,13 +305,13 @@ function AddTransactionModal({
           <div className="mb-5">
             <label
               htmlFor="amount"
-              className="mb-2 block text-xs font-semibold text-slate-600"
+              className="mb-2 block text-xs font-semibold text-[#77738a]"
             >
               Amount
             </label>
 
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-semibold text-slate-400">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg font-semibold text-[#9a96a8]">
                 ₹
               </span>
 
@@ -205,22 +322,26 @@ function AddTransactionModal({
                 step="0.01"
                 value={amount}
                 onChange={(event) =>
-                  setAmount(event.target.value)
+                  setAmount(
+                    event.target.value,
+                  )
                 }
                 placeholder="0.00"
                 className="
-                  h-12 w-full rounded-xl
-                  border border-slate-200
-                  bg-slate-50
+                  h-12 w-full
+                  rounded-xl
+                  border border-[#e8e5ef]
+                  bg-[#f8f7fb]
                   pl-10 pr-4
-                  text-lg font-semibold text-slate-900
+                  text-lg font-semibold
+                  text-[#2a234f]
                   outline-none
                   transition-all duration-200
-                  placeholder:text-slate-300
-                  focus:border-violet-400
+                  placeholder:text-[#b5b1bf]
+                  focus:border-[#ffb3c3]
                   focus:bg-white
                   focus:ring-4
-                  focus:ring-violet-500/10
+                  focus:ring-[#ffb3c3]/20
                 "
               />
             </div>
@@ -230,7 +351,7 @@ function AddTransactionModal({
           <div className="mb-5">
             <label
               htmlFor="title"
-              className="mb-2 block text-xs font-semibold text-slate-600"
+              className="mb-2 block text-xs font-semibold text-[#77738a]"
             >
               Description
             </label>
@@ -244,18 +365,19 @@ function AddTransactionModal({
               }
               placeholder="e.g. Groceries"
               className="
-                h-11 w-full rounded-xl
-                border border-slate-200
-                bg-slate-50
+                h-11 w-full
+                rounded-xl
+                border border-[#e8e5ef]
+                bg-[#f8f7fb]
                 px-4
-                text-sm text-slate-900
+                text-sm text-[#2a234f]
                 outline-none
                 transition-all duration-200
-                placeholder:text-slate-400
-                focus:border-violet-400
+                placeholder:text-[#9a96a8]
+                focus:border-[#ffb3c3]
                 focus:bg-white
                 focus:ring-4
-                focus:ring-violet-500/10
+                focus:ring-[#ffb3c3]/20
               "
             />
           </div>
@@ -263,51 +385,49 @@ function AddTransactionModal({
           {/* Category + Member */}
           <div className="mb-5 grid gap-4 sm:grid-cols-2">
             <div>
-              <label
-                htmlFor="category"
-                className="mb-2 block text-xs font-semibold text-slate-600"
-              >
+              <label className="mb-2 block text-xs font-semibold text-[#77738a]">
                 Category
               </label>
 
               <AnimatedDropdown
-  value={category}
-  onChange={setCategory}
-  options={[
-    {
-      value: "",
-      label: "Select category",
-    },
-    ...filteredCategories.map((item) => ({
-      value: String(item.id),
-      label: item.name,
-    })),
-  ]}
-/>
+                value={category}
+                onChange={setCategory}
+                options={[
+                  {
+                    value: "",
+                    label: "Select category",
+                  },
+                  ...filteredCategories.map(
+                    (item) => ({
+                      value: String(item.id),
+                      label: item.name,
+                    }),
+                  ),
+                ]}
+              />
             </div>
 
             <div>
-              <label
-                htmlFor="member"
-                className="mb-2 block text-xs font-semibold text-slate-600"
-              >
+              <label className="mb-2 block text-xs font-semibold text-[#77738a]">
                 Family member
               </label>
 
               <AnimatedDropdown
-  value={member}
-  onChange={setMember}
-  options={[
-    {
-      value: "",
-      label: "Select member",
-    },
-    ...members.map((item) => ({
-      value: String(item.id),
-      label: item.name,
-    })),
-  ]}
-/>
+                value={member}
+                onChange={setMember}
+                options={[
+                  {
+                    value: "",
+                    label: "Select member",
+                  },
+                  ...members.map(
+                    (item) => ({
+                      value: String(item.id),
+                      label: item.name,
+                    }),
+                  ),
+                ]}
+              />
             </div>
           </div>
 
@@ -315,7 +435,7 @@ function AddTransactionModal({
           <div className="mb-6">
             <label
               htmlFor="date"
-              className="mb-2 block text-xs font-semibold text-slate-600"
+              className="mb-2 block text-xs font-semibold text-[#77738a]"
             >
               Date
             </label>
@@ -328,17 +448,18 @@ function AddTransactionModal({
                 setDate(event.target.value)
               }
               className="
-                h-11 w-full rounded-xl
-                border border-slate-200
-                bg-slate-50
+                h-11 w-full
+                rounded-xl
+                border border-[#e8e5ef]
+                bg-[#f8f7fb]
                 px-4
-                text-sm text-slate-600
+                text-sm text-[#77738a]
                 outline-none
                 transition-all duration-200
-                focus:border-violet-400
+                focus:border-[#ffb3c3]
                 focus:bg-white
                 focus:ring-4
-                focus:ring-violet-500/10
+                focus:ring-[#ffb3c3]/20
               "
             />
           </div>
@@ -349,11 +470,14 @@ function AddTransactionModal({
               type="button"
               onClick={onClose}
               className="
-                rounded-xl border border-slate-200
+                rounded-xl
+                border border-[#e8e5ef]
                 px-5 py-3
-                text-sm font-semibold text-slate-600
+                text-sm font-semibold
+                text-[#77738a]
                 transition-all duration-200
-                hover:bg-slate-50
+                hover:bg-[#f8f7fb]
+                hover:text-[#2a234f]
                 active:scale-[0.98]
               "
             >
@@ -364,19 +488,24 @@ function AddTransactionModal({
               type="submit"
               className="
                 rounded-xl
-                bg-slate-900
+                bg-[#2a234f]
                 px-5 py-3
-                text-sm font-semibold text-white
-                shadow-lg shadow-slate-900/10
+                text-sm font-semibold
+                text-white
+                shadow-lg
+                shadow-[#2a234f]/15
                 transition-all duration-200
                 hover:-translate-y-0.5
-                hover:bg-violet-600
-                hover:shadow-xl hover:shadow-violet-500/20
+                hover:bg-[#1f1a3b]
+                hover:shadow-xl
+                hover:shadow-[#2a234f]/20
                 active:translate-y-0
                 active:scale-[0.98]
               "
             >
-              Add transaction
+              {isEditMode
+                ? "Save changes"
+                : "Add transaction"}
             </button>
           </div>
         </form>

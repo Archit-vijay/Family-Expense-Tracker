@@ -37,23 +37,23 @@ const categoryData: Categoryspending[] = [
 ];
 
 const categoryColors = [
-  "#8b5cf6",
-  "#6366f1",
+  "#2a234f",
+  "#ffb3c3",
   "#14b8a6",
   "#f59e0b",
-  "#94a3b8",
+  "#9a96a8",
 ];
 
 function CategorySpending() {
   return (
-    <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition-shadow duration-300 hover:shadow-md sm:p-6">
+    <div className="rounded-2xl border border-[#e8e5ef] bg-white p-5 shadow-sm transition-shadow duration-300 hover:shadow-md sm:p-6">
       {/* Header */}
       <div className="mb-4">
-        <p className="text-sm font-semibold text-slate-900">
+        <p className="text-sm font-semibold text-[#2a234f]">
           Spending by Category
         </p>
 
-        <p className="mt-1 text-xs text-slate-500 sm:text-sm">
+        <p className="mt-1 text-xs text-[#77738a] sm:text-sm">
           Where your money is going
         </p>
       </div>
@@ -94,9 +94,9 @@ function CategorySpending() {
               ]}
               contentStyle={{
                 borderRadius: "12px",
-                border: "1px solid #e2e8f0",
+                border: "1px solid #e8e5ef",
                 boxShadow:
-                  "0 10px 30px rgba(15, 23, 42, 0.1)",
+                  "0 10px 30px rgba(42, 35, 79, 0.1)",
               }}
             />
           </PieChart>
@@ -104,11 +104,11 @@ function CategorySpending() {
 
         {/* Center text */}
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-          <p className="text-xl font-bold text-slate-900">
+          <p className="text-xl font-bold text-[#2a234f]">
             ₹41.2k
           </p>
 
-          <p className="text-[11px] text-slate-400">
+          <p className="text-[11px] text-[#9a96a8]">
             Total spent
           </p>
         </div>
@@ -119,7 +119,7 @@ function CategorySpending() {
         {categoryData.map((item, index) => (
           <div
             key={item.category}
-            className="group flex items-center justify-between rounded-lg px-2 py-1.5 transition-colors duration-200 hover:bg-slate-50"
+            className="group flex items-center justify-between rounded-lg px-2 py-1.5 transition-colors duration-200 hover:bg-[#f8f7fb]"
           >
             <div className="flex items-center gap-2.5">
               <span
@@ -132,17 +132,17 @@ function CategorySpending() {
                 }}
               />
 
-              <span className="text-xs font-medium text-slate-600">
+              <span className="text-xs font-medium text-[#77738a]">
                 {item.category}
               </span>
             </div>
 
             <div className="flex items-center gap-3">
-              <span className="text-xs font-semibold text-slate-800">
+              <span className="text-xs font-semibold text-[#2a234f]">
                 ₹{item.amount.toLocaleString("en-IN")}
               </span>
 
-              <span className="w-8 text-right text-xs text-slate-400">
+              <span className="w-8 text-right text-xs text-[#9a96a8]">
                 {item.percentage}%
               </span>
             </div>

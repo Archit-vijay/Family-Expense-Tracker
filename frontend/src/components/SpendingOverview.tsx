@@ -22,15 +22,15 @@ const spendingData: SpendingData[] = [
 
 function SpendingOverview() {
   return (
-    <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition-shadow duration-300 hover:shadow-md sm:p-6">
+    <div className="rounded-2xl border border-[#e8e5ef] bg-white p-5 shadow-sm transition-shadow duration-300 hover:shadow-md sm:p-6">
       {/* Header */}
       <div className="mb-6 flex items-start justify-between">
         <div>
-          <p className="text-sm font-semibold text-slate-900">
+          <p className="text-sm font-semibold text-[#2a234f]">
             Spending Overview
           </p>
 
-          <p className="mt-1 text-xs text-slate-500 sm:text-sm">
+          <p className="mt-1 text-xs text-[#77738a] sm:text-sm">
             Daily spending for this month
           </p>
         </div>
@@ -39,10 +39,10 @@ function SpendingOverview() {
           type="button"
           className="
             rounded-lg px-3 py-2
-            text-xs font-semibold text-slate-500
+            text-xs font-semibold text-[#77738a]
             transition-all duration-200
-            hover:bg-slate-100
-            hover:text-slate-900
+            hover:bg-[#f8f7fb]
+            hover:text-[#2a234f]
           "
         >
           This week
@@ -51,7 +51,7 @@ function SpendingOverview() {
 
       {/* Total */}
       <div className="mb-5">
-        <p className="text-2xl font-bold tracking-tight text-slate-900">
+        <p className="text-2xl font-bold tracking-tight text-[#2a234f]">
           ₹41,200
         </p>
 
@@ -82,13 +82,13 @@ function SpendingOverview() {
               >
                 <stop
                   offset="0%"
-                  stopColor="#8b5cf6"
+                  stopColor="#2a234f"
                   stopOpacity={0.3}
                 />
 
                 <stop
                   offset="100%"
-                  stopColor="#8b5cf6"
+                  stopColor="#2a234f"
                   stopOpacity={0}
                 />
               </linearGradient>
@@ -97,7 +97,7 @@ function SpendingOverview() {
             <CartesianGrid
               strokeDasharray="3 3"
               vertical={false}
-              stroke="#e2e8f0"
+              stroke="#e8e5ef"
             />
 
             <XAxis
@@ -105,7 +105,7 @@ function SpendingOverview() {
               axisLine={false}
               tickLine={false}
               tick={{
-                fill: "#94a3b8",
+                fill: "#9a96a8",
                 fontSize: 11,
               }}
             />
@@ -114,7 +114,7 @@ function SpendingOverview() {
               axisLine={false}
               tickLine={false}
               tick={{
-                fill: "#94a3b8",
+                fill: "#9a96a8",
                 fontSize: 11,
               }}
               tickFormatter={(value) => `₹${value / 1000}k`}
@@ -122,14 +122,14 @@ function SpendingOverview() {
 
             <Tooltip
               cursor={{
-                stroke: "#c4b5fd",
+                stroke: "#ffb3c3",
                 strokeWidth: 1,
               }}
               contentStyle={{
                 borderRadius: "12px",
-                border: "1px solid #e2e8f0",
+                border: "1px solid #e8e5ef",
                 boxShadow:
-                  "0 10px 30px rgba(15, 23, 42, 0.1)",
+                  "0 10px 30px rgba(42, 35, 79, 0.1)",
               }}
               formatter={(value) => [
                 `₹${Number(value).toLocaleString("en-IN")}`,
@@ -140,7 +140,7 @@ function SpendingOverview() {
             <Area
               type="monotone"
               dataKey="amount"
-              stroke="#8b5cf6"
+              stroke="#2a234f"
               strokeWidth={3}
               fill="url(#spendingGradient)"
               animationDuration={1200}

@@ -171,6 +171,8 @@ Blush pink is an accent rather than the dominant surface color.
 
 Neutral backgrounds should remain the majority of the interface.
 
+The palette is applied consistently across the current application pages, shared navigation, cards, forms, and chart surfaces. Future pages should use these same roles rather than reintroducing the previous violet/indigo/slate palette.
+
 Semantic colors remain separate:
 - emerald for income/success,
 - rose/red for destructive actions and expense semantics where appropriate.
@@ -224,6 +226,12 @@ When collapsed:
 - user-menu behavior is simplified.
 
 Mobile navigation remains separate.
+
+On mobile, navigation is presented in a dedicated drawer opened from the mobile header. It should expose the same application routes as the desktop sidebar.
+
+## Content states
+
+Loading, empty, and error states use the shared `ContentState` component so data-backed pages present feedback consistently. New asynchronous pages should reuse it unless a different pattern is deliberately designed and documented.
 
 ---
 
