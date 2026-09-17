@@ -99,24 +99,50 @@ The dashboard should become the central family-finance overview.
 
 Planned functionality:
 
-- [ ] Total balance/financial overview
-- [ ] Total income
-- [ ] Total expenses
-- [ ] Recent transactions
-- [ ] Spending overview
-- [ ] Income vs expense overview
-- [ ] Useful date/month context
-- [ ] Family-level financial summary
-- [ ] Clear navigation into transactions, budgets, and reports
-- [ ] Responsive dashboard design
+- [x] Net savings/financial overview (income minus expenses, not a bank balance)
+- [x] Total income
+- [x] Total expenses
+- [x] Recent transactions
+- [x] Spending by category
+- [x] Income vs expense overview
+- [x] Useful month context and period selector
+- [x] Family-level spending summary
+- [x] Clear navigation into transactions
+- [x] Responsive dashboard design
+- [x] Protected backend aggregation API and loading, empty, and error states
 
 The exact dashboard metrics and visualizations should be decided before implementation rather than adding charts without a product purpose.
 
-Status: PLANNED
+Status: COMPLETE
 
 ---
 
-# Phase 7 — Budget Management
+# Phase 7 — Family Roles & Authorization
+
+Family membership roles are now stored and displayed, but permissions still need to be enforced. This phase makes the role system functional rather than informational.
+
+Planned functionality:
+
+- [x] Store family membership roles
+- [x] Create invited accounts as `member`
+- [x] Expose current user's family role through `GET /api/family/me`
+- [x] Load family role into frontend authentication state
+- [x] Display the actual role in the sidebar
+- [ ] Backend role authorization middleware/helper
+- [ ] Admin-only family member creation
+- [ ] Admin-only family member editing
+- [ ] Admin-only family member deactivation
+- [ ] Admin-only invitation creation
+- [ ] Define member permissions
+- [ ] Define viewer read-only permissions
+- [ ] Apply permissions consistently to transaction operations
+- [ ] Add authorization tests for each protected role/operation
+
+Status: IN PROGRESS
+
+---
+
+# Phase 8 — Budget Management
 
 The budget system should allow families to plan spending rather than only record it.
 
@@ -144,7 +170,7 @@ Status: PLANNED
 
 ---
 
-# Phase 8 — Reports & Analytics
+# Phase 9 — Reports & Analytics
 
 Reports should turn transaction data into useful financial insight.
 
@@ -167,7 +193,7 @@ Status: PLANNED
 
 ---
 
-# Phase 9 — Recurring Transactions
+# Phase 10 — Recurring Transactions
 
 Potential recurring transaction system:
 
@@ -185,7 +211,7 @@ Status: PLANNED
 
 ---
 
-# Phase 10 — Notifications & Financial Alerts
+# Phase 11 — Notifications & Financial Alerts
 
 Potential alerts:
 
@@ -202,7 +228,7 @@ Status: FUTURE
 
 ---
 
-# Phase 11 — Data Export
+# Phase 12 — Data Export
 
 Potential functionality:
 
@@ -216,7 +242,7 @@ Status: FUTURE
 
 ---
 
-# Phase 12 — Production Readiness
+# Phase 13 — Production Readiness
 
 Before considering the application portfolio-ready:
 
@@ -245,18 +271,23 @@ Status: FUTURE
 
 Unless a new product requirement changes priorities, the recommended development order is:
 
-1. Finish global UI consistency
-2. Dashboard
-3. Budgets
-4. Reports & analytics
-5. Recurring transactions
-6. Notifications/alerts
-7. Export
-8. Production hardening and deployment
+1. Role-based authorization and permission enforcement
+2. Budget management
+3. Reports & analytics
+4. Recurring transactions
+5. Notifications/alerts
+6. Data export
+7. Production hardening and deployment
 
 The order can change when there is a strong technical or product reason.
 
 ---
+
+# Design & Layout Rules
+
+- Before designing a new page, research current inspiration from Pinterest, Dribbble, Behance, and modern SaaS/fintech products. Adapt ideas to Family Finance rather than copying them.
+- Do not use whole-page left/right split layouts on desktop. Prefer a single vertical flow; internal grids remain allowed.
+- Check hover, animation, stacking context, z-index, overflow, clipping, and open/closed behavior for interactive UI before considering the page complete.
 
 # Roadmap Rules
 
@@ -264,4 +295,5 @@ The order can change when there is a strong technical or product reason.
 - Complete and validate one meaningful milestone at a time.
 - Before starting a phase, inspect the current implementation and database model.
 - Update this file when a milestone changes status.
+- After a meaningful milestone is completed and tested, remind the user to commit and push it to GitHub before starting the next substantial feature.
 - Add new roadmap items only when they represent a deliberate product decision.

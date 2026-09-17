@@ -15,6 +15,7 @@ import Reports from "./pages/Reports";
 import Family from "./pages/Family";
 import Settings from "./pages/Settings";
 import Login from "./pages/Login";
+import AcceptInvitation from "./pages/AcceptInvitation";
 
 function App() {
   return (
@@ -27,9 +28,15 @@ function App() {
           element={<Login />}
         />
 
+        <Route
+          path="/invite/:token"
+          element={<AcceptInvitation />}
+        />
+
         {/* Protected routes */}
         <Route element={<ProtectedRoute />}>
           <Route element={<DashboardLayout />}>
+
             <Route
               path="/dashboard"
               element={<Dashboard />}
@@ -59,6 +66,7 @@ function App() {
               path="/settings"
               element={<Settings />}
             />
+
           </Route>
         </Route>
 

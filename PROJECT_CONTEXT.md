@@ -68,13 +68,62 @@ Current behavior includes:
 
 The application has a `ProtectedRoute` and `AuthContext`.
 
+The invitation acceptance flow can establish a normal authenticated session immediately after account creation. `AuthContext` exposes the authenticated user's family role and loads it from `GET /api/family/me`.
+
 Unauthenticated direct navigation to `/dashboard` was fixed so protected pages cannot simply be opened without authentication.
 
 The login page is intentionally separate from the dashboard layout and does not display the dashboard sidebar.
 
 ---
 
-## 3. Family Management
+## 3. Family Invitations & Membership Roles
+
+Family invitations are implemented end to end.
+
+### Database
+
+Migration `012_create_family_invitations.sql` creates `family_invitations` with:
+- family association,
+- family-member association,
+- invited email,
+- secure unique invitation token,
+- expiry timestamp,
+- accepted timestamp,
+- creation timestamp.
+
+Invitations currently expire after 48 hours. Pending invitations for the same family member are replaced/expired when a new invitation is created.
+
+### Backend
+
+Invitation functionality includes:
+- authenticated admin-only invitation creation,
+- public invitation lookup by token,
+- validation of token state and expiry,
+- transactional invitation acceptance,
+- bcrypt password hashing,
+- creation of the invited user's account,
+- linking the existing family-member record to the new user,
+- creation of a `family_memberships` row with role `member`,
+- marking the invitation as accepted,
+- issuing a normal 7-day JWT after successful acceptance.
+
+Invitation tokens are secure random identifiers and are separate from JWTs and the JWT signing secret.
+
+### Frontend
+
+The frontend includes:
+- `invitationService.ts` for create, lookup, and acceptance API calls,
+- `/invite/:token` for the invitation acceptance page,
+- automatic authenticated session setup after successful invitation acceptance,
+- family role loading through `familyService.ts`.
+
+The sidebar now displays the actual family role as `Family Admin`, `Family Member`, or `Family Viewer` rather than hardcoding every user as an admin.
+
+The current role display is informational. Backend authorization still needs to be implemented before roles can be relied on to restrict operations.
+
+---
+
+## 4. Family Management
 
 Family-member management is implemented.
 
@@ -98,7 +147,7 @@ Meaningful Git milestone:
 
 ---
 
-## 4. Transaction System
+## 5. Transaction System
 
 The transaction feature is implemented end to end.
 
@@ -202,6 +251,12 @@ The palette refresh now covers global surfaces, the login page, desktop and mobi
 Shared loading, empty, and error-state presentation is now used across the data-backed family and transaction pages, and the current placeholder pages use the same empty-state treatment. Mobile navigation is available through a dedicated drawer, while the desktop sidebar retains its collapsible behavior.
 
 ---
+
+## Page Layout & Design Research
+
+New pages should be designed after researching current inspiration from Pinterest, Dribbble, Behance, and modern SaaS/fintech products. Ideas should be adapted to Family Finance rather than copied.
+
+Whole-page desktop left/right split layouts are not used. New pages should favor a single vertical flow, while internal grids for cards and metrics remain acceptable. Interactive UI should be checked for hover, animation, stacking, z-index, overflow, clipping, and open/closed-state behavior before being considered complete.
 
 ## Typography
 
@@ -353,6 +408,7 @@ The transaction feature has not yet been committed as a final milestone at the p
 The frontend routing currently includes:
 
 - `/login`
+- `/invite/:token`
 - `/dashboard`
 - `/transactions`
 - `/budgets`
@@ -374,10 +430,17 @@ The project has completed its:
 - foundation,
 - authentication,
 - family member management,
+- family invitation and membership-linking flow,
 - transaction management,
 - visual design system and color-palette refresh.
 
-Phase 5 (Design System & UI Polish) is complete. The next roadmap milestone is the dashboard, which should replace its current static presentation with purposeful, live family-finance information.
+Phase 5 (Design System & UI Polish) is complete.
+
+Phase 6 (Dashboard) is complete. The dashboard now presents live, selected-month family data through a protected, family-scoped `/api/dashboard` endpoint. The backend aggregates income, expenses, net savings, savings rate, daily income-versus-expense trend data, category spending, recent transactions, and member spending in PostgreSQL rather than sending all records to the browser for calculation.
+
+The responsive dashboard includes a custom period selector, semantic summary cards, an income-versus-expenses visualization, spending by category, recent transactions using the existing transaction-item visual language, and family spending. It uses shared loading, empty, and error states. Net Savings is explicitly income minus expenses, not a bank balance.
+
+The family invitation and role-display milestone is also complete. The frontend can accept an invitation, establish the new user's authenticated session, fetch the user's family role, and display the correct role in the sidebar. The next required step is backend-enforced role-based authorization before moving into the planned budget system.
 
 The next work should follow `ROADMAP.md`.
 

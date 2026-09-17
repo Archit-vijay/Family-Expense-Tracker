@@ -5,7 +5,7 @@ interface StatCardProps {
   amount: string;
   description: string;
   icon: LucideIcon;
-  variant?: "income" | "expense" | "balance";
+  variant?: "income" | "expense" | "savings" | "balance";
 }
 
 function StatCard({
@@ -25,6 +25,10 @@ function StatCard({
       glow: "stat-glow-expense",
     },
     balance: {
+      icon: "stat-icon-balance",
+      glow: "stat-glow-balance",
+    },
+    savings: {
       icon: "stat-icon-balance",
       glow: "stat-glow-balance",
     },

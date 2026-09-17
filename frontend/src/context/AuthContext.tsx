@@ -1,6 +1,7 @@
 import {
   createContext,
   useContext,
+  useEffect,
   useState,
   type ReactNode,
 } from "react";
@@ -10,14 +11,24 @@ import {
   type AuthUser,
 } from "../services/authService";
 
+import {
+  getMyFamily,
+  type MyFamily,
+} from "../services/familyService";
+
 interface AuthContextType {
   user: AuthUser | null;
   token: string | null;
+  familyRole: MyFamily["role"] | null;
   isAuthenticated: boolean;
   login: (
     email: string,
     password: string,
   ) => Promise<void>;
+  setSession: (
+    token: string,
+    user: AuthUser,
+  ) => void;
   logout: () => void;
 }
 
@@ -44,6 +55,48 @@ export function AuthProvider({
     () => localStorage.getItem("token"),
   );
 
+  const [familyRole, setFamilyRole] = useState<
+    MyFamily["role"] | null
+  >(null);
+
+  useEffect(() => {
+    if (!token) {
+      setFamilyRole(null);
+      return;
+    }
+
+    async function loadFamilyRole() {
+      try {
+        const family = await getMyFamily();
+
+        setFamilyRole(family.role);
+      } catch (error) {
+        console.error(
+          "Failed to load family role:",
+          error,
+        );
+
+        setFamilyRole(null);
+      }
+    }
+
+    loadFamilyRole();
+  }, [token]);
+
+  function setSession(
+    newToken: string,
+    newUser: AuthUser,
+  ) {
+    localStorage.setItem("token", newToken);
+    localStorage.setItem(
+      "user",
+      JSON.stringify(newUser),
+    );
+
+    setToken(newToken);
+    setUser(newUser);
+  }
+
   async function login(
     email: string,
     password: string,
@@ -53,14 +106,7 @@ export function AuthProvider({
       password,
     });
 
-    localStorage.setItem("token", data.token);
-    localStorage.setItem(
-      "user",
-      JSON.stringify(data.user),
-    );
-
-    setToken(data.token);
-    setUser(data.user);
+    setSession(data.token, data.user);
   }
 
   function logout() {
@@ -69,6 +115,7 @@ export function AuthProvider({
 
     setToken(null);
     setUser(null);
+    setFamilyRole(null);
   }
 
   return (
@@ -76,8 +123,10 @@ export function AuthProvider({
       value={{
         user,
         token,
+        familyRole,
         isAuthenticated: Boolean(token),
         login,
+        setSession,
         logout,
       }}
     >

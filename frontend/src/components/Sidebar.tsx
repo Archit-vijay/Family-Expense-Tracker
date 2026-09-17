@@ -16,7 +16,7 @@ import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 
 function Sidebar() {
-  const { user, logout } = useAuth();
+  const { user, familyRole, logout } = useAuth();
   const navigate = useNavigate();
 
   const [isUserMenuOpen, setIsUserMenuOpen] =
@@ -33,6 +33,18 @@ function Sidebar() {
   function toggleSidebar() {
     setIsCollapsed((previous) => !previous);
     setIsUserMenuOpen(false);
+  }
+
+  function getRoleLabel() {
+    if (familyRole === "admin") {
+      return "Family Admin";
+    }
+
+    if (familyRole === "viewer") {
+      return "Family Viewer";
+    }
+
+    return "Family Member";
   }
 
   return (
@@ -310,7 +322,7 @@ function Sidebar() {
                 </p>
 
                 <p className="truncate text-xs text-white/40">
-                  Family Admin
+                  {getRoleLabel()}
                 </p>
               </div>
             )}
@@ -358,9 +370,7 @@ function Sidebar() {
                   : "pointer-events-none translate-y-2 scale-[0.98] opacity-0"
               }
             `}
-            aria-hidden={
-              !isUserMenuOpen
-            }
+            aria-hidden={!isUserMenuOpen}
           >
             <button
               type="button"

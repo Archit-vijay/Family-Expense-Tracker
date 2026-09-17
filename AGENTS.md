@@ -94,6 +94,10 @@ The project favors:
 
 Do not remove existing animations or responsive behavior during unrelated styling work.
 
+Before designing a new page, research current design inspiration from sources such as Pinterest, Dribbble, Behance, and modern SaaS/fintech products. Use the research to inform the composition and interaction ideas, but adapt the ideas to Family Finance rather than copying them. Before introducing hover effects, animations, dropdowns, menus, or overlays, check their stacking, overflow, positioning, and open/closed-state behavior so they do not create clipping or overlap bugs.
+
+Do not use a whole-page left/right split layout on desktop. Prefer a single vertical page flow that remains conceptually consistent across desktop and mobile. Internal grids for cards, statistics, or related content are allowed when they improve readability.
+
 The desktop sidebar is collapsible:
 - expanded width: `w-72`
 - collapsed width: `w-20`
@@ -185,6 +189,8 @@ Good examples:
 Avoid artificial commits that exist only to make the commit graph look active.
 
 A feature should normally receive a commit after a meaningful, coherent milestone is complete.
+
+After a meaningful, tested milestone is complete, remind the user to commit and push the work to GitHub before starting the next substantial feature. The reminder is a workflow checkpoint; do not create the commit or push unless the user explicitly asks.
 
 Do not create commits unless the user asks or the project's workflow explicitly calls for it.
 

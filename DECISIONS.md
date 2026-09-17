@@ -49,6 +49,32 @@ Passwords must never be stored as plaintext.
 
 ---
 
+
+# Family Invitations & Roles
+
+## Invitation model
+
+Family invitations are represented by a dedicated `family_invitations` table. Each invitation belongs to a family and family-member record and contains: 
+- the invited email,
+- a cryptographically secure random token,
+- an expiry time,
+- acceptance state,
+- creation time.
+
+Invitation tokens are identifiers for pending invitations. They are not JWTs and are not the JWT signing secret. Tokens are generated using secure random bytes and invitations currently expire after 48 hours.
+
+An accepted invitation creates the user's account, links that user to the existing family-member record, creates a `family_memberships` row with the `member` role, and marks the invitation as accepted. Acceptance is performed transactionally so the account/member/membership state cannot be partially committed.
+
+## Family roles
+
+Family membership roles currently use: `admin`, `member`, and `viewer`. The current user's role is exposed through the authenticated `GET /api/family/me` endpoint and loaded into frontend authentication state.
+
+Role labels shown in the UI are derived from the actual membership role rather than being hardcoded. Role display is not considered authorization; backend authorization must enforce permissions for protected operations.
+
+## Authorization direction
+
+The next family-management milestone is role-based authorization. Permission checks must be enforced on the backend, with the frontend reflecting those permissions in its UI. Hiding a button or menu item alone is not a security boundary.
+
 # Deletion Strategy
 
 ## Family members
@@ -205,6 +231,16 @@ Reasons:
 When a custom dropdown already exists for a feature, do not replace it with a native `<select>` unless there is a clear usability/accessibility reason.
 
 ---
+
+# Page Layout
+
+Whole-page desktop layouts should not use a left/right split composition. New pages should favor a single vertical flow that works as the same core composition on desktop and mobile. Internal grids may still be used for cards, metrics, or related content.
+
+# Design Research & Interaction Quality
+
+Before designing a new page, current inspiration should be researched from sources such as Pinterest, Dribbble, Behance, and modern SaaS/fintech products. Inspiration should be adapted to Family Finance rather than copied.
+
+Interactive elements such as hover states, dropdowns, menus, modals, and animated overlays should be checked for stacking context, z-index, overflow, positioning, clipping, and open/closed transitions before being introduced.
 
 # Sidebar
 

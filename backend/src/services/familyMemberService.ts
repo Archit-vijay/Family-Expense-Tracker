@@ -6,6 +6,7 @@ export async function getFamilyMembers(familyId: number) {
       SELECT
         id,
         name,
+        user_id,
         created_at
       FROM family_members
       WHERE family_id = $1
@@ -32,6 +33,7 @@ export async function createFamilyMember(
       RETURNING
         id,
         name,
+        user_id,
         created_at;
     `,
     [familyId, name],

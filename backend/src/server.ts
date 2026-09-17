@@ -7,6 +7,8 @@ import familyMemberRoutes from "./routes/familyMemberRoutes";
 import categoryRoutes from "./routes/categoryRoutes";
 import authRoutes from "./routes/authRoutes.js";
 import familyRoutes from "./routes/familyRoutes.js";
+import dashboardRoutes from "./routes/dashboardRoutes.js";
+import invitationRoutes from "./routes/invitationRoutes.js";
 
 const app = express();
 
@@ -29,6 +31,10 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/auth", authRoutes);
 
 app.use("/api/family", familyRoutes);
+
+app.use("/api/dashboard", dashboardRoutes);
+
+app.use("/api/invitations", invitationRoutes);
 
 app.get("/api/health", (_req, res) => {
     res.json({

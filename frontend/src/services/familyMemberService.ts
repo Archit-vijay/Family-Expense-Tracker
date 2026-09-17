@@ -3,6 +3,7 @@ const API_URL = "http://localhost:5000/api";
 export interface FamilyMember {
   id: number;
   name: string;
+  user_id: number | null;
   created_at: string;
 }
 
