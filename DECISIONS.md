@@ -63,7 +63,11 @@ Family invitations are represented by a dedicated `family_invitations` table. Ea
 
 Invitation tokens are identifiers for pending invitations. They are not JWTs and are not the JWT signing secret. Tokens are generated using secure random bytes and invitations currently expire after 48 hours.
 
-An accepted invitation creates the user's account, links that user to the existing family-member record, creates a `family_memberships` row with the `member` role, and marks the invitation as accepted. Acceptance is performed transactionally so the account/member/membership state cannot be partially committed.
+An accepted invitation either creates a new user account or reuses an existing global account. New accounts are linked to the existing family-member record and receive a `family_memberships` row with the `member` role. Existing accounts must authenticate by providing their existing password; their password is not replaced. In both cases, the active family-member record is linked to the user, a `family_memberships` row is created, and the invitation is marked as accepted. Acceptance is performed transactionally so the account/member/membership state cannot be partially committed.
+
+An existing global account may be invited again after being removed from a family. Invitation creation rejects the email only when the account is already a member of the target family. A family member's global `users` account is never deleted as part of family removal.
+
+Family-member removal preserves the `family_members` row for historical transaction relationships, sets it inactive, clears its `user_id`, and deletes that user's `family_memberships` row for the family. This permits the same account to be linked to a new active family-member record during a later invitation.
 
 ## Family roles
 
@@ -71,9 +75,29 @@ Family membership roles currently use: `admin`, `member`, and `viewer`. The curr
 
 Role labels shown in the UI are derived from the actual membership role rather than being hardcoded. Role display is not considered authorization; backend authorization must enforce permissions for protected operations.
 
-## Authorization direction
+## Authorization implementation
 
-The next family-management milestone is role-based authorization. Permission checks must be enforced on the backend, with the frontend reflecting those permissions in its UI. Hiding a button or menu item alone is not a security boundary.
+Backend role-based authorization is now implemented for the family-management operations that have defined admin-only permissions.
+
+The backend defines the family roles:
+- `admin`
+- `member`
+- `viewer`
+
+A reusable `requireRole()` middleware checks the authenticated user's family membership role before protected operations are executed.
+
+Current enforced permissions:
+- authenticated users may view family members;
+- only `admin` users may create family members;
+- only `admin` users may edit family members;
+- only `admin` users may deactivate family members;
+- only `admin` users may create family invitations.
+
+The frontend may reflect these permissions in the UI, but backend checks are the actual security boundary.
+
+Transaction permissions for `member` and `viewer` have not yet been finalized. Until those permissions are deliberately defined and applied, transaction routes remain authentication-protected rather than role-restricted.
+
+Authorization tests for the protected role/operation combinations are also still pending.
 
 # Deletion Strategy
 

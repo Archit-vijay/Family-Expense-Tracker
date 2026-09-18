@@ -117,9 +117,48 @@ The login page must not display the dashboard sidebar.
 
 Protected pages must remain protected. Do not bypass authentication for convenience during development.
 
+## Family Invitation Rules
+
+Existing global accounts may be invited to a family again after they have been removed from that family.
+
+Invitation creation should reject an email only when the corresponding account is already a member of the target family. It should not reject an account merely because a global `users` row already exists.
+
+When an invitation is accepted:
+- reuse an existing account after verifying its existing bcrypt password;
+- do not overwrite the existing account password;
+- create the family membership for the target family;
+- link the existing `user_id` to the active `family_members` record;
+- create a new account only when no account exists for the invited email.
+
+Invitation lookup and acceptance should operate only on active family-member records.
+
+## Authorization Rules
+
+Role-based authorization is enforced on the backend.
+
+Family roles are:
+- `admin`
+- `member`
+- `viewer`
+
+The backend uses the `requireRole()` middleware to enforce role restrictions after authentication.
+
+Current enforced permissions:
+- viewing family members requires authentication;
+- creating family members requires `admin`;
+- editing family members requires `admin`;
+- deactivating family members requires `admin`;
+- creating family invitations requires `admin`.
+
+Important:
+- frontend role-based UI visibility is not a security boundary;
+- protected operations must remain enforced by the backend;
+- transaction role permissions are not yet finalized or enforced;
+- do not assume `member` or `viewer` permissions until they are explicitly defined and documented.
+
 ## Data / Deletion Rules
 
-Important business rule:
+Important business rules:
 
 Transactions must not be hard-deleted.
 
@@ -127,7 +166,9 @@ Transaction removal is implemented as soft deletion so historical financial info
 
 Family members are also deactivated rather than hard-deleted so historical transaction relationships are preserved.
 
-When working on data deletion, preserve these rules unless the product requirements explicitly change.
+A family member's global `users` account must not be deleted when that person is removed from a family. Removing an active linked family member also removes that user's `family_memberships` row for the family and clears `family_members.user_id`, allowing the same global account to be linked to a new family-member record later.
+
+When working on data deletion or family membership changes, preserve these rules unless the product requirements explicitly change.
 
 ## Transaction Rules
 

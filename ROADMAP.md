@@ -44,6 +44,11 @@ Status: COMPLETE
 - [x] Display active family members
 - [x] Deactivate family members
 - [x] Preserve historical relationships
+- [x] Preserve global user accounts when removing family members
+- [x] Remove the user's family membership when removing them from a family
+- [x] Allow an existing account to be re-invited after family removal
+- [x] Verify the existing account password when accepting a re-invitation
+- [x] Reuse existing global accounts instead of creating duplicate users
 
 Status: COMPLETE
 
@@ -119,7 +124,16 @@ Status: COMPLETE
 
 # Phase 7 — Family Roles & Authorization
 
-Family membership roles are now stored and displayed, but permissions still need to be enforced. This phase makes the role system functional rather than informational.
+Family membership roles are stored and displayed, and the initial backend authorization layer is now implemented. This phase remains in progress until member/viewer permissions are explicitly defined, transaction operations are role-restricted accordingly, and authorization tests are added.
+
+The family-membership lifecycle is already handled separately: removing a person from a family does not delete their global account, and an existing account can be re-invited to the family after its membership is removed.
+
+Current authorization enforcement:
+- family-member creation is admin-only;
+- family-member editing is admin-only;
+- family-member deactivation is admin-only;
+- invitation creation is admin-only;
+- family-member retrieval requires authentication.
 
 Planned functionality:
 
@@ -128,11 +142,11 @@ Planned functionality:
 - [x] Expose current user's family role through `GET /api/family/me`
 - [x] Load family role into frontend authentication state
 - [x] Display the actual role in the sidebar
-- [ ] Backend role authorization middleware/helper
-- [ ] Admin-only family member creation
-- [ ] Admin-only family member editing
-- [ ] Admin-only family member deactivation
-- [ ] Admin-only invitation creation
+- [x] Backend role authorization middleware/helper
+- [x] Admin-only family member creation
+- [x] Admin-only family member editing
+- [x] Admin-only family member deactivation
+- [x] Admin-only invitation creation
 - [ ] Define member permissions
 - [ ] Define viewer read-only permissions
 - [ ] Apply permissions consistently to transaction operations

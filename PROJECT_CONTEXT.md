@@ -119,7 +119,35 @@ The frontend includes:
 
 The sidebar now displays the actual family role as `Family Admin`, `Family Member`, or `Family Viewer` rather than hardcoding every user as an admin.
 
-The current role display is informational. Backend authorization still needs to be implemented before roles can be relied on to restrict operations.
+The current role display is informational, while protected backend operations now also enforce the relevant role.
+
+### Backend authorization
+
+Role-based authorization is implemented through the backend `requireRole()` middleware.
+
+Current enforcement:
+- family-member creation: `admin` only;
+- family-member editing: `admin` only;
+- family-member deactivation: `admin` only;
+- family invitation creation: `admin` only;
+- family-member retrieval: authenticated family users.
+
+The middleware resolves the authenticated user's family membership and role before allowing an operation to continue.
+
+The role system is therefore no longer only informational. However, transaction permissions for `member` and `viewer` have not yet been defined or enforced, and authorization tests are still pending.
+
+### Existing-account re-invitation
+
+The invitation flow now supports re-inviting a person whose global account already exists but who is no longer a member of the target family.
+
+Behavior:
+- invitation creation checks whether the existing account is already a member of the target family rather than rejecting every existing email;
+- removing a family member deletes that user's membership for the family but does not delete the global `users` account;
+- removal also clears `family_members.user_id` while keeping the inactive `family_members` row for historical transactions;
+- accepting a re-invitation verifies the existing account password and reuses the existing user instead of creating a duplicate account or changing the password;
+- invitation lookup and acceptance ignore inactive family-member records.
+
+The full remove → re-add → same-email invite → accept flow was tested successfully locally and the changes were pushed to GitHub.
 
 ---
 
@@ -140,6 +168,10 @@ The database has:
 Family-member retrieval only returns active members.
 
 This preserves historical relationships and transaction history.
+
+When an active family member is removed, the family-member record is retained but deactivated, its `user_id` is cleared, and the corresponding `family_memberships` row for that family is deleted. The global `users` account remains intact.
+
+This distinction is important: removing someone from a family does not delete their global account. Because the old family-member row remains available for historical transaction references, the same account can later be attached to a new active family-member record through the invitation flow.
 
 Meaningful Git milestone:
 
@@ -440,7 +472,11 @@ Phase 6 (Dashboard) is complete. The dashboard now presents live, selected-month
 
 The responsive dashboard includes a custom period selector, semantic summary cards, an income-versus-expenses visualization, spending by category, recent transactions using the existing transaction-item visual language, and family spending. It uses shared loading, empty, and error states. Net Savings is explicitly income minus expenses, not a bank balance.
 
-The family invitation and role-display milestone is also complete. The frontend can accept an invitation, establish the new user's authenticated session, fetch the user's family role, and display the correct role in the sidebar. The next required step is backend-enforced role-based authorization before moving into the planned budget system.
+The family invitation, membership-role, and initial backend-authorization milestone is in progress but the initial authorization foundation is complete. The frontend can accept an invitation, establish the user's authenticated session, fetch the user's family role, and display the correct role in the sidebar. The invitation flow also supports existing-account re-invitation after family removal, including existing-password verification and reuse of the global account.
+
+Backend authorization now uses `requireRole()` to enforce admin-only family-member creation, editing, deactivation, and invitation creation. Family-member retrieval remains authenticated-only.
+
+The remaining authorization work is to define `member` permissions, define `viewer` read-only permissions, apply the chosen permissions consistently to transaction operations, and add authorization tests. Budget implementation should follow completion of this authorization milestone.
 
 The next work should follow `ROADMAP.md`.
 
