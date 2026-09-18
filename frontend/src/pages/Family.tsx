@@ -50,6 +50,8 @@ function Family() {
 
   const [isRemoving, setIsRemoving] = useState(false);
 
+  const [removeError, setRemoveError] = useState("");
+
   const [invitingMember, setInvitingMember] =
     useState<FamilyMember | null>(null);
 
@@ -175,39 +177,40 @@ function Family() {
   }
 
   async function handleRemoveMember() {
-    if (!removingMember) return;
+  if (!removingMember) return;
 
-    try {
-      setIsRemoving(true);
+  try {
+    setIsRemoving(true);
+    setRemoveError("");
 
-      await deactivateFamilyMember(
-        removingMember.id,
-      );
+    await deactivateFamilyMember(
+      removingMember.id,
+    );
 
-      setMembers((currentMembers) =>
-        currentMembers.filter(
-          (member) =>
-            member.id !== removingMember.id,
-        ),
-      );
+    setMembers((currentMembers) =>
+      currentMembers.filter(
+        (member) =>
+          member.id !== removingMember.id,
+      ),
+    );
 
-      setRemovingMember(null);
-      setMenuMemberId(null);
-    } catch (error) {
-      console.error(
-        "Failed to remove family member:",
-        error,
-      );
+    setRemovingMember(null);
+    setRemoveError("");
+  } catch (error) {
+    console.error(
+      "Failed to remove family member:",
+      error,
+    );
 
-      setError(
-        error instanceof Error
-          ? error.message
-          : "Unable to remove family member.",
-      );
-    } finally {
-      setIsRemoving(false);
-    }
+    setRemoveError(
+      error instanceof Error
+        ? error.message
+        : "Unable to remove family member.",
+    );
+  } finally {
+    setIsRemoving(false);
   }
+}
 
   function openInviteModal(member: FamilyMember) {
     setInvitingMember(member);
@@ -533,6 +536,7 @@ function Family() {
                         type="button"
                         onClick={() => {
                           setRemovingMember(member);
+                          setRemoveError("");
                           setMenuMemberId(null);
                         }}
                         className="
@@ -744,7 +748,7 @@ function Family() {
       {removingMember && (
         <div
           className="
-            fixed inset-0 z-[60]
+            fixed inset-0 z-60
             flex items-center justify-center
             bg-[#2a234f]/50
             p-4
@@ -756,6 +760,7 @@ function Family() {
               !isRemoving
             ) {
               setRemovingMember(null);
+              setRemoveError("");
             }
           }}
         >
@@ -791,14 +796,21 @@ function Family() {
               adding new transactions.
             </p>
 
+            {removeError && (
+              <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                {removeError}
+              </div>
+            )}
+
             {/* Confirmation actions */}
             <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <button
                 type="button"
                 disabled={isRemoving}
-                onClick={() =>
+                onClick={() => {
                   setRemovingMember(null)
-                }
+                  setRemoveError("")
+                }}
                 className="
                   rounded-xl
                   border border-[#e8e5ef]
@@ -859,7 +871,7 @@ function Family() {
       {invitingMember && (
         <div
           className="
-            fixed inset-0 z-[70]
+            fixed inset-0 z-70
             flex items-center justify-center
             bg-[#2a234f]/50
             p-4

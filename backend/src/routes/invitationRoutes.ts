@@ -7,12 +7,14 @@ import {
 } from "../controllers/invitationController.js";
 
 import { authMiddleware } from "../middleware/authMiddleware.js";
+import { requireRole } from "../middleware/roleMiddleware.js";
 
 const router = Router();
 
 router.post(
   "/",
   authMiddleware,
+  requireRole("admin"),
   createInvitationController,
 );
 

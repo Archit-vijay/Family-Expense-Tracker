@@ -46,15 +46,6 @@ export async function createInvitationController(
       return;
     }
 
-    if (family.role !== "admin") {
-      res.status(403).json({
-        success: false,
-        message: "Only family admins can send invitations.",
-      });
-
-      return;
-    }
-
     const memberId = Number(req.body?.memberId);
 
     const email =
