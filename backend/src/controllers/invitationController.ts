@@ -109,7 +109,7 @@ export async function createInvitationController(
           error.message ===
             "This family member already has an account." ||
           error.message ===
-            "An account already exists with this email."
+            "This account is already a member of this family."
         ) {
           res.status(400).json({
             success: false,
@@ -272,7 +272,7 @@ export async function acceptInvitationController(
       res.status(201).json({
         success: true,
         message:
-          "Family account created successfully.",
+          "Family invitation accepted successfully.",
         data: {
           token: authToken,
           user: {
@@ -285,12 +285,13 @@ export async function acceptInvitationController(
     } catch (error) {
       if (error instanceof Error) {
         const clientErrors = [
-          "Invitation not found.",
-          "This invitation has already been accepted.",
-          "This invitation has expired.",
-          "This family member already has an account.",
-          "An account already exists with this email.",
-        ];
+  "Invitation not found.",
+  "This invitation has already been accepted.",
+  "This invitation has expired.",
+  "This family member already has an account.",
+  "This account is already a member of this family.",
+  "Invalid account password.",
+];
 
         if (clientErrors.includes(error.message)) {
           res.status(400).json({

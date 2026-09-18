@@ -37,20 +37,28 @@ export async function createFamilyInvitation(
   }
 
   const existingUserResult = await pool.query(
-    `
-      SELECT id
-      FROM users
-      WHERE LOWER(email) = LOWER($1)
-      LIMIT 1;
-    `,
-    [email],
-  );
+  `
+    SELECT
+      u.id,
+      EXISTS (
+        SELECT 1
+        FROM family_memberships fmship
+        WHERE
+          fmship.user_id = u.id
+          AND fmship.family_id = $2
+      ) AS is_member_of_family
+    FROM users u
+    WHERE LOWER(u.email) = LOWER($1)
+    LIMIT 1;
+  `,
+  [email, familyId],
+);
 
-  if (existingUserResult.rows.length > 0) {
-    throw new Error(
-      "An account already exists with this email.",
-    );
-  }
+if (existingUserResult.rows[0]?.is_member_of_family) {
+  throw new Error(
+    "This account is already a member of this family.",
+  );
+}
 
   await pool.query(
     `
@@ -122,6 +130,7 @@ export async function getInvitationByToken(
       FROM family_invitations fi
       INNER JOIN family_members fm
         ON fm.id = fi.family_member_id
+        AND fm.is_active = TRUE
       WHERE fi.token = $1
       LIMIT 1;
     `,
@@ -141,25 +150,26 @@ export async function acceptFamilyInvitation(
     await client.query("BEGIN");
 
     const invitationResult = await client.query(
-      `
-        SELECT
-          fi.id,
-          fi.family_id,
-          fi.family_member_id,
-          fi.email,
-          fi.expires_at,
-          fi.accepted_at,
-          fm.name AS member_name,
-          fm.user_id
-        FROM family_invitations fi
-        INNER JOIN family_members fm
-          ON fm.id = fi.family_member_id
-        WHERE fi.token = $1
-        LIMIT 1
-        FOR UPDATE;
-      `,
-      [token],
-    );
+  `
+    SELECT
+      fi.id,
+      fi.family_id,
+      fi.family_member_id,
+      fi.email,
+      fi.expires_at,
+      fi.accepted_at,
+      fm.name AS member_name,
+      fm.user_id
+    FROM family_invitations fi
+    INNER JOIN family_members fm
+      ON fm.id = fi.family_member_id
+      AND fm.is_active = TRUE
+    WHERE fi.token = $1
+    LIMIT 1
+    FOR UPDATE;
+  `,
+  [token],
+);
 
     const invitation = invitationResult.rows[0];
 
@@ -187,48 +197,91 @@ export async function acceptFamilyInvitation(
     }
 
     const existingUserResult = await client.query(
-      `
-        SELECT id
-        FROM users
-        WHERE LOWER(email) = LOWER($1)
-        LIMIT 1;
-      `,
-      [invitation.email],
+  `
+    SELECT
+      id,
+      name,
+      email,
+      password_hash,
+      created_at
+    FROM users
+    WHERE LOWER(email) = LOWER($1)
+    LIMIT 1
+    FOR UPDATE;
+  `,
+  [invitation.email],
+);
+
+let user;
+
+if (existingUserResult.rows.length > 0) {
+  const existingUser = existingUserResult.rows[0];
+
+  const passwordMatches = await bcrypt.compare(
+    password,
+    existingUser.password_hash,
+  );
+
+  if (!passwordMatches) {
+    throw new Error("Invalid account password.");
+  }
+
+  const existingMembershipResult = await client.query(
+    `
+      SELECT 1
+      FROM family_memberships
+      WHERE
+        user_id = $1
+        AND family_id = $2
+      LIMIT 1;
+    `,
+    [existingUser.id, invitation.family_id],
+  );
+
+  if (existingMembershipResult.rows.length > 0) {
+    throw new Error(
+      "This account is already a member of this family.",
     );
+  }
 
-    if (existingUserResult.rows.length > 0) {
-      throw new Error(
-        "An account already exists with this email.",
-      );
-    }
+  // Reuse the existing global account.
+  // Do NOT change its password.
+  user = {
+    id: existingUser.id,
+    name: existingUser.name,
+    email: existingUser.email,
+    created_at: existingUser.created_at,
+  };
+} else {
+  // No account exists, so create a new one.
+  const passwordHash = await bcrypt.hash(
+    password,
+    12,
+  );
 
-    const passwordHash = await bcrypt.hash(
-      password,
-      12,
-    );
+  const userResult = await client.query(
+    `
+      INSERT INTO users (
+        name,
+        email,
+        password_hash
+      )
+      VALUES ($1, $2, $3)
+      RETURNING
+        id,
+        name,
+        email,
+        created_at;
+    `,
+    [
+      invitation.member_name,
+      invitation.email,
+      passwordHash,
+    ],
+  );
 
-    const userResult = await client.query(
-      `
-        INSERT INTO users (
-          name,
-          email,
-          password_hash
-        )
-        VALUES ($1, $2, $3)
-        RETURNING
-          id,
-          name,
-          email,
-          created_at;
-      `,
-      [
-        invitation.member_name,
-        invitation.email,
-        passwordHash,
-      ],
-    );
-
-    const user = userResult.rows[0];
+  user = userResult.rows[0];
+}
 
     await client.query(
       `

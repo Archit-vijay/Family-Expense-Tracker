@@ -72,23 +72,77 @@ export async function deactivateFamilyMember(
   familyId: number,
   memberId: number,
 ) {
-  const result = await pool.query(
-    `
-      UPDATE family_members
-      SET
-        is_active = FALSE,
-        updated_at = NOW()
-      WHERE
-        id = $1
-        AND family_id = $2
-        AND is_active = TRUE
-      RETURNING
-        id,
-        name,
-        created_at;
-    `,
-    [memberId, familyId],
-  );
+  const client = await pool.connect();
 
-  return result.rows[0] ?? null;
+  try {
+    await client.query("BEGIN");
+
+    const memberResult = await client.query(
+      `
+        SELECT
+          id,
+          name,
+          user_id,
+          created_at
+        FROM family_members
+        WHERE
+          id = $1
+          AND family_id = $2
+          AND is_active = TRUE
+        FOR UPDATE;
+      `,
+      [memberId, familyId],
+    );
+
+    const member = memberResult.rows[0];
+
+    if (!member) {
+      await client.query("ROLLBACK");
+      return null;
+    }
+
+    // Remove the user's membership from this family.
+    // The global users account is NOT deleted.
+    if (member.user_id !== null) {
+      await client.query(
+        `
+          DELETE FROM family_memberships
+          WHERE
+            user_id = $1
+            AND family_id = $2;
+        `,
+        [member.user_id, familyId],
+      );
+    }
+
+    // Keep the family_members row for transaction history,
+    // but deactivate it and detach the global user account.
+    const result = await client.query(
+      `
+        UPDATE family_members
+        SET
+          is_active = FALSE,
+          user_id = NULL,
+          updated_at = NOW()
+        WHERE
+          id = $1
+          AND family_id = $2
+          AND is_active = TRUE
+        RETURNING
+          id,
+          name,
+          created_at;
+      `,
+      [memberId, familyId],
+    );
+
+    await client.query("COMMIT");
+
+    return result.rows[0] ?? null;
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
 }
