@@ -5,6 +5,7 @@ import {
   createFamilyMemberController,
   updateFamilyMemberController,
   deactivateFamilyMemberController,
+  updateFamilyMemberRoleController,
 } from "../controllers/familyMemberController.js";
 
 import { authMiddleware } from "../middleware/authMiddleware.js";
@@ -30,6 +31,13 @@ router.put(
   authMiddleware,
   requireRole("admin"),
   updateFamilyMemberController,
+);
+
+router.patch(
+  "/:id/role",
+  authMiddleware,
+  requireRole("admin"),
+  updateFamilyMemberRoleController,
 );
 
 router.delete(
