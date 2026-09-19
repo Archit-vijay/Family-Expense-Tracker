@@ -279,3 +279,77 @@ When reporting work:
 - Mention validation performed.
 - Call out any assumptions or unresolved issues.
 - Do not hide architectural changes inside a task described as a simple UI change.
+
+
+## AI Integration Rules
+
+AI is a deliberate project phase and must be implemented incrementally, one meaningful feature at a time. The project will implement the following AI capabilities, excluding transaction categorization and transaction-description/merchant analysis:
+
+1. AI Financial Assistant
+2. AI Financial Insights
+3. AI Monthly Financial Summary
+4. AI Anomaly Detection
+5. AI Family Spending Insights
+6. AI Dashboard / Ask About My Finances
+7. AI Budget Recommendations
+8. AI Budget Risk Detection
+
+### AI architecture principles
+
+- The backend remains the source of truth for financial calculations and business rules.
+- The AI should interpret, explain, summarize, or reason over validated application data rather than independently calculating authoritative financial figures.
+- The AI must not have direct database access.
+- The AI must not generate arbitrary SQL that is executed against PostgreSQL.
+- AI access to financial data must occur through explicit backend tools/function calls.
+- Tool calls must execute in the authenticated user's family scope and must respect the same authorization model as the rest of the application.
+- Only the minimum financial data required for a request should be sent to the model.
+- AI provider API keys must remain on the backend and must never be exposed to the frontend.
+- Tool inputs and outputs must be validated before being used.
+- Sensitive financial data should not be unnecessarily written to logs.
+- AI endpoints should have appropriate rate limiting and error handling.
+
+The planned reusable financial tool layer may expose operations such as:
+- `get_monthly_spending()`
+- `get_category_spending()`
+- `get_family_transactions()`
+- `get_member_spending()`
+- `get_income_summary()`
+- `get_budget_status()`
+- `get_spending_trends()`
+
+The exact tool contracts should be designed before implementation and should reuse existing backend services/queries where appropriate rather than duplicating business logic.
+
+### AI implementation workflow
+
+For each AI milestone:
+1. Define the user-facing capability and its boundaries.
+2. Define the backend data/tools required.
+3. Enforce authentication and family scoping.
+4. Define structured inputs/outputs where appropriate.
+5. Implement the backend AI integration.
+6. Test the backend independently with Postman.
+7. Add the frontend experience.
+8. Validate errors, empty states, rate limits, and authorization.
+9. Update project documentation after the milestone is genuinely complete.
+
+The immediate next AI milestone is **AI-1: AI Financial Assistant**, beginning with AI provider/API selection, backend AI service structure, reusable tool definitions, authorization/family scoping, frontend chat, environment variables, failure handling, and Postman testing.
+
+## DevOps & Deployment Rules
+
+DevOps is a planned future phase, not current implementation work. Do not introduce deployment infrastructure prematurely just because deployment will eventually be required. The project should first complete the planned major application functionality and then enter a dedicated hands-on DevOps phase.
+
+When the DevOps phase begins:
+- learn Docker fundamentals before relying on prebuilt hosting abstractions;
+- containerize the frontend and backend;
+- use Docker Compose to understand the local multi-service environment;
+- distinguish development configuration from production configuration;
+- keep production secrets and environment variables outside source control;
+- deploy PostgreSQL and run migrations as an explicit part of deployment;
+- configure production frontend/backend communication and CORS deliberately;
+- learn domain/DNS and HTTPS/TLS configuration;
+- use GitHub Actions to build CI first, then CD;
+- build and deploy versioned Docker images where appropriate;
+- add health checks, logging, monitoring, backups, and rollback procedures;
+- practice troubleshooting the deployed system rather than treating hosting as a black box.
+
+The cloud provider and exact deployment architecture should be selected when this phase starts. Do not mark deployment tasks complete until they have actually been implemented and reasonably validated.

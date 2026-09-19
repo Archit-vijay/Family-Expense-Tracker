@@ -524,3 +524,75 @@ When implementing a feature:
 - update project documentation after meaningful milestones.
 
 The goal is not simply to make the application work; it should also demonstrate that the developer understands why the system is designed the way it is.
+
+
+---
+
+# AI Integration — Planned Direction
+
+AI has been selected as the next major development phase before Budget Management. No AI feature is considered implemented yet; this section records the agreed scope and architecture for upcoming work.
+
+The project will implement the following capabilities incrementally:
+
+- **AI-1 — AI Financial Assistant:** natural-language financial questions using backend tool/function calling.
+- **AI-2 — AI Financial Insights:** deterministic backend analytics interpreted and explained by the AI.
+- **AI-3 — AI Monthly Financial Summary:** structured monthly financial data turned into a concise family summary.
+- **AI-4 — AI Anomaly Detection:** backend/statistical detection of unusual activity followed by AI explanation.
+- **AI-5 — AI Family Spending Insights:** family-level patterns and comparisons explained using validated aggregated data.
+- **AI-6 — AI Dashboard / Ask About My Finances:** a consolidated AI experience using the reusable financial tool layer.
+- **AI-7 — AI Budget Recommendations:** AI-assisted budget suggestions once Budget Management exists.
+- **AI-8 — AI Budget Risk Detection:** spending-versus-budget analysis and projection once budget data exists.
+
+Transaction categorization and transaction-description/merchant analysis are intentionally outside the current AI scope.
+
+## Planned AI Architecture
+
+The intended flow is:
+
+`Frontend -> Backend AI Service -> AI model -> explicit financial tools -> existing backend services/database -> structured validated result -> AI response -> Frontend`
+
+The backend remains the source of truth for financial calculations. The AI should interpret and explain validated data rather than independently producing authoritative totals. The model must not directly access PostgreSQL or generate arbitrary SQL for execution.
+
+The reusable tool layer is expected to include operations such as:
+- `get_monthly_spending()`
+- `get_category_spending()`
+- `get_family_transactions()`
+- `get_member_spending()`
+- `get_income_summary()`
+- `get_budget_status()`
+- `get_spending_trends()`
+
+All tools must be authenticated and family-scoped. AI provider credentials remain backend-only. Minimum-necessary data should be sent to the model, financial data should not be unnecessarily logged, tool inputs/outputs should be validated, and AI endpoints should have suitable rate limiting and provider-failure handling.
+
+## Immediate Next Milestone
+
+The next implementation is **AI-1: AI Financial Assistant**. Before coding, the provider/API, backend AI service structure, tool contracts, authorization/family scoping, frontend chat behavior, environment variables, error handling, rate limiting, and Postman testing approach will be defined. AI milestones will be implemented and validated one at a time.
+
+Budget Management remains the planned financial-management phase after the AI foundation/capabilities that depend on it are completed.
+
+---
+
+# DevOps & Deployment — Future Phase
+
+Deployment and DevOps are part of the project's learning goals, but they are not current implementation work. The application is still being developed locally and the DevOps phase should begin later, after the planned major application functionality is sufficiently complete.
+
+The future DevOps phase is expected to cover:
+- Docker and containerization of the frontend and backend;
+- Docker Compose for local multi-service development;
+- development versus production configuration;
+- production environment variables and secrets;
+- production PostgreSQL and migration execution;
+- backend and frontend deployment;
+- production frontend/backend communication and CORS;
+- domain/DNS and HTTPS/TLS;
+- GitHub Actions CI/CD;
+- Docker image build/deployment workflow;
+- health checks;
+- logging and monitoring;
+- database backups;
+- rollback procedures;
+- production troubleshooting and deployment documentation.
+
+The cloud provider and final production architecture have not yet been selected. No production deployment should be described as completed until it is actually implemented and validated.
+
+The intended project progression is to finish the feature roadmap, then use this application as the practical environment for learning containerization, CI/CD, deployment, and production operations.

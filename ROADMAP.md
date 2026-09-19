@@ -168,9 +168,124 @@ Status: COMPLETE
 
 ---
 
-# Phase 8 — Budget Management
 
-The budget system should allow families to plan spending rather than only record it.
+---
+
+# Phase 8 — AI Financial Intelligence
+
+AI is being added as a dedicated phase before Budget Management. The features below are intentionally split into separate milestones and should be implemented and validated one at a time.
+
+## AI-1 — AI Financial Assistant
+
+- [ ] Select AI provider/API
+- [ ] Define backend AI service structure
+- [ ] Define authenticated, family-scoped financial tools
+- [ ] Implement tool/function calling
+- [ ] Add initial tools for common financial questions
+- [ ] Prevent direct database access by the model
+- [ ] Prevent arbitrary model-generated SQL execution
+- [ ] Add frontend financial chat UI
+- [ ] Add backend-only AI environment variables
+- [ ] Handle provider errors, timeouts, and rate limits
+- [ ] Test AI endpoints with Postman
+
+Status: NEXT
+
+## AI-2 — AI Financial Insights
+
+- [ ] Define deterministic financial metrics in backend
+- [ ] Feed validated metrics to the AI
+- [ ] Generate natural-language spending insights
+- [ ] Keep backend calculations authoritative
+- [ ] Add insight UI
+
+Status: PLANNED
+
+## AI-3 — AI Monthly Financial Summary
+
+- [ ] Define monthly summary data contract
+- [ ] Generate monthly income/expense summary
+- [ ] Include useful category/trend context
+- [ ] Add summary UI or dashboard integration
+
+Status: PLANNED
+
+## AI-4 — AI Anomaly Detection
+
+- [ ] Define deterministic/statistical anomaly rules
+- [ ] Detect unusual spending or transaction patterns
+- [ ] Pass validated anomaly results to the AI
+- [ ] Generate human-readable explanations
+- [ ] Add anomaly presentation UI
+
+Status: PLANNED
+
+## AI-5 — AI Family Spending Insights
+
+- [ ] Define family-level aggregation requirements
+- [ ] Compare useful member/category/period patterns
+- [ ] Generate family spending observations
+- [ ] Add family insight UI
+
+Status: PLANNED
+
+## AI-6 — AI Dashboard / Ask About My Finances
+
+- [ ] Consolidate reusable financial tools
+- [ ] Add dashboard-level AI entry point
+- [ ] Support natural-language questions across supported financial data
+- [ ] Preserve authentication, authorization, and family scoping
+- [ ] Add useful contextual responses without replacing deterministic dashboard metrics
+
+Status: PLANNED
+
+## AI-7 — AI Budget Recommendations
+
+This milestone depends on Budget Management.
+
+- [ ] Analyze validated historical spending
+- [ ] Suggest category/period budget amounts
+- [ ] Explain the factors behind recommendations
+- [ ] Keep recommendations advisory rather than authoritative financial calculations
+
+Status: PLANNED
+
+## AI-8 — AI Budget Risk Detection
+
+This milestone depends on Budget Management and its spending-tracking model.
+
+- [ ] Compare current spending against budget
+- [ ] Calculate deterministic budget progress/projections
+- [ ] Detect potential overspending risk
+- [ ] Use AI to explain the risk and contributing factors
+- [ ] Add budget-risk UI/alerts where appropriate
+
+Status: PLANNED
+
+### AI Scope Exclusions
+
+The current AI phase does **not** include:
+- transaction categorization;
+- transaction description/merchant analysis.
+
+### AI Architecture Rules
+
+- Backend calculations remain the source of truth.
+- AI accesses financial information through explicit backend tools/function calls.
+- The AI must not directly access PostgreSQL.
+- Arbitrary model-generated SQL must never be executed.
+- AI requests and tools must be authenticated and family-scoped.
+- Only minimum necessary financial data should be sent to the model.
+- Provider API keys remain backend-only.
+- Tool inputs/outputs must be validated.
+- Sensitive financial information should not be unnecessarily logged.
+- AI endpoints should have suitable rate limiting and provider-failure handling.
+
+---
+
+# Phase 9 — Budget Management
+
+The budget system should allow families to plan spending rather than only record it. AI budget recommendations and budget risk detection will build on this system later.
 
 Planned functionality:
 
@@ -196,7 +311,7 @@ Status: PLANNED
 
 ---
 
-# Phase 9 — Reports & Analytics
+# Phase 10 — Reports & Analytics
 
 Reports should turn transaction data into useful financial insight.
 
@@ -216,8 +331,6 @@ Planned functionality:
 Charts should be added only where they communicate something useful.
 
 Status: PLANNED
-
----
 
 # Phase 10 — Recurring Transactions
 
@@ -268,9 +381,50 @@ Status: FUTURE
 
 ---
 
-# Phase 13 — Production Readiness
+# Phase 13 — DevOps & Production Deployment
 
-Before considering the application portfolio-ready:
+DevOps is a dedicated future learning phase. It should begin after the major application functionality is sufficiently complete, rather than being started alongside the current AI work. The purpose is to learn how to take the application from a working local project to a repeatable, observable production deployment.
+
+This phase should be implemented as hands-on project work rather than simply using a one-click hosting service.
+
+Planned functionality and learning goals:
+
+- [ ] Learn Docker fundamentals
+- [ ] Dockerize the backend
+- [ ] Dockerize the frontend
+- [ ] Create Docker Compose configuration for local multi-service development
+- [ ] Separate development and production configuration
+- [ ] Manage production environment variables
+- [ ] Set up production PostgreSQL
+- [ ] Run database migrations safely during deployment
+- [ ] Deploy the backend
+- [ ] Deploy the frontend
+- [ ] Configure frontend-to-backend communication in production
+- [ ] Configure production CORS
+- [ ] Configure domain/DNS
+- [ ] Configure HTTPS/TLS
+- [ ] Learn GitHub Actions fundamentals
+- [ ] Build a CI pipeline for install/build/type-check/lint/tests as applicable
+- [ ] Build a CD pipeline for deployment
+- [ ] Build and use Docker images in the deployment workflow
+- [ ] Manage production secrets securely
+- [ ] Add backend health-check endpoint(s)
+- [ ] Establish production logging
+- [ ] Add basic application/infrastructure monitoring
+- [ ] Define database backup strategy
+- [ ] Define rollback strategy
+- [ ] Practice production troubleshooting
+- [ ] Document the deployment architecture and operational workflow
+
+The exact cloud provider and hosting architecture should be chosen when this phase begins, based on the learning goals and the project's actual requirements.
+
+Status: FUTURE
+
+---
+
+# Phase 14 — Production Hardening & Portfolio Readiness
+
+After deployment is working, perform a final production-readiness pass across the deployed system.
 
 - [ ] Comprehensive validation/error handling review
 - [ ] Authentication/security review
@@ -281,12 +435,11 @@ Before considering the application portfolio-ready:
 - [ ] Responsive review
 - [ ] Accessibility review
 - [ ] Performance review
-- [ ] Environment-variable review
-- [ ] Production deployment
-- [ ] Production database
-- [ ] Deployment documentation
+- [ ] Production environment-variable/secrets review
+- [ ] Verify deployment and rollback procedures
 - [ ] Strong README
 - [ ] Architecture documentation
+- [ ] Deployment documentation
 - [ ] Screenshots/demo material
 
 Status: FUTURE
@@ -297,12 +450,14 @@ Status: FUTURE
 
 Unless a new product requirement changes priorities, the recommended development order is:
 
-1. Budget management
+1. AI Financial Intelligence
+2. Budget management
 3. Reports & analytics
 4. Recurring transactions
 5. Notifications/alerts
 6. Data export
-7. Production hardening and deployment
+7. DevOps & production deployment
+8. Production hardening & portfolio readiness
 
 The order can change when there is a strong technical or product reason.
 

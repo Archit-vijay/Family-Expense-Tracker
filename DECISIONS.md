@@ -413,3 +413,85 @@ Instead:
 4. update this document if the decision is intentionally changed.
 
 This keeps the project history coherent.
+
+
+---
+
+# AI Integration Decisions
+
+## AI as a separate product capability
+
+AI is being introduced as a dedicated development phase before Budget Management. It will be implemented incrementally rather than all at once.
+
+The selected feature set is:
+
+1. AI Financial Assistant
+2. AI Financial Insights
+3. AI Monthly Financial Summary
+4. AI Anomaly Detection
+5. AI Family Spending Insights
+6. AI Dashboard / Ask About My Finances
+7. AI Budget Recommendations
+8. AI Budget Risk Detection
+
+Transaction categorization and transaction-description/merchant analysis are intentionally excluded from the current AI scope.
+
+## Backend is the financial source of truth
+
+Authoritative financial calculations remain in the backend. The AI should not replace deterministic application logic for totals, percentages, budget calculations, or other financial values.
+
+The intended pattern is:
+
+`Backend calculates -> structured result -> AI interprets/explains`
+
+For example, the backend may calculate income, expenses, change percentages, and category totals, while the AI turns those validated results into a natural-language explanation.
+
+## AI tool/function calling
+
+The AI Financial Assistant will use explicit backend tools/function calls to access financial information. The model will not directly query PostgreSQL. Arbitrary model-generated SQL must never be executed against the application database.
+
+A reusable tool layer is planned around operations such as:
+- `get_monthly_spending()`
+- `get_category_spending()`
+- `get_family_transactions()`
+- `get_member_spending()`
+- `get_income_summary()`
+- `get_budget_status()`
+- `get_spending_trends()`
+
+Tools should call or reuse existing backend business logic where possible. Tool contracts should return structured, validated data.
+
+## Authentication and family scoping
+
+Every AI request must run in the authenticated user's family context. AI tools must enforce the same family/data boundaries as normal application endpoints and must never expose another family's financial information.
+
+The frontend will never receive the AI provider API key. Provider communication belongs on the backend.
+
+## Privacy and operational safeguards
+
+The AI integration should:
+- send only the minimum necessary financial data to the model;
+- validate tool inputs and outputs;
+- avoid unnecessary logging of financial data;
+- use appropriate rate limiting;
+- handle provider failures and timeouts cleanly;
+- keep AI authorization separate from UI visibility;
+- preserve the existing authentication and role-based authorization model.
+
+## Incremental implementation
+
+AI features will be completed and validated one at a time. AI-1 is the immediate next milestone. Its design work includes provider/API selection, backend AI service structure, tool definitions, family authorization, frontend chat, environment variables, error/rate-limit handling, and independent Postman testing before frontend integration is considered complete.
+
+---
+
+# DevOps & Deployment — Planned Direction
+
+DevOps is a deliberate future phase of the project because the project is also intended to teach practical deployment and DevOps skills. It should not be started immediately alongside the current AI work. The intended point is after the major application features are sufficiently complete and the application has enough functionality to make production deployment meaningful.
+
+The deployment approach should favor learning core concepts over hiding them behind a one-click platform. The planned learning sequence includes Docker, Docker Compose, production configuration, environment variables and secrets, PostgreSQL deployment and migrations, frontend/backend deployment, production CORS and communication, domain/DNS, HTTPS/TLS, GitHub Actions CI/CD, Docker image workflows, health checks, logging, monitoring, backups, rollback, and production troubleshooting.
+
+The exact hosting provider is intentionally not fixed yet. That decision should be made when the DevOps phase begins after the application's feature roadmap has progressed.
+
+Production architecture must preserve the project's existing separation of responsibilities: frontend presentation, backend business logic/authorization, and PostgreSQL data storage. Deployment infrastructure must not move business rules into the frontend or bypass backend authorization.
+
+No deployment environment, cloud architecture, CI/CD pipeline, or production database should be considered implemented merely because it is documented here.
