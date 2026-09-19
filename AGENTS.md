@@ -148,13 +148,23 @@ Current enforced permissions:
 - creating family members requires `admin`;
 - editing family members requires `admin`;
 - deactivating family members requires `admin`;
-- creating family invitations requires `admin`.
+- creating family invitations requires `admin`;
+- viewing transactions is available to `admin`, `member`, and `viewer`;
+- creating, editing, and deactivating transactions require `admin` or `member`.
+
+Role-management rules:
+- only `admin` users can change family-member roles;
+- an admin may change another connected non-admin member between `admin`, `member`, and `viewer`;
+- an admin cannot change their own role;
+- an admin cannot change another admin's role;
+- members and viewers cannot change roles.
 
 Important:
 - frontend role-based UI visibility is not a security boundary;
 - protected operations must remain enforced by the backend;
-- transaction role permissions are not yet finalized or enforced;
-- do not assume `member` or `viewer` permissions until they are explicitly defined and documented.
+- the backend is the source of truth for role authorization;
+- viewer users are read-only for transactions and family-management operations;
+- authorization behavior has been tested for the defined role/operation combinations.
 
 ## Data / Deletion Rules
 

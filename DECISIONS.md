@@ -95,9 +95,28 @@ Current enforced permissions:
 
 The frontend may reflect these permissions in the UI, but backend checks are the actual security boundary.
 
-Transaction permissions for `member` and `viewer` have not yet been finalized. Until those permissions are deliberately defined and applied, transaction routes remain authentication-protected rather than role-restricted.
+Transaction permissions are defined as:
+- `admin`: may view, create, edit, and deactivate transactions;
+- `member`: may view, create, edit, and deactivate transactions;
+- `viewer`: may view transactions only.
 
-Authorization tests for the protected role/operation combinations are also still pending.
+Family-management permissions are defined as:
+- all authenticated family roles may view family members;
+- only `admin` may create, edit, or deactivate family members;
+- only `admin` may create invitations.
+
+Role changes are admin-only:
+- an admin may change another connected non-admin member's role;
+- an admin may assign `admin`, `member`, or `viewer`;
+- an admin may not change their own role;
+- an admin may not change another admin's role;
+- members and viewers cannot change roles.
+
+These permissions are enforced by the backend rather than relying on frontend visibility. The defined authorization combinations have been tested successfully.
+
+## Authorization Error Handling
+
+Permission failures from protected operations should be shown in the relevant action UI rather than being treated as page data-loading failures. Transaction add/edit/remove authorization errors remain inside their respective modal or confirmation UI, while page-level loading errors are reserved for failures while loading page data.
 
 # Deletion Strategy
 

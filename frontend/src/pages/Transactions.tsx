@@ -79,6 +79,12 @@ function Transactions() {
   const [removingTransaction, setRemovingTransaction] =
     useState<Transaction | null>(null);
 
+  const [transactionActionError, setTransactionActionError] =
+    useState("");
+
+  const [removeTransactionError, setRemoveTransactionError] =
+    useState("");
+
   const [isRemoving, setIsRemoving] =
     useState(false);
 
@@ -129,7 +135,7 @@ function Transactions() {
     },
   ) {
     try {
-      setError(null);
+      setTransactionActionError("");
 
       await createTransaction({
         memberId: newTransaction.memberId,
@@ -152,8 +158,10 @@ function Transactions() {
         error,
       );
 
-      setError(
-        "Unable to add transaction.",
+      setTransactionActionError(
+        error instanceof Error
+          ? error.message
+          : "Unable to add transaction.",
       );
     }
   }
@@ -170,7 +178,7 @@ function Transactions() {
     },
   ) {
     try {
-      setError(null);
+      setTransactionActionError("");
 
       await updateTransaction(
         transactionId,
@@ -200,8 +208,10 @@ function Transactions() {
         error,
       );
 
-      setError(
-        "Unable to update transaction.",
+      setTransactionActionError(
+        error instanceof Error
+          ? error.message
+          : "Unable to update transaction.",
       );
     }
   }
@@ -216,6 +226,7 @@ function Transactions() {
   function handleRemoveTransaction(
     transaction: Transaction,
   ) {
+    setRemoveTransactionError("");
     setRemovingTransaction(transaction);
   }
 
@@ -226,7 +237,7 @@ function Transactions() {
 
     try {
       setIsRemoving(true);
-      setError(null);
+      setRemoveTransactionError("");
 
       await deactivateTransaction(
         removingTransaction.id,
@@ -247,8 +258,10 @@ function Transactions() {
         error,
       );
 
-      setError(
-        "Unable to remove transaction.",
+      setRemoveTransactionError(
+        error instanceof Error
+          ? error.message
+          : "Unable to remove transaction.",
       );
     } finally {
       setIsRemoving(false);
@@ -632,6 +645,7 @@ function Transactions() {
           transaction={editingTransaction}
           categories={categories}
           members={members}
+          actionError={transactionActionError}
         />
       )}
 
@@ -639,7 +653,7 @@ function Transactions() {
       {removingTransaction && (
         <div
           className="
-            fixed inset-0 z-[60]
+            fixed inset-0 z-60
             flex items-center justify-center
             bg-[#2a234f]/50
             p-4
@@ -652,6 +666,7 @@ function Transactions() {
               !isRemoving
             ) {
               setRemovingTransaction(null);
+              setRemoveTransactionError("");
             }
           }}
         >
@@ -687,12 +702,21 @@ function Transactions() {
               appear in your transaction list.
             </p>
 
+            {removeTransactionError && (
+              <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-600">
+                {removeTransactionError}
+              </div>
+            )}        
+
             <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <button
                 type="button"
                 disabled={isRemoving}
                 onClick={() =>
-                  setRemovingTransaction(null)
+                  {
+                    setRemovingTransaction(null);
+                    setRemoveTransactionError("");
+                  }
                 }
                 className="
                   rounded-xl

@@ -35,6 +35,8 @@ interface AddTransactionModalProps {
 
   categories: Category[];
   members: FamilyMember[];
+
+  actionError?: string;
 }
 
 function getTodayDate() {
@@ -60,6 +62,7 @@ function AddTransactionModal({
   transaction,
   categories,
   members,
+  actionError,
 }: AddTransactionModalProps) {
   const isEditMode = Boolean(transaction);
 
@@ -244,9 +247,9 @@ function AddTransactionModal({
           onSubmit={handleSubmit}
           className="p-5 sm:p-6"
         >
-          {error && (
+          {(error || actionError) && (
             <div className="mb-5 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-600">
-              {error}
+              {actionError || error}
             </div>
           )}
 

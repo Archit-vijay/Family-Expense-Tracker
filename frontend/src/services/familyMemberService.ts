@@ -5,6 +5,7 @@ export interface FamilyMember {
   name: string;
   user_id: number | null;
   created_at: string;
+  role: "admin" | "member" | "viewer" | null;
 }
 
 function getAuthHeaders() {
@@ -125,6 +126,50 @@ export async function deactivateFamilyMember(
     throw new Error(
       result.message ||
         "Failed to remove family member",
+    );
+  }
+
+  if (!result.data) {
+    throw new Error("Invalid server response");
+  }
+
+  return result.data;
+}
+
+export async function updateFamilyMemberRole(
+  memberId: number,
+  role: "admin" | "member" | "viewer",
+): Promise<{
+  user_id: number;
+  family_id: number;
+  role: "admin" | "member" | "viewer";
+}> {
+  const response = await fetch(
+    `${API_URL}/family-members/${memberId}/role`,
+    {
+      method: "PATCH",
+      headers: {
+        ...getAuthHeaders(),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ role }),
+    },
+  );
+
+  const result: {
+    success: boolean;
+    data?: {
+      user_id: number;
+      family_id: number;
+      role: "admin" | "member" | "viewer";
+    };
+    message?: string;
+  } = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      result.message ||
+        "Failed to update family member role",
     );
   }
 

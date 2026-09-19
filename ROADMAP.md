@@ -124,16 +124,25 @@ Status: COMPLETE
 
 # Phase 7 — Family Roles & Authorization
 
-Family membership roles are stored and displayed, and the initial backend authorization layer is now implemented. This phase remains in progress until member/viewer permissions are explicitly defined, transaction operations are role-restricted accordingly, and authorization tests are added.
+Family membership roles, backend authorization, frontend role management, and transaction role restrictions are complete and validated.
 
 The family-membership lifecycle is already handled separately: removing a person from a family does not delete their global account, and an existing account can be re-invited to the family after its membership is removed.
 
 Current authorization enforcement:
+- family-member viewing requires authentication;
 - family-member creation is admin-only;
 - family-member editing is admin-only;
 - family-member deactivation is admin-only;
 - invitation creation is admin-only;
-- family-member retrieval requires authentication.
+- transaction viewing is available to `admin`, `member`, and `viewer`;
+- transaction creation, editing, and removal are available to `admin` and `member` only.
+
+Role-management rules:
+- only admins can change roles;
+- admins can change another connected non-admin member to `admin`, `member`, or `viewer`;
+- admins cannot change their own role;
+- admins cannot change another admin's role;
+- members and viewers cannot change roles.
 
 Planned functionality:
 
@@ -142,17 +151,20 @@ Planned functionality:
 - [x] Expose current user's family role through `GET /api/family/me`
 - [x] Load family role into frontend authentication state
 - [x] Display the actual role in the sidebar
+- [x] Display family-member roles in Family management
 - [x] Backend role authorization middleware/helper
 - [x] Admin-only family member creation
 - [x] Admin-only family member editing
 - [x] Admin-only family member deactivation
 - [x] Admin-only invitation creation
-- [ ] Define member permissions
-- [ ] Define viewer read-only permissions
-- [ ] Apply permissions consistently to transaction operations
-- [ ] Add authorization tests for each protected role/operation
+- [x] Admin role management with self/admin restrictions
+- [x] Define member permissions
+- [x] Define viewer read-only permissions
+- [x] Apply permissions consistently to transaction operations
+- [x] Add authorization tests for each protected role/operation
+- [x] Handle transaction authorization errors inside the relevant action UI
 
-Status: IN PROGRESS
+Status: COMPLETE
 
 ---
 
@@ -285,8 +297,7 @@ Status: FUTURE
 
 Unless a new product requirement changes priorities, the recommended development order is:
 
-1. Role-based authorization and permission enforcement
-2. Budget management
+1. Budget management
 3. Reports & analytics
 4. Recurring transactions
 5. Notifications/alerts

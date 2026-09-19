@@ -15,6 +15,7 @@ import {
   createFamilyMember,
   getFamilyMembers,
   updateFamilyMember,
+  updateFamilyMemberRole,
   deactivateFamilyMember,
   type FamilyMember,
 } from "../services/familyMemberService";
@@ -25,8 +26,14 @@ import {
 } from "../services/invitationService";
 
 import ContentState from "../components/ContentState";
+import { useAuth } from "../context/AuthContext";
+
+import AnimatedDropdown from "../components/AnimatedDropdown";
 
 function Family() {
+  const { familyRole, user } = useAuth();
+  const isAdmin = familyRole === "admin";
+
   const [members, setMembers] = useState<FamilyMember[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -66,6 +73,19 @@ function Family() {
 
   const [copiedInvitation, setCopiedInvitation] =
     useState(false);
+
+  const [roleMember, setRoleMember] =
+    useState<FamilyMember | null>(null);
+
+  const [selectedRole, setSelectedRole] =
+    useState<
+      "admin" | "member" | "viewer"
+    >("member");
+
+  const [isUpdatingRole, setIsUpdatingRole] =
+    useState(false);
+
+  const [roleError, setRoleError] = useState("");
 
   useEffect(() => {
     async function loadMembers() {
@@ -209,6 +229,48 @@ function Family() {
     );
   } finally {
     setIsRemoving(false);
+  }
+}
+
+async function handleUpdateRole() {
+  if (!roleMember) return;
+
+  try {
+    setIsUpdatingRole(true);
+    setRoleError("");
+
+    const updatedMembership =
+      await updateFamilyMemberRole(
+        roleMember.id,
+        selectedRole,
+      );
+
+    setMembers((currentMembers) =>
+      currentMembers.map((member) =>
+        member.id === roleMember.id
+          ? {
+              ...member,
+              role: updatedMembership.role,
+            }
+          : member,
+      ),
+    );
+
+    setRoleMember(null);
+    setRoleError("");
+  } catch (error) {
+    console.error(
+      "Failed to update family member role:",
+      error,
+    );
+
+    setRoleError(
+      error instanceof Error
+        ? error.message
+        : "Unable to update family member role.",
+    );
+  } finally {
+    setIsUpdatingRole(false);
   }
 }
 
@@ -429,11 +491,29 @@ function Family() {
                     {member.name}
                   </h3>
 
-                  <p className="mt-0.5 text-xs text-[#77738a]">
-                    {member.user_id !== null
-                      ? "Account connected"
+                  <div className="mt-1 flex items-center gap-2">
+                    <p className="text-xs text-[#77738a]">
+                      {member.user_id !== null
+                        ? "Account connected"
                       : "Family member"}
-                  </p>
+                    </p>
+
+                    {member.role && (
+                      <span
+                        className="
+                          rounded-full
+                          bg-[#f8f7fb]
+                          px-2 py-0.5
+                          text-[10px]
+                          font-semibold
+                          capitalize
+                          text-[#77738a]
+                        "
+                      >
+                        {member.role}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {/* Actions */}
@@ -530,6 +610,36 @@ function Family() {
                         <Edit3 size={16} />
                         Edit
                       </button>
+
+                      {/* Change role */}
+                      {isAdmin &&
+                        member.user_id !== null &&
+                        member.user_id !== user?.id &&
+                        member.role !== "admin" && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setRoleMember(member);
+                              setSelectedRole(member.role ?? "member");
+                              setRoleError("");
+                              setMenuMemberId(null);
+                            }}
+                            className="
+                              flex w-full items-center gap-2
+                              rounded-lg
+                              px-3 py-2.5
+                              text-left
+                              text-sm font-medium
+                              text-[#77738a]
+                              transition-colors
+                              hover:bg-[#f8f7fb]
+                              hover:text-[#2a234f]
+                            "
+                          >
+                            <Edit3 size={16} />
+                            Change role
+                          </button>
+                        )}  
 
                       {/* Remove */}
                       <button
@@ -862,6 +972,192 @@ function Family() {
                   ? "Removing..."
                   : "Remove member"}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Change role modal */}
+      {roleMember && (
+        <div
+          className="
+            fixed inset-0 z-60
+            flex items-center justify-center
+            bg-[#2a234f]/50
+            p-4
+            backdrop-blur-sm
+          "
+          onMouseDown={(event) => {
+            if (
+              event.target === event.currentTarget &&
+              !isUpdatingRole
+            ) {
+              setRoleMember(null);
+              setRoleError("");
+            }
+          }}
+        >
+          <div
+            className="
+              modal-enter
+              w-full max-w-md
+              overflow-visible
+              rounded-2xl
+              border border-white/20
+              bg-white
+              shadow-2xl
+            "
+          >
+            <div
+              className="
+                flex items-start justify-between
+                border-b border-[#e8e5ef]
+                px-5 py-5
+                sm:px-6
+              "
+            >
+              <div>
+                <h2 className="text-lg font-bold text-[#2a234f]">
+                  Change role
+                </h2>
+
+                <p className="mt-1 text-xs text-[#77738a]">
+                  Change the family role for{" "}
+                  {roleMember.name}.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (isUpdatingRole) return;
+
+                  setRoleMember(null);
+                  setRoleError("");
+                }}
+                disabled={isUpdatingRole}
+                className="
+                  rounded-xl p-2
+                  text-[#9a96a8]
+                  transition-all duration-200
+                  hover:bg-[#f8f7fb]
+                  hover:text-[#2a234f]
+                  active:scale-95
+                  disabled:cursor-not-allowed
+                  disabled:opacity-50
+                "
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-5 sm:p-6">
+              {roleError && (
+                <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                  {roleError}
+                </div>
+              )}
+
+              <div>
+                <label
+                  className="
+                    mb-2 block
+                    text-xs font-semibold
+                    text-[#77738a]
+                  "
+                >
+                  Family role
+                </label>
+
+                <AnimatedDropdown
+                  value={selectedRole}
+                  options={[
+                    {
+                      value: "member",
+                      label: "Member",
+                    },
+                    {
+                      value: "viewer",
+                      label: "Viewer",
+                    },
+                    {
+                      value: "admin",
+                      label: "Admin",
+                    },
+                  ]}
+                  onChange={(value) =>
+                    setSelectedRole(
+                      value as "admin" | "member" | "viewer",
+                    )
+                  }
+                />
+              </div>
+
+              <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (isUpdatingRole) return;
+
+                    setRoleMember(null);
+                    setRoleError("");
+                  }}
+                  disabled={isUpdatingRole}
+                  className="
+                    rounded-xl
+                    border border-[#e8e5ef]
+                    px-5 py-3
+                    text-sm font-semibold
+                    text-[#77738a]
+                    transition-all duration-200
+                    hover:bg-[#f8f7fb]
+                    active:scale-[0.98]
+                    disabled:cursor-not-allowed
+                    disabled:opacity-50
+                  "
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleUpdateRole}
+                  disabled={isUpdatingRole}
+                  className="
+                    inline-flex
+                    items-center
+                    justify-center
+                    gap-2
+                    rounded-xl
+                    bg-[#2a234f]
+                    px-5 py-3
+                    text-sm font-semibold
+                    text-white
+                    shadow-lg
+                    shadow-[#2a234f]/10
+                    transition-all duration-200
+                    hover:-translate-y-0.5
+                    hover:bg-[#1f1a3b]
+                    hover:shadow-xl
+                    hover:shadow-[#2a234f]/20
+                    active:translate-y-0
+                    active:scale-[0.98]
+                    disabled:cursor-not-allowed
+                    disabled:opacity-60
+                  "
+                >
+                  {isUpdatingRole && (
+                    <Loader2
+                      size={16}
+                      className="animate-spin"
+                    />
+                  )}
+
+                  {isUpdatingRole
+                    ? "Saving..."
+                    : "Save role"}
+                </button>
+              </div>
             </div>
           </div>
         </div>

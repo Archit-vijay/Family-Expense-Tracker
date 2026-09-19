@@ -134,7 +134,20 @@ Current enforcement:
 
 The middleware resolves the authenticated user's family membership and role before allowing an operation to continue.
 
-The role system is therefore no longer only informational. However, transaction permissions for `member` and `viewer` have not yet been defined or enforced, and authorization tests are still pending.
+### Role management
+
+The Family page displays each connected member's actual role and provides admin-only role management.
+
+Rules:
+- an admin may change another connected non-admin member's role;
+- an admin may assign `admin`, `member`, or `viewer`;
+- an admin cannot change their own role;
+- an admin cannot change another admin's role;
+- members and viewers cannot change roles.
+
+The backend endpoint enforces these restrictions; the frontend controls visibility and interaction.
+
+The role system is no longer only informational. Transaction permissions are now role-restricted: `admin` and `member` may create, edit, and remove transactions, while `viewer` is read-only. The defined authorization combinations have been tested successfully.
 
 ### Existing-account re-invitation
 
@@ -250,6 +263,17 @@ The transaction modal supports both add and edit modes.
 Transaction date defaults to the current date but can be changed by the user.
 
 Categories are filtered according to transaction type.
+
+### Transaction authorization
+
+Transaction routes are role-restricted:
+- `admin`: view, create, edit, and remove;
+- `member`: view, create, edit, and remove;
+- `viewer`: view only.
+
+Authorization was verified by testing the relevant role/operation combinations. Viewers can view transactions but cannot create, edit, or remove them. Viewers also cannot add, edit, or remove family members or create invitations.
+
+Frontend action errors were separated from page-loading errors so a backend permission failure remains inside the relevant transaction modal or removal confirmation instead of incorrectly replacing the page with a data-loading error state.
 
 ---
 
@@ -472,11 +496,13 @@ Phase 6 (Dashboard) is complete. The dashboard now presents live, selected-month
 
 The responsive dashboard includes a custom period selector, semantic summary cards, an income-versus-expenses visualization, spending by category, recent transactions using the existing transaction-item visual language, and family spending. It uses shared loading, empty, and error states. Net Savings is explicitly income minus expenses, not a bank balance.
 
-The family invitation, membership-role, and initial backend-authorization milestone is in progress but the initial authorization foundation is complete. The frontend can accept an invitation, establish the user's authenticated session, fetch the user's family role, and display the correct role in the sidebar. The invitation flow also supports existing-account re-invitation after family removal, including existing-password verification and reuse of the global account.
+The family invitation, membership-role, and backend authorization milestone is complete. The frontend can accept an invitation, establish the user's authenticated session, fetch the user's family role, display the correct role in the sidebar, display member roles on the Family page, and manage eligible member roles as an admin. The invitation flow also supports existing-account re-invitation after family removal, including existing-password verification and reuse of the global account.
 
-Backend authorization now uses `requireRole()` to enforce admin-only family-member creation, editing, deactivation, and invitation creation. Family-member retrieval remains authenticated-only.
+Backend authorization uses `requireRole()` to enforce admin-only family-member creation, editing, deactivation, and invitation creation. Transaction routes enforce the defined role permissions: `admin` and `member` can create, edit, and deactivate transactions, while `viewer` is read-only. Family-member retrieval and transaction viewing remain available to authenticated family users.
 
-The remaining authorization work is to define `member` permissions, define `viewer` read-only permissions, apply the chosen permissions consistently to transaction operations, and add authorization tests. Budget implementation should follow completion of this authorization milestone.
+Role-management restrictions are enforced by the backend: admins cannot change their own role or another admin's role, while eligible non-admin roles can be changed by an admin. The defined authorization combinations were tested successfully.
+
+The transaction UI also handles authorization failures in the relevant action modal/confirmation UI instead of treating them as page-loading failures.
 
 The next work should follow `ROADMAP.md`.
 
