@@ -177,19 +177,20 @@ AI is being added as a dedicated phase before Budget Management. The features be
 
 ## AI-1 — AI Financial Assistant
 
-- [ ] Select AI provider/API
-- [ ] Define backend AI service structure
-- [ ] Define authenticated, family-scoped financial tools
-- [ ] Implement tool/function calling
-- [ ] Add initial tools for common financial questions
-- [ ] Prevent direct database access by the model
-- [ ] Prevent arbitrary model-generated SQL execution
-- [ ] Add frontend financial chat UI
-- [ ] Add backend-only AI environment variables
-- [ ] Handle provider errors, timeouts, and rate limits
-- [ ] Test AI endpoints with Postman
+- [x] Select AI provider/API (local Ollama with qwen2.5:3b)
+- [x] Define backend AI service structure
+- [x] Define authenticated, family-scoped financial tools
+- [x] Implement tool/function calling
+- [x] Add initial tools for common financial questions
+- [x] Prevent direct database access by the model
+- [x] Prevent arbitrary model-generated SQL execution
+- [x] Add frontend financial chat UI
+- [x] Add backend-only AI environment variables
+- [x] Handle provider errors, timeouts, and rate limits
+- [x] Multi-round tool calling loop with concurrency and safe error recovery
+- [x] Test AI endpoints with Postman and frontend chat
 
-Status: NEXT
+Status: COMPLETE
 
 ## AI-2 — AI Financial Insights
 
@@ -199,7 +200,7 @@ Status: NEXT
 - [ ] Keep backend calculations authoritative
 - [ ] Add insight UI
 
-Status: PLANNED
+Status: NEXT
 
 ## AI-3 — AI Monthly Financial Summary
 

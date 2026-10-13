@@ -5,6 +5,7 @@ import {
   LayoutDashboard,
   PanelLeftClose,
   Settings,
+  Sparkles,
   Users,
   WalletCards,
 } from "lucide-react";
@@ -149,6 +150,32 @@ function Sidebar() {
           >
             <LayoutDashboard size={19} />
             {!isCollapsed && <span>Dashboard</span>}
+          </NavLink>
+
+          {/* AI Assistant */}
+          <NavLink
+            to="/ai-assistant"
+            title={
+              isCollapsed
+                ? "AI Assistant"
+                : undefined
+            }
+            className={({ isActive }) =>
+              `group flex items-center rounded-xl py-3 text-sm font-medium transition-all duration-200 ${
+                isCollapsed
+                  ? "justify-center px-3"
+                  : "gap-3 px-3.5"
+              } ${
+                isActive
+                  ? "bg-white text-[#2a234f] shadow-lg shadow-black/10"
+                  : "text-white/60 hover:translate-x-1 hover:bg-white/5 hover:text-white"
+              }`
+            }
+          >
+            <Sparkles size={19} />
+            {!isCollapsed && (
+              <span>AI Assistant</span>
+            )}
           </NavLink>
 
           {/* Transactions */}

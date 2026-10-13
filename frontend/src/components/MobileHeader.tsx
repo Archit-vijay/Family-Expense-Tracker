@@ -8,6 +8,10 @@ function MobileHeader() {
 
   const navigationItems = [
     { label: "Dashboard", to: "/dashboard" },
+    {
+      label: "AI Assistant",
+      to: "/ai-assistant",
+    },
     { label: "Transactions", to: "/transactions" },
     { label: "Budgets", to: "/budgets" },
     { label: "Reports", to: "/reports" },

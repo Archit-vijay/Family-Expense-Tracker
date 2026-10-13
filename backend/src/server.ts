@@ -9,6 +9,7 @@ import authRoutes from "./routes/authRoutes.js";
 import familyRoutes from "./routes/familyRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
 import invitationRoutes from "./routes/invitationRoutes.js";
+import aiRoutes from "./routes/aiRoutes.js";
 
 const app = express();
 
@@ -35,6 +36,8 @@ app.use("/api/family", familyRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 
 app.use("/api/invitations", invitationRoutes);
+
+app.use("/api/ai", aiRoutes);
 
 app.get("/api/health", (_req, res) => {
     res.json({

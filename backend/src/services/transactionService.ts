@@ -164,3 +164,420 @@ export async function deactivateTransaction(
 
   return result.rows[0] ?? null;
 }
+
+export async function getSpendingByDateRange(
+  familyId: number,
+  startDate: string,
+  endDate: string,
+) {
+  const result = await pool.query(
+    `
+      SELECT COALESCE(SUM(amount), 0) AS total_spending
+      FROM transactions
+      WHERE family_id = $1
+        AND type = 'expense'
+        AND is_deleted = FALSE
+        AND transaction_date >= $2
+        AND transaction_date < $3;
+    `,
+    [familyId, startDate, endDate],
+  );
+
+  return {
+    startDate,
+    endDate,
+    totalSpending: Number(
+      result.rows[0].total_spending,
+    ),
+  };
+}
+
+export async function getCategorySpending(
+  familyId: number,
+  categoryName: string,
+  startDate: string,
+  endDate: string,
+) {
+  const result = await pool.query(
+    `
+      SELECT
+        c.name AS category_name,
+        COALESCE(SUM(t.amount), 0) AS total_spending
+      FROM categories c
+      LEFT JOIN transactions t
+        ON t.category_id = c.id
+        AND t.family_id = $1
+        AND t.type = 'expense'
+        AND t.is_deleted = FALSE
+        AND t.transaction_date >= $3
+        AND t.transaction_date < $4
+      WHERE c.family_id = $1
+        AND LOWER(c.name) = LOWER($2)
+      GROUP BY c.id, c.name;
+    `,
+    [
+      familyId,
+      categoryName,
+      startDate,
+      endDate,
+    ],
+  );
+
+  if (result.rows.length === 0) {
+    return {
+      category: categoryName,
+      totalSpending: 0,
+      categoryFound: false,
+      startDate,
+      endDate,
+    };
+  }
+
+  return {
+    category: result.rows[0].category_name,
+    totalSpending: Number(
+      result.rows[0].total_spending,
+    ),
+    categoryFound: true,
+    startDate,
+    endDate,
+  };
+}
+
+export async function getFamilyTransactions(
+  familyId: number,
+  limit: number = 10,
+  startDate?: string,
+  endDate?: string,
+) {
+  const safeLimit = Math.min(
+    Math.max(Math.floor(limit), 1),
+    20,
+  );
+
+  const values: (number | string)[] = [familyId, safeLimit];
+  let dateCondition = "";
+
+  if (startDate !== undefined && endDate !== undefined) {
+    values.push(startDate);
+    values.push(endDate);
+    dateCondition = `
+      AND t.transaction_date >= $3
+      AND t.transaction_date < $4
+    `;
+  }
+
+  const result = await pool.query(
+    `
+      SELECT
+        t.id,
+        t.amount,
+        t.type,
+        t.title,
+        t.transaction_date,
+        c.name AS category,
+        fm.name AS member_name
+      FROM transactions t
+      LEFT JOIN categories c
+        ON c.id = t.category_id
+      LEFT JOIN family_members fm
+        ON fm.id = t.member_id
+      WHERE
+        t.family_id = $1
+        AND t.is_deleted = FALSE
+        ${dateCondition}
+      ORDER BY
+        t.transaction_date DESC,
+        t.id DESC
+      LIMIT $2;
+    `,
+    values,
+  );
+
+  return result.rows.map((transaction) => ({
+    id: transaction.id,
+    amount: Number(transaction.amount),
+    type: transaction.type,
+    title: transaction.title,
+    transactionDate: transaction.transaction_date,
+    category: transaction.category,
+    memberName: transaction.member_name,
+  }));
+}
+
+export async function getMemberSpending(
+  familyId: number,
+  memberName: string,
+  period: "current_month" | "last_month" | "all",
+) {
+  let dateCondition = "";
+
+  if (period === "current_month") {
+    dateCondition = `
+      AND t.transaction_date >= DATE_TRUNC(
+        'month',
+        CURRENT_DATE
+      )
+      AND t.transaction_date < DATE_TRUNC(
+        'month',
+        CURRENT_DATE + INTERVAL '1 month'
+      )
+    `;
+  }
+
+  if (period === "last_month") {
+    dateCondition = `
+      AND t.transaction_date >= DATE_TRUNC(
+        'month',
+        CURRENT_DATE - INTERVAL '1 month'
+      )
+      AND t.transaction_date < DATE_TRUNC(
+        'month',
+        CURRENT_DATE
+      )
+    `;
+  }
+
+  const result = await pool.query(
+    `
+      SELECT
+        fm.name AS member_name,
+        COALESCE(SUM(t.amount), 0) AS total_spending
+      FROM transactions t
+      JOIN family_members fm
+        ON fm.id = t.member_id
+      WHERE
+        t.family_id = $1
+        AND fm.family_id = $1
+        AND fm.is_active = TRUE
+        AND t.is_deleted = FALSE
+        AND t.type = 'expense'
+        AND LOWER(fm.name) = LOWER($2)
+        ${dateCondition}
+      GROUP BY fm.name;
+    `,
+    [familyId, memberName],
+  );
+
+  if (result.rows.length === 0) {
+    return {
+      memberName,
+      totalSpending: 0,
+      memberFound: false,
+    };
+  }
+
+  return {
+    memberName: result.rows[0].member_name,
+    totalSpending: Number(
+      result.rows[0].total_spending,
+    ),
+    memberFound: true,
+  };
+}
+
+export async function getMemberSpendingByDateRange(
+  familyId: number,
+  memberName: string,
+  startDate: string,
+  endDate: string,
+) {
+  const result = await pool.query(
+    `
+      SELECT
+        fm.name AS member_name,
+        COALESCE(SUM(t.amount), 0) AS total_spending
+      FROM family_members fm
+      LEFT JOIN transactions t
+        ON t.member_id = fm.id
+        AND t.family_id = $1
+        AND t.type = 'expense'
+        AND t.is_deleted = FALSE
+        AND t.transaction_date >= $3
+        AND t.transaction_date < $4
+      WHERE fm.family_id = $1
+        AND fm.is_active = TRUE
+        AND LOWER(fm.name) = LOWER($2)
+      GROUP BY fm.id, fm.name;
+    `,
+    [
+      familyId,
+      memberName,
+      startDate,
+      endDate,
+    ],
+  );
+
+  if (result.rows.length === 0) {
+    return {
+      memberName,
+      totalSpending: 0,
+      memberFound: false,
+      startDate,
+      endDate,
+    };
+  }
+
+  return {
+    memberName: result.rows[0].member_name,
+    totalSpending: Number(
+      result.rows[0].total_spending,
+    ),
+    memberFound: true,
+    startDate,
+    endDate,
+  };
+}
+
+export async function getIncomeSummary(
+  familyId: number,
+  period: "current_month" | "last_month" | "all",
+) {
+  let dateCondition = "";
+
+  if (period === "current_month") {
+    dateCondition = `
+      AND transaction_date >= DATE_TRUNC(
+        'month',
+        CURRENT_DATE
+      )
+      AND transaction_date < DATE_TRUNC(
+        'month',
+        CURRENT_DATE + INTERVAL '1 month'
+      )
+    `;
+  }
+
+  if (period === "last_month") {
+    dateCondition = `
+      AND transaction_date >= DATE_TRUNC(
+        'month',
+        CURRENT_DATE - INTERVAL '1 month'
+      )
+      AND transaction_date < DATE_TRUNC(
+        'month',
+        CURRENT_DATE
+      )
+    `;
+  }
+
+  const result = await pool.query(
+    `
+      SELECT
+        COALESCE(SUM(amount), 0) AS total_income
+      FROM transactions
+      WHERE
+        family_id = $1
+        AND type = 'income'
+        AND is_deleted = FALSE
+        ${dateCondition};
+    `,
+    [familyId],
+  );
+
+  return {
+    period,
+    totalIncome: Number(
+      result.rows[0].total_income,
+    ),
+  };
+}
+
+export async function getSpendingTrends(
+  familyId: number,
+  months: number,
+) {
+  const safeMonths = Math.min(
+    Math.max(Math.floor(months), 1),
+    12,
+  );
+
+  const result = await pool.query(
+    `
+      SELECT
+        TO_CHAR(
+          DATE_TRUNC('month', t.transaction_date),
+          'YYYY-MM'
+        ) AS month,
+        COALESCE(SUM(t.amount), 0) AS total_spending
+      FROM transactions t
+      WHERE
+        t.family_id = $1
+        AND t.type = 'expense'
+        AND t.is_deleted = FALSE
+        AND t.transaction_date >= DATE_TRUNC(
+          'month',
+          CURRENT_DATE - (($2 - 1) * INTERVAL '1 month')
+        )
+        AND t.transaction_date < DATE_TRUNC(
+          'month',
+          CURRENT_DATE + INTERVAL '1 month'
+        )
+      GROUP BY
+        DATE_TRUNC('month', t.transaction_date)
+      ORDER BY
+        DATE_TRUNC('month', t.transaction_date) ASC;
+    `,
+    [familyId, safeMonths],
+  );
+
+  return result.rows.map((row) => ({
+    month: row.month,
+    totalSpending: Number(
+      row.total_spending,
+    ),
+  }));
+}
+
+export async function getMemberIncomeByDateRange(
+  familyId: number,
+  memberName: string,
+  startDate: string,
+  endDate: string,
+) {
+  const result = await pool.query(
+    `
+      SELECT
+        fm.name AS member_name,
+        COALESCE(SUM(t.amount), 0) AS total_income
+      FROM family_members fm
+      LEFT JOIN transactions t
+        ON t.member_id = fm.id
+        AND t.family_id = $1
+        AND t.type = 'income'
+        AND t.is_deleted = FALSE
+        AND t.transaction_date >= $3
+        AND t.transaction_date < $4
+      WHERE fm.family_id = $1
+        AND fm.is_active = TRUE
+        AND LOWER(fm.name) = LOWER($2)
+      GROUP BY fm.id, fm.name;
+    `,
+    [
+      familyId,
+      memberName,
+      startDate,
+      endDate,
+    ],
+  );
+
+  if (result.rows.length === 0) {
+    return {
+      memberName,
+      totalIncome: 0,
+      memberFound: false,
+      startDate,
+      endDate,
+    };
+  }
+
+  return {
+    memberName: result.rows[0].member_name,
+    totalIncome: Number(
+      result.rows[0].total_income,
+    ),
+    memberFound: true,
+    startDate,
+    endDate,
+  };
+}

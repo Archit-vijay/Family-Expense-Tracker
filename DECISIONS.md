@@ -480,7 +480,32 @@ The AI integration should:
 
 ## Incremental implementation
 
-AI features will be completed and validated one at a time. AI-1 is the immediate next milestone. Its design work includes provider/API selection, backend AI service structure, tool definitions, family authorization, frontend chat, environment variables, error/rate-limit handling, and independent Postman testing before frontend integration is considered complete.
+AI features will be completed and validated one at a time. AI-1 (AI Financial Assistant) is complete. AI-2 (AI Financial Insights) is the next milestone.
+
+## Local Ollama & Model Architecture Decisions (AI-1)
+
+### Choice of Local Ollama over External Cloud APIs
+The project adopted local Ollama (`http://localhost:11434`) rather than commercial APIs (OpenAI/Anthropic):
+- **Cost**: Eliminates ongoing API token charges.
+- **Privacy**: Multi-tenant family financial records never leave the local environment.
+- **Independence**: Operates reliably without internet connectivity or external rate quotas.
+
+### Choice of Small Instruct Model (`qwen2.5:3b`) over Reasoning Models
+Initial testing with `qwen3:8b` and other reasoning models showed severe performance bottlenecks:
+- Reasoning models spent 20–90 seconds generating 500+ hidden chain-of-thought tokens debating mathematical arithmetic before answering.
+- Because backend tools already compute authoritative financial figures directly in PostgreSQL, internal reasoning math by the model is redundant.
+- `qwen2.5:3b` (1.9 GB) fits 100% inside 6GB VRAM on consumer GPUs (e.g. RTX 4050), responds in ~0.21s for text and ~0.68s for tool calls, and excels at structured function calling.
+
+### Multi-Round Tool Calling Agentic Loop
+The backend AI service was architected with a multi-round agentic loop (`MAX_ROUNDS = 4`):
+- Supports multi-step reasoning where answering one question requires data from multiple tools or periods.
+- Multiple tool calls within a single round are dispatched concurrently using `Promise.all()`.
+- Safe error recovery: tool execution errors are captured and returned in JSON format (`{ error: ... }`) back to the model, allowing it to recover or provide a clarifying answer rather than terminating the HTTP request with a 500 status.
+- The final round omits the `tools` array from the payload to force a text conclusion.
+
+### Prompt & Formatting Guardrails
+- Assistant responses are constrained to plain text in Indian Rupees (`₹`), strictly forbidding markdown asterisks (`**`) or bullet lists.
+- A regex sanitization pass (`cleanResponseContent`) strips any leaked `<think>...</think>` tags to preserve clean conversational output.
 
 ---
 

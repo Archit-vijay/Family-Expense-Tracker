@@ -17,6 +17,8 @@ import Settings from "./pages/Settings";
 import Login from "./pages/Login";
 import AcceptInvitation from "./pages/AcceptInvitation";
 
+import AIAssistant from "./pages/AIAssistant";
+
 function App() {
   return (
     <BrowserRouter>
@@ -40,6 +42,11 @@ function App() {
             <Route
               path="/dashboard"
               element={<Dashboard />}
+            />
+
+            <Route
+              path="/ai-assistant"
+              element={<AIAssistant />}
             />
 
             <Route
