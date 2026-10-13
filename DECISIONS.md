@@ -480,7 +480,7 @@ The AI integration should:
 
 ## Incremental implementation
 
-AI features will be completed and validated one at a time. AI-1 (AI Financial Assistant) is complete. AI-2 (AI Financial Insights) is the next milestone.
+AI features will be completed and validated one at a time. AI-1 (AI Financial Assistant) and AI-2 (AI Financial Insights) are complete. AI-3 (AI Monthly Financial Summary) is the next milestone.
 
 ## Local Ollama & Model Architecture Decisions (AI-1)
 
@@ -506,6 +506,30 @@ The backend AI service was architected with a multi-round agentic loop (`MAX_ROU
 ### Prompt & Formatting Guardrails
 - Assistant responses are constrained to plain text in Indian Rupees (`₹`), strictly forbidding markdown asterisks (`**`) or bullet lists.
 - A regex sanitization pass (`cleanResponseContent`) strips any leaked `<think>...</think>` tags to preserve clean conversational output.
+
+## AI Financial Insights Architecture Decisions (AI-2)
+
+### Backend Deterministic Calculation Engine
+Financial mathematics (income, expenses, month-over-month percentage deltas, net savings, savings rate, category spikes, and member distribution) are strictly calculated by the backend in PostgreSQL and TypeScript (`insightsService.ts`):
+- Eliminates any risk of LLM hallucinations or computational rounding errors.
+- Pre-calculates exact comparative values between the selected period and its prior baseline (e.g. "October 2026" vs "September 2026").
+- Spikes are mathematically detected when a category increases by >= 20% and >= ₹500 (or new category >= ₹1,000).
+
+### AI Interpretation via Structured JSON & Fallback Resilience
+Validated metrics are supplied directly to `qwen2.5:3b` with instructions to interpret the findings into:
+1. Executive summary (1–2 sentences).
+2. Key highlights categorized by semantic type (`positive` for favorable trends, `warning` for spikes/alerts, and `neutral` for general insights).
+3. Actionable recommendations (1–2 practical tips).
+
+To guarantee robust availability:
+- If Ollama is unavailable, times out, or returns invalid JSON, the backend automatically triggers `generateDeterministicFallbackInsights`.
+- The fallback constructs a coherent structured report directly from verified PostgreSQL numbers. The UI never errors or breaks when the local model is offline.
+
+### Dedicated UI Placement with Reciprocal Navigation
+Per user preference, AI Financial Insights has a dedicated view at `/insights` (`AIInsights.tsx`):
+- Added to the desktop collapsible sidebar (`Sidebar.tsx`) and mobile drawer (`MobileHeader.tsx`).
+- Reciprocal navigation provided on both the Dashboard (`Dashboard.tsx`) and AI Assistant (`AIAssistant.tsx`) for fluid discovery across the application.
+- Uses a single vertical page flow with metric cards, executive summary, categorized highlight cards, category shift badges, member distribution progress bars, and actionable tips.
 
 ---
 

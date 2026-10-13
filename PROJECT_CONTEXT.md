@@ -490,11 +490,45 @@ Backend tools are strictly authenticated and family-scoped using the user's JWT 
 - Keeps responses concise (1–2 sentences) and grounded strictly in tool output data.
 
 ### Frontend Chat Interface
-- Integrated at `/ai` and added to both the collapsible desktop sidebar and the responsive mobile header.
+- Integrated at `/ai-assistant` and added to both the collapsible desktop sidebar and the responsive mobile header.
 - Clean chat message history with user and assistant bubbles matching the application palette (`#2A234F`, `#F8F7FB`, `#E8E5EF`).
 - Interactive suggested prompt chips for rapid testing.
 - Auto-scroll to latest message and loading state with disabled inputs during processing.
 - Backend rate limiting, timeout handling, and informative error banners.
+
+---
+
+## 9. AI Financial Insights (AI-2)
+
+The AI Financial Insights (AI-2) milestone is implemented end to end.
+
+### Deterministic Financial Metrics Engine
+Authoritative financial analytics are calculated entirely in PostgreSQL and TypeScript in `backend/src/services/insightsService.ts` before being passed to the AI:
+- **Comparative Periods**: Dynamic comparative range resolution comparing the selected period (e.g. "October 2026") against its prior baseline (e.g. "September 2026"), supporting "This Month", "Previous Month", and "Last 3 Months".
+- **Spending & Income Deltas**: Exact month-over-month (MoM) change percentage, absolute differences, and directional trends (`up`, `down`, `neutral`).
+- **Net Savings & Savings Rate**: Net savings calculation (`income - expenses`) and percentage of income retained, along with baseline comparisons.
+- **Category Breakdown & Spikes**: Category-level expenditure, percentage share of total family spending, and automated spike detection (defined as spending increasing by >= 20% and >= ₹500, or a new category spend >= ₹1,000).
+- **Member Distribution**: Each family member's spending total, percentage share of family expenses, and identification of the `topSpender`.
+- **Transaction Stats**: Transaction counts, average expense value, and the largest single expense recorded in the period.
+
+### Natural Language Interpretation Layer
+- Built in `backend/src/services/aiService.ts` via `generateFinancialInsights`.
+- Validated metrics are passed to local Ollama (`qwen2.5:3b`) with strict guardrails: the model does not recalculate or invent numbers, formats all currency in `₹` (INR), and returns structured JSON with an executive summary, categorized highlights (`positive`, `warning`, `neutral`), and actionable tips.
+- **Deterministic Fallback Resilience**: If Ollama is offline or the JSON output fails to parse, a deterministic fallback synthesizes a structured report directly from verified metrics, ensuring the UI never fails or displays errors to users.
+
+### Frontend Insights UI
+- Dedicated page at `/insights` (`AIInsights.tsx`).
+- Navigation links added to the collapsible desktop sidebar and responsive mobile drawer.
+- Reciprocal navigation between Dashboard, AI Assistant, and AI Insights.
+- Visual elements:
+  - Executive AI Summary card with gradient accent border, sparkle badge, and timestamp.
+  - Four key metric cards (Total Expenses, Net Savings, Savings Rate, Top Category) with delta badges.
+  - Categorized highlight cards with semantic styling (emerald for favorable trends, amber for spikes/alerts, blue/neutral for general insights).
+  - Category shifts and spike badges.
+  - Member spending distribution progress bars and largest single expense card.
+  - AI actionable recommendation cards.
+  - Reusable `AnimatedDropdown` for period switching and a manual "Refresh" button.
+  - Shared loading, empty, and error states using `ContentState`.
 
 ---
 
@@ -510,7 +544,8 @@ The frontend routing currently includes:
 - `/reports`
 - `/family`
 - `/settings`
-- `/ai`
+- `/ai-assistant`
+- `/insights`
 
 Protected application pages use the dashboard layout.
 
@@ -529,7 +564,8 @@ The project has completed its:
 - family invitation and membership-linking flow,
 - transaction management,
 - visual design system and color-palette refresh,
-- AI Financial Assistant (AI-1: local Ollama tool calling, multi-round execution, chat UI).
+- AI Financial Assistant (AI-1: local Ollama tool calling, multi-round execution, chat UI),
+- AI Financial Insights (AI-2: deterministic comparative metrics, AI interpretation, spikes detection, dedicated insights UI).
 
 Phase 5 (Design System & UI Polish) is complete.
 
@@ -537,7 +573,7 @@ Phase 6 (Dashboard) is complete. The dashboard now presents live, selected-month
 
 The responsive dashboard includes a custom period selector, semantic summary cards, an income-versus-expenses visualization, spending by category, recent transactions using the existing transaction-item visual language, and family spending. It uses shared loading, empty, and error states. Net Savings is explicitly income minus expenses, not a bank balance.
 
-Phase 8, Milestone AI-1 (AI Financial Assistant) is complete. The AI assistant connects to a local Ollama instance running `qwen2.5:3b`, executing multi-round backend tool calling over authenticated, family-scoped transaction services with sub-second latency. All financial math is computed deterministically by PostgreSQL services; the model routes user intent and formats concise plain-text responses in ₹ (INR).
+Phase 8, Milestones AI-1 (AI Financial Assistant) and AI-2 (AI Financial Insights) are complete. AI-1 provides rapid, family-scoped tool calling over local Ollama (`qwen2.5:3b`) in `/ai-assistant`. AI-2 calculates authoritative comparative metrics (expenses, net savings, savings rates, category spikes, and member distribution) in PostgreSQL and TypeScript, interpreting them into concise executive summaries, categorized highlights, and actionable recommendations at `/insights`.
 
 The family invitation, membership-role, and backend authorization milestone is complete. The frontend can accept an invitation, establish the user's authenticated session, fetch the user's family role, display the correct role in the sidebar, display member roles on the Family page, and manage eligible member roles as an admin. The invitation flow also supports existing-account re-invitation after family removal, including existing-password verification and reuse of the global account.
 
@@ -578,8 +614,8 @@ AI is a dedicated development phase before Budget Management, implemented increm
 The project implements the following capabilities:
 
 - **AI-1 — AI Financial Assistant (COMPLETE):** natural-language financial questions using local Ollama (`qwen2.5:3b`) and backend tool/function calling.
-- **AI-2 — AI Financial Insights (NEXT):** deterministic backend analytics interpreted and explained by the AI.
-- **AI-3 — AI Monthly Financial Summary (PLANNED):** structured monthly financial data turned into a concise family summary.
+- **AI-2 — AI Financial Insights (COMPLETE):** deterministic backend analytics interpreted and explained by the AI.
+- **AI-3 — AI Monthly Financial Summary (NEXT):** structured monthly financial data turned into a concise family summary.
 - **AI-4 — AI Anomaly Detection (PLANNED):** backend/statistical detection of unusual activity followed by AI explanation.
 - **AI-5 — AI Family Spending Insights (PLANNED):** family-level patterns and comparisons explained using validated aggregated data.
 - **AI-6 — AI Dashboard / Ask About My Finances (PLANNED):** a consolidated AI experience using the reusable financial tool layer.
@@ -596,18 +632,19 @@ The active flow is:
 
 The backend remains the source of truth for financial calculations. The AI interprets and explains validated data rather than independently producing authoritative totals. The model has no direct access to PostgreSQL and never executes arbitrary SQL.
 
-The active reusable tool layer currently includes:
+The active reusable tool and analytics layer currently includes:
 - `get_monthly_spending()`
 - `get_category_spending()`
 - `get_family_transactions()`
 - `get_member_spending()`
 - `get_income_summary()`
+- `calculateDeterministicMetrics()` & `generateFinancialInsights()`
 
-All tools are authenticated and strictly family-scoped via JWT. Model interactions run fully locally via Ollama with zero external API calls or token fees. Financial numbers are formatted in ₹ (INR) without markdown bolding or list syntax.
+All tools and insight queries are authenticated and strictly family-scoped via JWT. Model interactions run fully locally via Ollama with zero external API calls or token fees. Financial numbers are formatted in ₹ (INR) without markdown bolding or list syntax.
 
 ## Immediate Next Milestone
 
-The next implementation is **AI-2: AI Financial Insights**. This will define deterministic backend financial metrics (such as spending spikes, month-over-month percentage changes, top expense categories, and category breakdown ratios), compute them authoritatively in the backend, pass the validated results to the AI model for concise natural language interpretation, and present them in a dedicated insights UI.
+The next implementation is **AI-3: AI Monthly Financial Summary**. This will define a structured monthly summary data contract (income, expenses, top categories, net savings, and key shifts), generate an end-of-month natural language digest for the family, and integrate the summary into the application.
 
 Budget Management remains the planned financial-management phase after the AI foundation/capabilities that depend on it are completed.
 

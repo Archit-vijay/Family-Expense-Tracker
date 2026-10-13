@@ -1,10 +1,13 @@
 import {
+  ArrowRight,
   Bot,
   Loader2,
   Send,
   Sparkles,
+  TrendingUp,
   User,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import {
   useRef,
   useState,
@@ -116,20 +119,31 @@ function AIAssistant() {
     <div className="page-enter">
       {/* Header */}
       <section className="mb-8">
-        <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#ffb3c3]/30 text-[#2a234f]">
-            <Sparkles size={21} />
+        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#ffb3c3]/30 text-[#2a234f]">
+              <Sparkles size={21} />
+            </div>
+
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-wider text-[#77738a]">
+                AI Assistant
+              </p>
+
+              <h1 className="text-3xl font-bold tracking-tight text-[#2a234f] sm:text-4xl">
+                Ask about your finances
+              </h1>
+            </div>
           </div>
 
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-wider text-[#77738a]">
-              AI Assistant
-            </p>
-
-            <h1 className="text-3xl font-bold tracking-tight text-[#2a234f] sm:text-4xl">
-              Ask about your finances
-            </h1>
-          </div>
+          <Link
+            to="/insights"
+            className="ai-btn h-11 shrink-0 whitespace-nowrap"
+          >
+            <TrendingUp size={16} className="ai-btn-icon" />
+            <span>Financial Insights</span>
+            <ArrowRight size={14} className="ai-btn-arrow" />
+          </Link>
         </div>
 
         <p className="mt-3 max-w-2xl text-sm leading-6 text-[#77738a] sm:text-base">

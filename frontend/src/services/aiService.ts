@@ -5,6 +5,85 @@ export interface AIChatMessage {
   content: string;
 }
 
+export interface PeriodRange {
+  startDate: string;
+  endDate: string;
+  label: string;
+}
+
+export interface MetricComparison {
+  current: number;
+  previous: number;
+  changeAmount: number;
+  changePercentage: number;
+  trend: "up" | "down" | "neutral";
+}
+
+export interface CategoryComparison {
+  name: string;
+  currentAmount: number;
+  previousAmount: number;
+  changeAmount: number;
+  changePercentage: number;
+  percentageOfTotal: number;
+  isSpike: boolean;
+}
+
+export interface MemberComparison {
+  name: string;
+  currentAmount: number;
+  previousAmount: number;
+  changeAmount: number;
+  changePercentage: number;
+  percentageOfTotal: number;
+}
+
+export interface DeterministicFinancialMetrics {
+  period: {
+    current: PeriodRange;
+    previous: PeriodRange;
+    selectedPeriod: string;
+  };
+  expenses: MetricComparison;
+  income: MetricComparison;
+  netSavings: MetricComparison;
+  savingsRate: MetricComparison;
+  categories: CategoryComparison[];
+  topCategory: CategoryComparison | null;
+  categorySpikes: CategoryComparison[];
+  members: MemberComparison[];
+  topSpender: MemberComparison | null;
+  transactionStats: {
+    totalCount: number;
+    averageExpense: number;
+    largestExpense: {
+      title: string;
+      amount: number;
+      category: string;
+      date: string;
+    } | null;
+  };
+  hasEnoughData: boolean;
+}
+
+export interface AIInsightHighlight {
+  type: "positive" | "warning" | "neutral";
+  title: string;
+  description: string;
+}
+
+export interface AIInsightsResult {
+  summary: string;
+  highlights: AIInsightHighlight[];
+  recommendations: string[];
+}
+
+export interface FinancialInsightsData {
+  metrics: DeterministicFinancialMetrics;
+  aiInsights: AIInsightsResult;
+  generatedAt: string;
+}
+
 function getAuthHeaders() {
   const token = localStorage.getItem("token");
 
@@ -52,4 +131,32 @@ export async function sendAIMessage(
   }
 
   return result.data.response;
+}
+
+export async function getFinancialInsights(
+  period: string = "this-month",
+): Promise<FinancialInsightsData> {
+  const response = await fetch(
+    `${API_URL}/ai/insights?period=${encodeURIComponent(period)}`,
+    {
+      method: "GET",
+      headers: {
+        ...getAuthHeaders(),
+      },
+    },
+  );
+
+  const result: {
+    success: boolean;
+    data?: FinancialInsightsData;
+    message?: string;
+  } = await response.json();
+
+  if (!response.ok || !result.success || !result.data) {
+    throw new Error(
+      result.message || "Failed to load financial insights.",
+    );
+  }
+
+  return result.data;
 }

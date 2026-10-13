@@ -18,6 +18,7 @@ import Login from "./pages/Login";
 import AcceptInvitation from "./pages/AcceptInvitation";
 
 import AIAssistant from "./pages/AIAssistant";
+import AIInsights from "./pages/AIInsights";
 
 function App() {
   return (
@@ -47,6 +48,16 @@ function App() {
             <Route
               path="/ai-assistant"
               element={<AIAssistant />}
+            />
+
+            <Route
+              path="/insights"
+              element={<AIInsights />}
+            />
+
+            <Route
+              path="/ai-insights"
+              element={<AIInsights />}
             />
 
             <Route

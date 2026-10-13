@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowDownLeft,
+  ArrowRight,
   ArrowUpRight,
   PiggyBank,
+  Sparkles,
   Wallet,
 } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -95,7 +97,7 @@ function Dashboard() {
 
   return (
     <div className="page-enter">
-      <section className="relative z-50 mb-8 fade-up">
+      <section className="relative z-10 mb-8 fade-up">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div>
             <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-[#77738a]">
@@ -112,13 +114,30 @@ function Dashboard() {
             </p>
           </div>
 
-          <div className="relative z-[60] w-full shrink-0 sm:w-64 lg:w-72">
-            <AnimatedDropdown
-              value={period}
-              onChange={setPeriod}
-              options={periodOptions}
-              className="w-full"
-            />
+          <div className="flex flex-wrap items-center gap-3 sm:flex-nowrap">
+            <Link
+              to="/insights"
+              className="ai-btn h-11 shrink-0 whitespace-nowrap"
+            >
+              <span className="relative flex items-center">
+                <Sparkles size={16} className="ai-btn-icon" />
+                <span className="absolute -top-1 -right-1 flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#ffb3c3] opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#ff859d]" />
+                </span>
+              </span>
+              <span>AI Insights</span>
+              <ArrowRight size={14} className="ai-btn-arrow" />
+            </Link>
+
+            <div className="relative z-20 w-full shrink-0 sm:w-64 lg:w-72">
+              <AnimatedDropdown
+                value={period}
+                onChange={setPeriod}
+                options={periodOptions}
+                className="w-full"
+              />
+            </div>
           </div>
         </div>
       </section>

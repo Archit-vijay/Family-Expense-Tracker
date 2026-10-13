@@ -1,4 +1,5 @@
 import type { LucideIcon } from "lucide-react";
+import type { ReactNode } from "react";
 
 interface StatCardProps {
   title: string;
@@ -6,6 +7,7 @@ interface StatCardProps {
   description: string;
   icon: LucideIcon;
   variant?: "income" | "expense" | "savings" | "balance";
+  badge?: ReactNode;
 }
 
 function StatCard({
@@ -14,6 +16,7 @@ function StatCard({
   description,
   icon: Icon,
   variant = "balance",
+  badge,
 }: StatCardProps) {
   const styles = {
     income: {
@@ -45,10 +48,13 @@ function StatCard({
       <div className="stat-card-glow" />
 
       <div className="stat-card-content">
-        <div>
-          <p className="stat-card-title">
-            {title}
-          </p>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center justify-between gap-2">
+            <p className="stat-card-title truncate">
+              {title}
+            </p>
+            {badge}
+          </div>
 
           <p className="stat-card-amount">
             {amount}
@@ -59,7 +65,7 @@ function StatCard({
           </p>
         </div>
 
-        <div className={`stat-card-icon ${currentStyle.icon}`}>
+        <div className={`stat-card-icon shrink-0 ml-3 ${currentStyle.icon}`}>
           <Icon size={21} />
         </div>
       </div>

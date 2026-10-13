@@ -1,7 +1,11 @@
 import type { Response } from "express";
 
 import type { AuthenticatedRequest } from "../middleware/authMiddleware.js";
-import { generateAIResponse } from "../services/aiService.js";
+import {
+  generateAIResponse,
+  generateFinancialInsights,
+} from "../services/aiService.js";
+import { calculateDeterministicMetrics } from "../services/insightsService.js";
 import { getFamilyForUser } from "../services/familyService.js";
 
 export async function chatWithAIController(
@@ -23,12 +27,12 @@ export async function chatWithAIController(
     const family = await getFamilyForUser(userId);
 
     if (!family) {
-        res.status(403).json({
-            success: false,
-            message: "User does not belong to a family.",
-        });
+      res.status(403).json({
+        success: false,
+        message: "User does not belong to a family.",
+      });
 
-    return;
+      return;
     }
 
     const { messages } = req.body;
@@ -82,6 +86,56 @@ export async function chatWithAIController(
     res.status(500).json({
       success: false,
       message: "Failed to generate AI response.",
+    });
+  }
+}
+
+export async function getFinancialInsightsController(
+  req: AuthenticatedRequest,
+  res: Response,
+) {
+  try {
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      res.status(401).json({
+        success: false,
+        message: "Authentication required.",
+      });
+
+      return;
+    }
+
+    const family = await getFamilyForUser(userId);
+
+    if (!family) {
+      res.status(403).json({
+        success: false,
+        message: "User does not belong to a family.",
+      });
+
+      return;
+    }
+
+    const period = typeof req.query.period === "string" ? req.query.period : "this-month";
+
+    const metrics = await calculateDeterministicMetrics(family.family_id, period);
+    const aiInsights = await generateFinancialInsights(metrics);
+
+    res.json({
+      success: true,
+      data: {
+        metrics,
+        aiInsights,
+        generatedAt: new Date().toISOString(),
+      },
+    });
+  } catch (error) {
+    console.error("Failed to generate financial insights:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to generate financial insights.",
     });
   }
 }

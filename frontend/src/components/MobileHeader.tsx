@@ -1,16 +1,31 @@
 import { Menu, X } from "lucide-react";
 import { NavLink } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 function MobileHeader() {
   const [isNavigationOpen, setIsNavigationOpen] =
     useState(false);
+
+  useEffect(() => {
+    if (isNavigationOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isNavigationOpen]);
 
   const navigationItems = [
     { label: "Dashboard", to: "/dashboard" },
     {
       label: "AI Assistant",
       to: "/ai-assistant",
+    },
+    {
+      label: "AI Insights",
+      to: "/insights",
     },
     { label: "Transactions", to: "/transactions" },
     { label: "Budgets", to: "/budgets" },
@@ -46,17 +61,17 @@ function MobileHeader() {
       </header>
 
       {isNavigationOpen && (
-        <div className="fixed inset-0 z-50 md:hidden">
+        <div className="fixed inset-0 z-[100] md:hidden">
           <button
             type="button"
             aria-label="Close navigation"
-            className="absolute inset-0 bg-[#2a234f]/40 backdrop-blur-sm"
+            className="absolute inset-0 bg-[#2a234f]/60 backdrop-blur-sm"
             onClick={() => setIsNavigationOpen(false)}
           />
 
           <nav
             aria-label="Mobile navigation"
-            className="relative h-full w-72 max-w-[85vw] bg-[#2a234f] px-4 py-5 shadow-2xl shadow-[#2a234f]/30 animate-[mobile-nav-in_200ms_ease-out]"
+            className="relative z-10 h-full w-72 max-w-[85vw] bg-[#2a234f] px-4 py-5 shadow-2xl shadow-[#2a234f]/50 animate-[mobile-nav-in_200ms_ease-out]"
           >
             <div className="mb-8 flex items-center justify-between">
               <div className="flex items-center gap-3">

@@ -6,6 +6,7 @@ import {
   PanelLeftClose,
   Settings,
   Sparkles,
+  TrendingUp,
   Users,
   WalletCards,
 } from "lucide-react";
@@ -175,6 +176,32 @@ function Sidebar() {
             <Sparkles size={19} />
             {!isCollapsed && (
               <span>AI Assistant</span>
+            )}
+          </NavLink>
+
+          {/* AI Insights */}
+          <NavLink
+            to="/insights"
+            title={
+              isCollapsed
+                ? "AI Insights"
+                : undefined
+            }
+            className={({ isActive }) =>
+              `group flex items-center rounded-xl py-3 text-sm font-medium transition-all duration-200 ${
+                isCollapsed
+                  ? "justify-center px-3"
+                  : "gap-3 px-3.5"
+              } ${
+                isActive
+                  ? "bg-white text-[#2a234f] shadow-lg shadow-black/10"
+                  : "text-white/60 hover:translate-x-1 hover:bg-white/5 hover:text-white"
+              }`
+            }
+          >
+            <TrendingUp size={19} />
+            {!isCollapsed && (
+              <span>AI Insights</span>
             )}
           </NavLink>
 

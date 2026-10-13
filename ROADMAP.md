@@ -194,13 +194,13 @@ Status: COMPLETE
 
 ## AI-2 — AI Financial Insights
 
-- [ ] Define deterministic financial metrics in backend
-- [ ] Feed validated metrics to the AI
-- [ ] Generate natural-language spending insights
-- [ ] Keep backend calculations authoritative
-- [ ] Add insight UI
+- [x] Define deterministic financial metrics in backend
+- [x] Feed validated metrics to the AI
+- [x] Generate natural-language spending insights
+- [x] Keep backend calculations authoritative
+- [x] Add insight UI
 
-Status: NEXT
+Status: COMPLETE
 
 ## AI-3 — AI Monthly Financial Summary
 
@@ -209,7 +209,7 @@ Status: NEXT
 - [ ] Include useful category/trend context
 - [ ] Add summary UI or dashboard integration
 
-Status: PLANNED
+Status: NEXT
 
 ## AI-4 — AI Anomaly Detection
 
