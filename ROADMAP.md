@@ -204,12 +204,12 @@ Status: COMPLETE
 
 ## AI-3 — AI Monthly Financial Summary
 
-- [ ] Define monthly summary data contract
-- [ ] Generate monthly income/expense summary
-- [ ] Include useful category/trend context
-- [ ] Add summary UI or dashboard integration
+- [x] Add specific month picker to dashboard (last 6 calendar months)
+- [x] Support YYYY-MM period format in dashboard and insights backends
+- [x] Add lazy-loaded AI narrative summary card on the dashboard
+- [x] Narrative loads after dashboard data without blocking rendering
 
-Status: NEXT
+Status: COMPLETE
 
 ## AI-4 — AI Anomaly Detection
 

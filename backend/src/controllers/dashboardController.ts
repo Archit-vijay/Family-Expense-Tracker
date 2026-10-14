@@ -3,13 +3,19 @@ import type { AuthenticatedRequest } from "../middleware/authMiddleware.js";
 import { getFamilyForUser } from "../services/familyService.js";
 import { getDashboardData } from "../services/dashboardService.js";
 
-const VALID_PERIODS = new Set([
+const NAMED_PERIODS = new Set([
   "this-month",
   "previous-month",
   "last-3-months",
   "last-6-months",
   "this-year",
 ]);
+
+function isValidPeriod(period: string): boolean {
+  if (NAMED_PERIODS.has(period)) return true;
+  // Also accept YYYY-MM specific month format (e.g. "2026-08")
+  return /^\d{4}-\d{2}$/.test(period);
+}
 
 export async function getDashboardController(
   req: AuthenticatedRequest,
@@ -31,11 +37,11 @@ export async function getDashboardController(
       return;
     }
 
-    if (!VALID_PERIODS.has(period)) {
+    if (!isValidPeriod(period)) {
       res.status(400).json({
         success: false,
         message:
-          "Invalid period. Use this-month, previous-month, last-3-months, last-6-months, or this-year.",
+          "Invalid period. Use this-month, previous-month, last-3-months, last-6-months, this-year, or YYYY-MM.",
       });
       return;
     }

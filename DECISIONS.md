@@ -480,7 +480,21 @@ The AI integration should:
 
 ## Incremental implementation
 
-AI features will be completed and validated one at a time. AI-1 (AI Financial Assistant) and AI-2 (AI Financial Insights) are complete. AI-3 (AI Monthly Financial Summary) is the next milestone.
+AI features will be completed and validated one at a time. AI-1 (AI Financial Assistant), AI-2 (AI Financial Insights), and AI-3 (AI Monthly Financial Summary) are complete. AI-4 (AI Anomaly Detection) is the next milestone.
+
+## AI Monthly Summary — Dashboard Integration (AI-3)
+
+AI-3 was deliberately implemented as a dashboard enhancement rather than a separate page.
+
+Reasoning:
+- A dedicated Monthly Summary page would have duplicated data already visible on the Dashboard (income, expenses, categories, members) and AI Insights (AI-generated analysis).
+- The two genuine additions — a specific month picker and a brief AI narrative — integrate naturally into the existing Dashboard without creating navigation redundancy.
+
+What was added to the Dashboard:
+- Period dropdown now includes the last 6 specific calendar months (e.g. "October 2026") in `YYYY-MM` format, in addition to aggregate periods (Last 3 Months, Last 6 Months, This Year).
+- A lightweight AI narrative card appears below the stat cards. It lazy-loads after the dashboard data is ready so it never blocks the main view. While loading, it shows a pulse skeleton. On error, the card is silently omitted rather than showing an error state.
+- Both the dashboard service and the insights service were updated to parse `YYYY-MM` period strings into correct PostgreSQL date ranges.
+
 
 ## Local Ollama & Model Architecture Decisions (AI-1)
 

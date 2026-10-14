@@ -111,10 +111,28 @@ export function getComparativeDateRanges(period: string = "this-month"): {
       break;
     }
 
-    default:
-      curLabel = getMonthName(currentMonth, currentYear);
-      prevLabel = getMonthName(currentMonth - 1, currentYear);
+    default: {
+      // Support YYYY-MM specific month format (e.g. "2026-08")
+      const monthMatch = /^(\d{4})-(\d{2})$/.exec(period);
+      if (monthMatch) {
+        const y = parseInt(monthMatch[1], 10);
+        const m = parseInt(monthMatch[2], 10) - 1; // 0-indexed
+        curStartYear = y;
+        curStartMonth = m;
+        curEndYear = y;
+        curEndMonth = m + 1;
+        prevStartYear = y;
+        prevStartMonth = m - 1;
+        prevEndYear = y;
+        prevEndMonth = m;
+        curLabel = getMonthName(m, y);
+        prevLabel = getMonthName(m - 1, y);
+      } else {
+        curLabel = getMonthName(currentMonth, currentYear);
+        prevLabel = getMonthName(currentMonth - 1, currentYear);
+      }
       break;
+    }
   }
 
   const curStart = new Date(Date.UTC(curStartYear, curStartMonth, 1));

@@ -33,8 +33,21 @@ function getDateRange(period: string) {
       startMonth = 0;
       break;
 
-    default:
-      throw new Error("Invalid dashboard period.");
+    default: {
+      // Support YYYY-MM specific month format (e.g. "2026-08")
+      const monthMatch = /^(\d{4})-(\d{2})$/.exec(period);
+      if (monthMatch) {
+        const y = parseInt(monthMatch[1], 10);
+        const m = parseInt(monthMatch[2], 10) - 1; // 0-indexed
+        startYear = y;
+        startMonth = m;
+        endYear = y;
+        endMonth = m + 1;
+      } else {
+        throw new Error("Invalid dashboard period.");
+      }
+      break;
+    }
   }
 
   const startDate = new Date(

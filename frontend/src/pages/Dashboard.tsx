@@ -1,9 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowDownLeft,
   ArrowRight,
   ArrowUpRight,
+  Bot,
   PiggyBank,
+  RefreshCw,
   Sparkles,
   Wallet,
 } from "lucide-react";
@@ -16,47 +18,54 @@ import RecentTransactions from "../components/RecentTransactions";
 import SpendingOverview from "../components/SpendingOverview";
 import StatCard from "../components/Statcard";
 import { getDashboard } from "../services/dashboardService";
+import { getFinancialInsights } from "../services/aiService";
 import type { DashboardData } from "../types/dashboard";
 
-const periodOptions = [
-  {
-    value: "this-month",
-    label: "This Month",
-  },
-  {
-    value: "previous-month",
-    label: "Previous Month",
-  },
-  {
-    value: "last-3-months",
-    label: "Last 3 Months",
-  },
-  {
-    value: "last-6-months",
-    label: "Last 6 Months",
-  },
-  {
-    value: "this-year",
-    label: "This Year",
-  },
+// Build the last 6 calendar months as selectable options (current month first)
+function buildMonthOptions() {
+  const now = new Date();
+  const options: { value: string; label: string }[] = [];
+  for (let i = 0; i < 6; i++) {
+    const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i, 1));
+    const year = d.getUTCFullYear();
+    const month = String(d.getUTCMonth() + 1).padStart(2, "0");
+    const label = d.toLocaleString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
+    options.push({ value: `${year}-${month}`, label });
+  }
+  return options;
+}
+
+const monthOptions = buildMonthOptions();
+
+const aggregateOptions = [
+  { value: "last-3-months", label: "Last 3 Months" },
+  { value: "last-6-months", label: "Last 6 Months" },
+  { value: "this-year",     label: "This Year" },
 ];
+
+const periodOptions = [...monthOptions, ...aggregateOptions];
 
 function formatCurrency(value: number) {
   return `₹${Math.abs(value).toLocaleString("en-IN")}`;
 }
 
 function Dashboard() {
-  const [period, setPeriod] = useState("this-month");
+  const [period, setPeriod] = useState(() => monthOptions[0].value);
   const [dashboard, setDashboard] =
     useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [retryId, setRetryId] = useState(0);
 
+  // AI narrative — lazy loaded after dashboard data arrives
+  const [narrative, setNarrative] = useState<string | null>(null);
+  const [narrativeLoading, setNarrativeLoading] = useState(false);
+  const narrativePeriodRef = useRef<string | null>(null);
+
   const selectedPeriodLabel = useMemo(
     () =>
       periodOptions.find((option) => option.value === period)
-        ?.label ?? "This Month",
+        ?.label ?? period,
     [period],
   );
 
@@ -67,6 +76,7 @@ function Dashboard() {
       try {
         setIsLoading(true);
         setError(null);
+        setNarrative(null);
 
         const data = await getDashboard(period);
 
@@ -78,7 +88,7 @@ function Dashboard() {
 
         if (isCurrent) {
           setError(
-            "Unable to load your family’s dashboard right now.",
+            "Unable to load your family's dashboard right now.",
           );
         }
       } finally {
@@ -94,6 +104,36 @@ function Dashboard() {
       isCurrent = false;
     };
   }, [period, retryId]);
+
+  // Lazy-load AI narrative after dashboard data is ready
+  useEffect(() => {
+    if (!dashboard || isLoading) return;
+    if (dashboard.trend.length === 0) return; // no data, skip
+
+    let isCurrent = true;
+    narrativePeriodRef.current = period;
+
+    async function loadNarrative() {
+      setNarrativeLoading(true);
+      setNarrative(null);
+      try {
+        const insights = await getFinancialInsights(period);
+        if (isCurrent && narrativePeriodRef.current === period) {
+          setNarrative(insights.aiInsights.summary);
+        }
+      } catch {
+        // Narrative is non-critical — silently skip on error
+      } finally {
+        if (isCurrent) setNarrativeLoading(false);
+      }
+    }
+
+    loadNarrative();
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [dashboard, isLoading, period]);
 
   return (
     <div className="page-enter">
@@ -230,6 +270,39 @@ function Dashboard() {
                 variant="balance"
               />
             </section>
+
+            {/* AI narrative — lazy loaded, non-blocking */}
+            {(narrativeLoading || narrative) && (
+              <section
+                className="mt-4 fade-up"
+                style={{ animationDelay: "130ms" }}
+              >
+                <div className="flex items-start gap-3 rounded-2xl border border-[#e8e5ef] bg-white px-5 py-4 shadow-sm">
+                  <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#2a234f]">
+                    {narrativeLoading ? (
+                      <RefreshCw size={14} className="animate-spin text-white" />
+                    ) : (
+                      <Bot size={14} className="text-white" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-[#77738a]">
+                      AI summary · {selectedPeriodLabel}
+                    </p>
+                    {narrativeLoading ? (
+                      <div className="space-y-2">
+                        <div className="h-3.5 w-full animate-pulse rounded-full bg-[#e8e5ef]" />
+                        <div className="h-3.5 w-4/5 animate-pulse rounded-full bg-[#e8e5ef]" />
+                      </div>
+                    ) : (
+                      <p className="text-sm leading-relaxed text-[#2a234f]">
+                        {narrative}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </section>
+            )}
 
             <section
               className="mt-6 grid gap-6 xl:grid-cols-[1.55fr_1fr] fade-up"
