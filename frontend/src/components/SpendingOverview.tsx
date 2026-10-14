@@ -62,7 +62,7 @@ function SpendingOverview({ trend }: Pick<DashboardData, "trend">) {
       }));
 
   return (
-    <div className="rounded-2xl border border-[#e8e5ef] bg-white p-5 shadow-sm transition-shadow duration-300 hover:shadow-md sm:p-6">
+    <div className="min-w-0 rounded-2xl border border-[#e8e5ef] bg-white p-5 shadow-sm transition-shadow duration-300 hover:shadow-md sm:p-6">
       <div className="mb-6">
         <p className="text-sm font-semibold text-[#2a234f]">
           Income vs Expenses
@@ -81,8 +81,8 @@ function SpendingOverview({ trend }: Pick<DashboardData, "trend">) {
           transactions.
         </div>
       ) : (
-        <div className="h-64 w-full">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="h-64 w-full min-w-0">
+          <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0} debounce={50}>
             <BarChart
               data={chartData}
               margin={{ top: 10, right: 8, left: -18, bottom: 0 }}
@@ -100,6 +100,7 @@ function SpendingOverview({ trend }: Pick<DashboardData, "trend">) {
                 tickLine={false}
                 tick={{ fill: "#9a96a8", fontSize: 11 }}
                 interval={shouldGroupByMonth ? 0 : "preserveStartEnd"}
+                minTickGap={8}
               />
 
               <YAxis

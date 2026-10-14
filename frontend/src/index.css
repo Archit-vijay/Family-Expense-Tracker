@@ -69,7 +69,7 @@ button {
 }
 
 .page-enter {
-    animation: page-enter 0.35s ease-out;
+    animation: page-enter 0.35s ease-out forwards;
 }
 
 @keyframes fade-up {

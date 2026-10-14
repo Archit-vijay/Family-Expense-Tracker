@@ -1,7 +1,100 @@
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import type { DashboardData } from "../types/dashboard";
 const colors = ["#2a234f", "#ffb3c3", "#14b8a6", "#f59e0b", "#9a96a8", "#8b5cf6"];
-function CategorySpending({ categories, expenses }: Pick<DashboardData, "categories"> & { expenses: number }) {
-  return <div className="rounded-2xl border border-[#e8e5ef] bg-white p-5 shadow-sm transition-shadow duration-300 hover:shadow-md sm:p-6"><div className="mb-4"><p className="text-sm font-semibold text-[#2a234f]">Spending by Category</p><p className="mt-1 text-xs text-[#77738a] sm:text-sm">Where your money is going</p></div>{categories.length === 0 ? <div className="flex h-52 items-center justify-center rounded-xl bg-[#f8f7fb] px-6 text-center text-sm text-[#77738a]">Expense categories will appear when you record spending.</div> : <><div className="relative h-52"><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={categories} dataKey="amount" nameKey="category" cx="50%" cy="50%" innerRadius={55} outerRadius={78} paddingAngle={3} stroke="none" animationDuration={900}>{categories.map((item, index) => <Cell key={item.category} fill={colors[index % colors.length]} />)}</Pie><Tooltip formatter={(value) => `₹${Number(value).toLocaleString("en-IN")}`} contentStyle={{ borderRadius: "12px", border: "1px solid #e8e5ef" }} /></PieChart></ResponsiveContainer><div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center"><p className="text-xl font-bold text-[#2a234f]">₹{expenses.toLocaleString("en-IN")}</p><p className="text-[11px] text-[#9a96a8]">Total spent</p></div></div><div className="mt-4 space-y-2">{categories.map((item, index) => <div key={item.category} className="flex items-center justify-between rounded-lg px-2 py-1.5"><div className="flex min-w-0 items-center gap-2.5"><span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: colors[index % colors.length] }} /><span className="truncate text-xs font-medium text-[#77738a]">{item.category}</span></div><div className="ml-3 flex shrink-0 gap-3 text-xs"><span className="font-semibold text-[#2a234f]">₹{item.amount.toLocaleString("en-IN")}</span><span className="w-8 text-right text-[#9a96a8]">{expenses ? Math.round((item.amount / expenses) * 100) : 0}%</span></div></div>)}</div></>}</div>;
+function CategorySpending({
+  categories,
+  expenses,
+}: Pick<DashboardData, "categories"> & { expenses: number }) {
+  return (
+    <div className="min-w-0 rounded-2xl border border-[#e8e5ef] bg-white p-5 shadow-sm transition-shadow duration-300 hover:shadow-md sm:p-6">
+      <div className="mb-4">
+        <p className="text-sm font-semibold text-[#2a234f]">
+          Spending by Category
+        </p>
+        <p className="mt-1 text-xs text-[#77738a] sm:text-sm">
+          Where your money is going
+        </p>
+      </div>
+      {categories.length === 0 ? (
+        <div className="flex h-52 items-center justify-center rounded-xl bg-[#f8f7fb] px-6 text-center text-sm text-[#77738a]">
+          Expense categories will appear when you record spending.
+        </div>
+      ) : (
+        <>
+          <div className="relative h-52 min-w-0">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0} debounce={50}>
+              <PieChart>
+                <Pie
+                  data={categories}
+                  dataKey="amount"
+                  nameKey="category"
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={55}
+                  outerRadius={78}
+                  paddingAngle={3}
+                  stroke="none"
+                  animationDuration={900}
+                >
+                  {categories.map((item, index) => (
+                    <Cell
+                      key={item.category}
+                      fill={colors[index % colors.length]}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip
+                  formatter={(value) =>
+                    `₹${Number(value).toLocaleString("en-IN")}`
+                  }
+                  contentStyle={{
+                    borderRadius: "12px",
+                    border: "1px solid #e8e5ef",
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+              <p className="text-xl font-bold text-[#2a234f]">
+                ₹{expenses.toLocaleString("en-IN")}
+              </p>
+              <p className="text-[11px] text-[#9a96a8]">Total spent</p>
+            </div>
+          </div>
+          <div className="mt-4 space-y-2">
+            {categories.map((item, index) => (
+              <div
+                key={item.category}
+                className="flex items-center justify-between rounded-lg px-2 py-1.5"
+              >
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <span
+                    className="h-2.5 w-2.5 shrink-0 rounded-full"
+                    style={{
+                      backgroundColor: colors[index % colors.length],
+                    }}
+                  />
+                  <span className="truncate text-xs font-medium text-[#77738a]">
+                    {item.category}
+                  </span>
+                </div>
+                <div className="ml-3 flex shrink-0 gap-3 text-xs">
+                  <span className="font-semibold text-[#2a234f]">
+                    ₹{item.amount.toLocaleString("en-IN")}
+                  </span>
+                  <span className="w-8 text-right text-[#9a96a8]">
+                    {expenses
+                      ? Math.round((item.amount / expenses) * 100)
+                      : 0}
+                    %
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
 }
 export default CategorySpending;

@@ -1,6 +1,7 @@
 import { Outlet } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import MobileHeader from "../components/MobileHeader";
+import ErrorBoundary from "../components/ErrorBoundary";
 
 function DashboardLayout() {
   return (
@@ -13,7 +14,9 @@ function DashboardLayout() {
 
           <main className="min-h-0 flex-1 overflow-y-auto">
             <div className="mx-auto w-full max-w-[1600px] p-4 sm:p-6 lg:p-8 xl:p-10">
-              <Outlet />
+              <ErrorBoundary>
+                <Outlet />
+              </ErrorBoundary>
             </div>
           </main>
         </div>

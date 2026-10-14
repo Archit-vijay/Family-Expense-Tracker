@@ -20,6 +20,8 @@ import AcceptInvitation from "./pages/AcceptInvitation";
 import AIAssistant from "./pages/AIAssistant";
 import AIInsights from "./pages/AIInsights";
 
+import ErrorBoundary from "./components/ErrorBoundary";
+
 function App() {
   return (
     <BrowserRouter>
@@ -38,7 +40,7 @@ function App() {
 
         {/* Protected routes */}
         <Route element={<ProtectedRoute />}>
-          <Route element={<DashboardLayout />}>
+          <Route element={<ErrorBoundary><DashboardLayout /></ErrorBoundary>}>
 
             <Route
               path="/dashboard"
