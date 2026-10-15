@@ -38,6 +38,19 @@ export interface MemberComparison {
   percentageOfTotal: number;
 }
 
+export interface FinancialAnomaly {
+  id: string;
+  type: "outlier_transaction" | "velocity_spike" | "category_surge" | "new_category";
+  severity: "high" | "medium" | "low";
+  title: string;
+  description: string;
+  amount: number;
+  category: string;
+  date?: string;
+  ratio?: number;
+  explanation: string;
+}
+
 export interface DeterministicFinancialMetrics {
   period: {
     current: PeriodRange;
@@ -63,6 +76,7 @@ export interface DeterministicFinancialMetrics {
       date: string;
     } | null;
   };
+  anomalies: FinancialAnomaly[];
   hasEnoughData: boolean;
 }
 
@@ -72,10 +86,16 @@ export interface AIInsightHighlight {
   description: string;
 }
 
+export interface AIAnomalyExplanation {
+  id: string;
+  explanation: string;
+}
+
 export interface AIInsightsResult {
   summary: string;
   highlights: AIInsightHighlight[];
   recommendations: string[];
+  anomalyExplanations?: AIAnomalyExplanation[];
 }
 
 export interface FinancialInsightsData {

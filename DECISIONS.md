@@ -480,7 +480,7 @@ The AI integration should:
 
 ## Incremental implementation
 
-AI features will be completed and validated one at a time. AI-1 (AI Financial Assistant), AI-2 (AI Financial Insights), and AI-3 (AI Monthly Financial Summary) are complete. AI-4 (AI Anomaly Detection) is the next milestone.
+AI features will be completed and validated one at a time. AI-1 (AI Financial Assistant), AI-2 (AI Financial Insights), AI-3 (AI Monthly Financial Summary), and AI-4 (AI Anomaly Detection) are complete. AI-5 (AI Family Spending Insights) is the next milestone.
 
 ## AI Monthly Summary — Dashboard Integration (AI-3)
 
@@ -494,6 +494,25 @@ What was added to the Dashboard:
 - Period dropdown now includes the last 6 specific calendar months (e.g. "October 2026") in `YYYY-MM` format, in addition to aggregate periods (Last 3 Months, Last 6 Months, This Year).
 - A lightweight AI narrative card appears below the stat cards. It lazy-loads after the dashboard data is ready so it never blocks the main view. While loading, it shows a pulse skeleton. On error, the card is silently omitted rather than showing an error state.
 - Both the dashboard service and the insights service were updated to parse `YYYY-MM` period strings into correct PostgreSQL date ranges.
+
+## AI Anomaly Detection Architecture Decisions (AI-4)
+
+### Integrated UI within Financial Insights
+Rather than creating an isolated `/anomalies` route that would increase navigation clutter, Anomaly Detection was integrated directly into the AI Insights view (`/insights`):
+- The Insights page is already the designated hub for deep-dive analytical financial intelligence.
+- The Anomaly Radar section sits directly on the page, providing an at-a-glance view of unexpected variance and velocity spikes.
+- When no anomalies exist, a reassuring "All Spending Within Normal Range" banner provides positive feedback without alarming the user.
+
+### Deterministic Anomaly Engine & Multi-Rule Taxonomy
+To ensure 100% mathematical accuracy without hallucinations:
+1. **Outlier Transactions**: Compares single transactions against a 90-day category historical average/standard deviation. Transactions >= 2.5x category average (or 3x family average if no category baseline exists) with a minimum value of ₹1,000 are flagged as variance outliers.
+2. **Velocity Spikes**: Detects transaction clustering (>= 3 expenses in the same category on the exact same date totaling >= ₹1,000).
+3. **Category Surges**: Flags categories where spend in the current period has doubled (+100%) and increased by at least ₹1,500 over the comparison baseline.
+4. **New Category Incursions**: Detects major expenses (>= ₹2,000) in categories that had zero activity in prior comparison periods or historical baselines.
+
+### AI Natural-Language Synthesis & Fallback Resilience
+- Validated anomaly objects are fed into the LLM prompt. Ollama returns plain-English notes tailored to each anomaly explaining why it was flagged and what to verify.
+- Built-in deterministic fallback ensures that if Ollama is offline or returns invalid JSON, clear, pre-crafted explanations are displayed instantly without errors.
 
 
 ## Local Ollama & Model Architecture Decisions (AI-1)

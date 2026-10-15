@@ -213,13 +213,13 @@ Status: COMPLETE
 
 ## AI-4 — AI Anomaly Detection
 
-- [ ] Define deterministic/statistical anomaly rules
-- [ ] Detect unusual spending or transaction patterns
-- [ ] Pass validated anomaly results to the AI
-- [ ] Generate human-readable explanations
-- [ ] Add anomaly presentation UI
+- [x] Define deterministic/statistical anomaly rules (outlier transactions, velocity spikes, category surges, new categories)
+- [x] Detect unusual spending patterns using PostgreSQL baselines and TypeScript logic
+- [x] Pass validated anomaly results to the AI for plain-English synthesis
+- [x] Generate human-readable explanations with deterministic fallbacks
+- [x] Add Anomaly Radar presentation UI integrated directly into the AI Insights page
 
-Status: PLANNED
+Status: COMPLETE
 
 ## AI-5 — AI Family Spending Insights
 
@@ -228,7 +228,7 @@ Status: PLANNED
 - [ ] Generate family spending observations
 - [ ] Add family insight UI
 
-Status: PLANNED
+Status: NEXT
 
 ## AI-6 — AI Dashboard / Ask About My Finances
 

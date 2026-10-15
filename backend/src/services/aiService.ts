@@ -199,10 +199,16 @@ export interface AIInsightHighlight {
   description: string;
 }
 
+export interface AIAnomalyExplanation {
+  id: string;
+  explanation: string;
+}
+
 export interface AIInsightsResult {
   summary: string;
   highlights: AIInsightHighlight[];
   recommendations: string[];
+  anomalyExplanations?: AIAnomalyExplanation[];
 }
 
 function generateDeterministicFallbackInsights(
@@ -282,10 +288,16 @@ function generateDeterministicFallbackInsights(
     );
   }
 
+  const anomalyExplanations: AIAnomalyExplanation[] = (metrics.anomalies || []).map((a) => ({
+    id: a.id,
+    explanation: a.explanation,
+  }));
+
   return {
     summary,
     highlights: highlights.slice(0, 4),
     recommendations: recommendations.slice(0, 2),
+    anomalyExplanations,
   };
 }
 
@@ -299,6 +311,7 @@ export async function generateFinancialInsights(
       recommendations: [
         "Add family income and expense transactions to start receiving intelligent insights.",
       ],
+      anomalyExplanations: [],
     };
   }
 
@@ -318,12 +331,15 @@ export async function generateFinancialInsights(
       ? `Top Spender: ${metrics.topSpender.name} with ₹${metrics.topSpender.currentAmount.toLocaleString("en-IN")} (${metrics.topSpender.percentageOfTotal}% of family expenses)`
       : null,
     `Transaction Count: ${metrics.transactionStats.totalCount} transactions, Average expense: ₹${metrics.transactionStats.averageExpense.toLocaleString("en-IN")}${metrics.transactionStats.largestExpense ? `, Largest single expense: ₹${metrics.transactionStats.largestExpense.amount.toLocaleString("en-IN")} ('${metrics.transactionStats.largestExpense.title}' in ${metrics.transactionStats.largestExpense.category})` : ""}`,
+    metrics.anomalies && metrics.anomalies.length > 0
+      ? `Detected Spending Anomalies:\n${metrics.anomalies.map((a) => `- [${a.id}] ${a.title} (${a.severity.toUpperCase()}): ${a.description}`).join("\n")}`
+      : "No spending anomalies detected.",
   ]
     .filter(Boolean)
     .join("\n");
 
   const systemPrompt =
-    "You are a family financial advisor. You analyze pre-calculated, authoritative financial metrics and provide structured, encouraging, and actionable insights.\n" +
+    "You are a family financial advisor. You analyze pre-calculated, authoritative financial metrics and detected anomalies, and provide structured, encouraging, and actionable insights.\n" +
     "CRITICAL RULES:\n" +
     "1. Never recalculate or invent financial numbers. Use the exact numbers and percentages from the provided metrics.\n" +
     "2. All currency amounts must use the ₹ symbol.\n" +
@@ -339,6 +355,12 @@ export async function generateFinancialInsights(
     "  ],\n" +
     '  "recommendations": [\n' +
     '    "1-2 actionable tips for the family."\n' +
+    "  ],\n" +
+    '  "anomalyExplanations": [\n' +
+    "    {\n" +
+    '      "id": "exact anomaly id string from prompt",\n' +
+    '      "explanation": "1 concise sentence explaining this anomaly to the family in plain English and what to verify."\n' +
+    "    }\n" +
     "  ]\n" +
     "}\n" +
     "Do NOT include any markdown code blocks, explanation text, or <think> tags. Return the raw JSON only.";
@@ -353,7 +375,7 @@ export async function generateFinancialInsights(
         model: OLLAMA_MODEL,
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: `Please interpret these verified family metrics:\n\n${metricsPrompt}` },
+          { role: "user", content: `Please interpret these verified family metrics and anomalies:\n\n${metricsPrompt}` },
         ],
         stream: false,
       }),
@@ -394,10 +416,32 @@ export async function generateFinancialInsights(
         .filter((r) => typeof r === "string" && r.trim().length > 0)
         .map((r) => r.trim());
 
+      let sanitizedAnomalyExplanations: AIAnomalyExplanation[] = [];
+      if (Array.isArray(parsed.anomalyExplanations)) {
+        sanitizedAnomalyExplanations = parsed.anomalyExplanations
+          .filter((ae) => ae && typeof ae.id === "string" && typeof ae.explanation === "string")
+          .map((ae) => ({
+            id: ae.id,
+            explanation: ae.explanation.trim(),
+          }));
+      }
+
+      // If LLM returned explanations, merge them into metrics.anomalies
+      if (metrics.anomalies && sanitizedAnomalyExplanations.length > 0) {
+        const explanationMap = new Map(sanitizedAnomalyExplanations.map((e) => [e.id, e.explanation]));
+        for (const anomaly of metrics.anomalies) {
+          const aiExp = explanationMap.get(anomaly.id);
+          if (aiExp) {
+            anomaly.explanation = aiExp;
+          }
+        }
+      }
+
       return {
         summary: parsed.summary,
         highlights: sanitizedHighlights.length > 0 ? sanitizedHighlights : generateDeterministicFallbackInsights(metrics).highlights,
         recommendations: sanitizedRecommendations.length > 0 ? sanitizedRecommendations : generateDeterministicFallbackInsights(metrics).recommendations,
+        anomalyExplanations: sanitizedAnomalyExplanations.length > 0 ? sanitizedAnomalyExplanations : generateDeterministicFallbackInsights(metrics).anomalyExplanations,
       };
     }
 

@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
+  Activity,
+  AlertCircle,
   AlertTriangle,
   ArrowRight,
   ArrowUpRight,
@@ -12,6 +14,7 @@ import {
   Lightbulb,
   PiggyBank,
   RefreshCw,
+  ShieldCheck,
   Sparkles,
   TrendingDown,
   TrendingUp,
@@ -418,7 +421,141 @@ export default function AIInsights() {
               </div>
             </section>
 
-            {/* Row 3: Category Shifts & Member Distribution (Two-column layout matching Dashboard) */}
+            {/* Row 3: Anomaly Radar / Unusual Activity */}
+            <section
+              className="rounded-2xl border border-[#e8e5ef] bg-white p-5 shadow-sm transition-shadow duration-300 hover:shadow-md sm:p-6 fade-up"
+              style={{ animationDelay: "175ms" }}
+            >
+              <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-semibold text-[#2a234f]">
+                      Anomaly Radar & Unusual Activity
+                    </p>
+                    <span
+                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
+                        metrics.anomalies && metrics.anomalies.length > 0
+                          ? "bg-rose-100 text-rose-800"
+                          : "bg-emerald-100 text-emerald-800"
+                      }`}
+                    >
+                      {metrics.anomalies && metrics.anomalies.length > 0
+                        ? `${metrics.anomalies.length} Flagged`
+                        : "All Normal"}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-[#77738a] sm:text-sm">
+                    Statistical analysis flagging variance outliers, velocity spikes, and unexpected shifts
+                  </p>
+                </div>
+              </div>
+
+              {!metrics.anomalies || metrics.anomalies.length === 0 ? (
+                <div className="flex items-center gap-3.5 rounded-xl border border-emerald-100 bg-emerald-50/40 p-4">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 shadow-xs">
+                    <ShieldCheck size={20} />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-emerald-950">
+                      No Spending Anomalies Detected
+                    </h4>
+                    <p className="mt-0.5 text-xs text-[#77738a]">
+                      All family expenses are pacing within expected historical category baselines and normal variance ranges for this period.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {metrics.anomalies.map((anomaly) => {
+                    const isHigh = anomaly.severity === "high";
+                    const isMedium = anomaly.severity === "medium";
+
+                    return (
+                      <div
+                        key={anomaly.id}
+                        className={`group relative flex flex-col justify-between rounded-xl border p-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
+                          isHigh
+                            ? "border-rose-200 bg-rose-50/30 hover:border-rose-300"
+                            : isMedium
+                            ? "border-amber-200 bg-amber-50/30 hover:border-amber-300"
+                            : "border-[#e8e5ef] bg-[#f8f7fb]/60 hover:border-[#2a234f]/30"
+                        }`}
+                      >
+                        <div>
+                          {/* Top Badges */}
+                          <div className="mb-3 flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <span
+                                className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider ${
+                                  anomaly.type === "outlier_transaction"
+                                    ? "bg-rose-100 text-rose-700"
+                                    : anomaly.type === "velocity_spike"
+                                    ? "bg-amber-100 text-amber-800"
+                                    : anomaly.type === "category_surge"
+                                    ? "bg-purple-100 text-purple-800"
+                                    : "bg-blue-100 text-blue-800"
+                                }`}
+                              >
+                                {anomaly.type === "outlier_transaction" && <AlertCircle size={12} />}
+                                {anomaly.type === "velocity_spike" && <Activity size={12} />}
+                                {anomaly.type === "category_surge" && <Flame size={12} />}
+                                {anomaly.type === "new_category" && <Sparkles size={12} />}
+                                <span>
+                                  {anomaly.type === "outlier_transaction"
+                                    ? "Outlier Expense"
+                                    : anomaly.type === "velocity_spike"
+                                    ? "Velocity Spike"
+                                    : anomaly.type === "category_surge"
+                                    ? "Category Surge"
+                                    : "New Category"}
+                                </span>
+                              </span>
+
+                              <span
+                                className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                                  isHigh
+                                    ? "bg-rose-200/80 text-rose-900"
+                                    : isMedium
+                                    ? "bg-amber-200/80 text-amber-900"
+                                    : "bg-slate-200 text-slate-700"
+                                }`}
+                              >
+                                {anomaly.severity}
+                              </span>
+                            </div>
+
+                            <span className="text-sm font-bold text-[#2a234f]">
+                              {formatCurrency(anomaly.amount)}
+                            </span>
+                          </div>
+
+                          {/* Title & Description */}
+                          <h4 className="text-sm font-bold text-[#2a234f]">
+                            {anomaly.title}
+                          </h4>
+                          <p className="mt-1 text-xs leading-relaxed text-[#77738a]">
+                            {anomaly.description}
+                          </p>
+                        </div>
+
+                        {/* AI Explanation Callout */}
+                        <div className="mt-3.5 flex items-start gap-2.5 rounded-lg border border-[#e8e5ef] bg-white/90 p-2.5 text-xs text-[#2a234f]">
+                          <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-[#2a234f] text-[#ffb3c3]">
+                            <Bot size={12} />
+                          </div>
+                          <div className="flex-1">
+                            <span className="font-semibold text-[#2a234f]">AI Note: </span>
+                            <span className="text-[#555268]">{anomaly.explanation}</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+
+            {/* Row 4: Category Shifts & Member Distribution (Two-column layout matching Dashboard) */}
             <section
               className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr] fade-up"
               style={{ animationDelay: "200ms" }}

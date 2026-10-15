@@ -33,6 +33,19 @@ export interface MemberComparison {
   percentageOfTotal: number;
 }
 
+export interface FinancialAnomaly {
+  id: string;
+  type: "outlier_transaction" | "velocity_spike" | "category_surge" | "new_category";
+  severity: "high" | "medium" | "low";
+  title: string;
+  description: string;
+  amount: number;
+  category: string;
+  date?: string;
+  ratio?: number;
+  explanation: string;
+}
+
 export interface DeterministicFinancialMetrics {
   period: {
     current: PeriodRange;
@@ -58,6 +71,7 @@ export interface DeterministicFinancialMetrics {
       date: string;
     } | null;
   };
+  anomalies: FinancialAnomaly[];
   hasEnoughData: boolean;
 }
 
@@ -196,6 +210,8 @@ export async function calculateDeterministicMetrics(
     prevMemberRes,
     txStatsRes,
     largestTxRes,
+    curTransactionsRes,
+    categoryBaselineRes,
   ] = await Promise.all([
     // 1. Current period income & expenses
     pool.query(
@@ -338,6 +354,51 @@ export async function calculateDeterministicMetrics(
       `,
       [familyId, current.startDate, current.endDate],
     ),
+
+    // 9. All current period expense transactions (for outlier & frequency anomaly detection)
+    pool.query(
+      `
+        SELECT
+          t.id,
+          t.title,
+          t.amount,
+          c.id AS category_id,
+          c.name AS category,
+          fm.name AS member_name,
+          t.transaction_date::text AS date
+        FROM transactions t
+        JOIN categories c ON c.id = t.category_id
+        LEFT JOIN family_members fm ON fm.id = t.member_id
+        WHERE t.family_id = $1
+          AND t.is_deleted = FALSE
+          AND t.type = 'expense'
+          AND t.transaction_date >= $2
+          AND t.transaction_date < $3
+        ORDER BY t.transaction_date DESC, t.amount DESC
+      `,
+      [familyId, current.startDate, current.endDate],
+    ),
+
+    // 10. Category baseline (90 days prior to current period)
+    pool.query(
+      `
+        SELECT
+          c.id AS category_id,
+          c.name AS category,
+          COUNT(t.id) AS tx_count,
+          COALESCE(AVG(t.amount), 0) AS avg_amount,
+          COALESCE(STDDEV(t.amount), 0) AS std_amount
+        FROM transactions t
+        JOIN categories c ON c.id = t.category_id
+        WHERE t.family_id = $1
+          AND t.is_deleted = FALSE
+          AND t.type = 'expense'
+          AND t.transaction_date < $2
+          AND t.transaction_date >= ($2::date - INTERVAL '90 days')
+        GROUP BY c.id, c.name
+      `,
+      [familyId, current.startDate],
+    ),
   ]);
 
   const curIncome = Number(curSummaryRes.rows[0]?.income || 0);
@@ -475,6 +536,150 @@ export async function calculateDeterministicMetrics(
     };
   }
 
+  // --- Deterministic Anomaly Detection Engine ---
+  const anomalies: FinancialAnomaly[] = [];
+
+  // Map category baseline (from last 90 days prior to current period)
+  const categoryBaselineMap = new Map<string, { count: number; avg: number; std: number }>();
+  for (const row of categoryBaselineRes.rows) {
+    categoryBaselineMap.set(row.category, {
+      count: Number(row.tx_count),
+      avg: Number(row.avg_amount),
+      std: Number(row.std_amount),
+    });
+  }
+
+  // 1. Transaction Outliers (High Variance single transactions)
+  for (const row of curTransactionsRes.rows) {
+    const txAmount = Number(row.amount);
+    const txCat = row.category;
+    const baseline = categoryBaselineMap.get(txCat);
+
+    if (baseline && baseline.count >= 2 && baseline.avg > 0) {
+      const ratio = Number((txAmount / baseline.avg).toFixed(1));
+      if (txAmount >= 1000 && ratio >= 2.5) {
+        anomalies.push({
+          id: `outlier-${row.id}`,
+          type: "outlier_transaction",
+          severity: txAmount >= 10000 || ratio >= 3.5 ? "high" : "medium",
+          title: `Unusual Expense in ${txCat}`,
+          description: `₹${txAmount.toLocaleString("en-IN")} on '${row.title}' is ${ratio}x higher than your category average (₹${Math.round(baseline.avg).toLocaleString("en-IN")}).`,
+          amount: txAmount,
+          category: txCat,
+          date: row.date,
+          ratio,
+          explanation: `This expense is significantly larger than typical spending in ${txCat}. Check whether this was a planned one-off purchase.`,
+        });
+      }
+    } else if (averageExpense > 0) {
+      const ratio = Number((txAmount / averageExpense).toFixed(1));
+      if (txAmount >= 3000 && ratio >= 3.0) {
+        anomalies.push({
+          id: `outlier-${row.id}`,
+          type: "outlier_transaction",
+          severity: "high",
+          title: `High-Value Expense in ${txCat}`,
+          description: `₹${txAmount.toLocaleString("en-IN")} on '${row.title}' is ${ratio}x higher than your overall average expense (₹${Math.round(averageExpense).toLocaleString("en-IN")}).`,
+          amount: txAmount,
+          category: txCat,
+          date: row.date,
+          ratio,
+          explanation: `A large transaction was recorded with limited category history. Verify details to ensure accurate family budgeting.`,
+        });
+      }
+    }
+  }
+
+  // 2. Velocity Spikes (3+ transactions in same category on same date)
+  const categoryDateCluster = new Map<string, { count: number; total: number; titles: string[] }>();
+  for (const row of curTransactionsRes.rows) {
+    const key = `${row.category}_${row.date}`;
+    const txAmount = Number(row.amount);
+    const existing = categoryDateCluster.get(key) || { count: 0, total: 0, titles: [] };
+    existing.count += 1;
+    existing.total += txAmount;
+    if (existing.titles.length < 3) existing.titles.push(row.title);
+    categoryDateCluster.set(key, existing);
+  }
+
+  for (const [key, cluster] of categoryDateCluster.entries()) {
+    if (cluster.count >= 3 && cluster.total >= 1000) {
+      const [category, date] = key.split("_");
+      anomalies.push({
+        id: `velocity-${key}`,
+        type: "velocity_spike",
+        severity: cluster.total >= 5000 || cluster.count >= 4 ? "high" : "medium",
+        title: `Frequent Activity in ${category}`,
+        description: `${cluster.count} transactions recorded in ${category} on ${date} totaling ₹${cluster.total.toLocaleString("en-IN")}.`,
+        amount: cluster.total,
+        category,
+        date,
+        ratio: cluster.count,
+        explanation: `Multiple purchases occurred in ${category} within a single day. Review transactions to avoid unintended repeat or duplicate charges.`,
+      });
+    }
+  }
+
+  // 3. Category Surge (Category spend doubled and increased by >= ₹1,500)
+  for (const cat of categoryComparisons) {
+    if (
+      cat.previousAmount > 0 &&
+      cat.changePercentage >= 100 &&
+      cat.changeAmount >= 1500
+    ) {
+      const alreadyHasOutlier = anomalies.some(
+        (a) => a.type === "outlier_transaction" && a.category === cat.name
+      );
+      if (!alreadyHasOutlier) {
+        anomalies.push({
+          id: `surge-${cat.name}`,
+          type: "category_surge",
+          severity: cat.changeAmount >= 5000 ? "high" : "medium",
+          title: `${cat.name} Spending Surge`,
+          description: `Spending jumped by +${cat.changePercentage}% (+₹${cat.changeAmount.toLocaleString("en-IN")}) compared to ${previous.label}.`,
+          amount: cat.currentAmount,
+          category: cat.name,
+          ratio: Number((cat.currentAmount / cat.previousAmount).toFixed(1)),
+          explanation: `${cat.name} spending has more than doubled compared to last period. Keep an eye on ongoing commitments in this category.`,
+        });
+      }
+    }
+  }
+
+  // 4. New Category (Major spend in previously inactive category)
+  for (const cat of categoryComparisons) {
+    if (cat.previousAmount === 0 && cat.currentAmount >= 2000) {
+      const baseline = categoryBaselineMap.get(cat.name);
+      if (!baseline || baseline.count === 0) {
+        const alreadyHasOutlier = anomalies.some(
+          (a) => a.category === cat.name
+        );
+        if (!alreadyHasOutlier) {
+          anomalies.push({
+            id: `new-${cat.name}`,
+            type: "new_category",
+            severity: "low",
+            title: `New Expense Area: ${cat.name}`,
+            description: `First recorded expenses in ${cat.name} totaling ₹${cat.currentAmount.toLocaleString("en-IN")}.`,
+            amount: cat.currentAmount,
+            category: cat.name,
+            explanation: `A new spending category appeared this period. Consider establishing a reasonable monthly allocation for ${cat.name}.`,
+          });
+        }
+      }
+    }
+  }
+
+  // Sort anomalies: "high" severity first, then by amount descending, limit to top 4
+  const severityScore = { high: 3, medium: 2, low: 1 };
+  anomalies.sort((a, b) => {
+    const diff = severityScore[b.severity] - severityScore[a.severity];
+    if (diff !== 0) return diff;
+    return (b.amount || 0) - (a.amount || 0);
+  });
+
+  const topAnomalies = anomalies.slice(0, 4);
+
   const hasEnoughData = curExpenses > 0 || curIncome > 0 || prevExpenses > 0;
 
   return {
@@ -497,6 +702,7 @@ export async function calculateDeterministicMetrics(
       averageExpense,
       largestExpense,
     },
+    anomalies: topAnomalies,
     hasEnoughData,
   };
 }
