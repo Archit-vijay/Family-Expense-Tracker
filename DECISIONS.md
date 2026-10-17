@@ -480,7 +480,25 @@ The AI integration should:
 
 ## Incremental implementation
 
-AI features will be completed and validated one at a time. AI-1 (AI Financial Assistant), AI-2 (AI Financial Insights), AI-3 (AI Monthly Financial Summary), and AI-4 (AI Anomaly Detection) are complete. AI-5 (AI Family Spending Insights) is the next milestone.
+AI features will be completed and validated one at a time. AI-1 (AI Financial Assistant), AI-2 (AI Financial Insights), AI-3 (AI Monthly Financial Summary), AI-4 (AI Anomaly Detection), and AI-5 (AI Family Spending Insights) are complete. AI-6 (AI Dashboard / Ask About My Finances) is the next milestone.
+
+## AI Family Spending Insights Architecture Decisions (AI-5)
+
+### In-Place Evolution of Member Distribution Card & 50/50 Grid Rebalance
+Rather than introducing a separate route or adding another full-width section to `/insights` (which would cause excessive vertical page scroll), AI-5 evolved the existing passive Member Distribution card:
+- The previous card was a near-duplicate of the Dashboard's `FamilySpending` widget, showing only static totals and progress bars without actionable intelligence.
+- Rebalanced the two-column grid from `xl:grid-cols-[1.2fr_0.8fr]` (60/40) to `lg:grid-cols-2` (50/50), providing member dynamics ample horizontal space for transaction counts, trend badges, and category affinity chips.
+- Streamlined Category Shifts to the top 5 categories and moved the "Largest Single Expense" card to the bottom of the left column. This aligns vertical card heights with the right column's AI note callout.
+
+### Deterministic Member Category Affinity & Dynamic Classification
+Authoritative figures are calculated in PostgreSQL and TypeScript before invoking the AI:
+1. **Category Affinity**: Aggregates each member's spending per category to identify their primary expenditure area (e.g. *"Food: 60% of member spend"*).
+2. **Transaction Velocity & Shifts**: Calculates transaction count and month-over-month percentage change (`+15%` or `-8%`) with visual trend indicators.
+3. **Concentration Classification**: Evaluates family distribution balance (`balanced` when multi-member spend is distributed, `concentrated` when one member drives >= 70%, or `single_driver` when only one member was active).
+
+### AI Plain-English Synthesis & Fallback Resilience
+- The model receives verified member metrics and outputs a concise `familyDynamicsNote` explaining how household members collaborated on finances.
+- If Ollama is offline or returns invalid JSON, the deterministic baseline observation is used seamlessly without breaking the UI.
 
 ## AI Monthly Summary — Dashboard Integration (AI-3)
 

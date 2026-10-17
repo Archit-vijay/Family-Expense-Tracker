@@ -16,8 +16,10 @@ import {
   RefreshCw,
   ShieldCheck,
   Sparkles,
+  Tag,
   TrendingDown,
   TrendingUp,
+  Users,
   Wallet,
 } from "lucide-react";
 
@@ -555,160 +557,244 @@ export default function AIInsights() {
               )}
             </section>
 
-            {/* Row 4: Category Shifts & Member Distribution (Two-column layout matching Dashboard) */}
+            {/* Row 4: Category Shifts & Family Member Dynamics (Balanced 50/50 two-column layout) */}
             <section
-              className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr] fade-up"
+              className="grid gap-6 lg:grid-cols-2 fade-up"
               style={{ animationDelay: "200ms" }}
             >
-              {/* Category Shifts & Spikes */}
-              <div className="rounded-2xl border border-[#e8e5ef] bg-white p-5 shadow-sm transition-shadow duration-300 hover:shadow-md sm:p-6">
-                <div className="mb-4">
-                  <p className="text-sm font-semibold text-[#2a234f]">
-                    Category Shifts & Spikes
-                  </p>
-                  <p className="mt-1 text-xs text-[#77738a] sm:text-sm">
-                    Expense shifts compared to {metrics.period.previous.label}
-                  </p>
-                </div>
-
-                {metrics.categories.length === 0 ? (
-                  <div className="rounded-xl bg-[#f8f7fb] px-5 py-8 text-center text-sm text-[#77738a]">
-                    No category expenses recorded for this period.
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {metrics.categories.slice(0, 6).map((cat) => (
-                      <div
-                        key={cat.name}
-                        className="group flex flex-col gap-1.5 rounded-xl border border-[#e8e5ef]/70 bg-[#f8f7fb]/40 p-3 transition-all duration-200 hover:translate-x-1.5 hover:bg-[#f8f7fb] hover:shadow-xs"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            {cat.isSpike && (
-                              <span
-                                title="Spike detected: >20% increase"
-                                className="flex items-center gap-1 rounded-full bg-rose-100 px-2 py-0.5 text-[11px] font-bold text-rose-700 animate-pulse"
-                              >
-                                <Flame size={12} />
-                                <span>Spike</span>
-                              </span>
-                            )}
-                            <span className="text-sm font-semibold text-[#2a234f]">
-                              {cat.name}
-                            </span>
-                          </div>
-
-                          <div className="flex items-center gap-3">
-                            <span className="text-sm font-bold text-[#2a234f]">
-                              {formatCurrency(cat.currentAmount)}
-                            </span>
-                            <span
-                              className={`text-xs font-semibold ${
-                                cat.changeAmount > 0
-                                  ? "text-rose-600"
-                                  : cat.changeAmount < 0
-                                  ? "text-emerald-600"
-                                  : "text-[#77738a]"
-                              }`}
-                            >
-                              {cat.changeAmount > 0 ? "+" : ""}
-                              {cat.changePercentage}%
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Animated Progress Bar */}
-                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#e8e5ef]">
-                          <div
-                            className="h-full rounded-full bg-[#2a234f] transition-all duration-700"
-                            style={{
-                              width: `${Math.min(cat.percentageOfTotal, 100)}%`,
-                            }}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Family Spending Distribution */}
-              <div className="rounded-2xl border border-[#e8e5ef] bg-white p-5 shadow-sm transition-shadow duration-300 hover:shadow-md sm:p-6">
-                <div className="mb-4 flex items-center justify-between">
-                  <div>
+              {/* Left Column: Category Shifts & Spikes */}
+              <div className="flex flex-col justify-between rounded-2xl border border-[#e8e5ef] bg-white p-5 shadow-sm transition-shadow duration-300 hover:shadow-md sm:p-6">
+                <div>
+                  <div className="mb-4">
                     <p className="text-sm font-semibold text-[#2a234f]">
-                      Member Distribution
+                      Category Shifts & Spikes
                     </p>
                     <p className="mt-1 text-xs text-[#77738a] sm:text-sm">
-                      Expenses by family member
+                      Expense shifts compared to {metrics.period.previous.label}
                     </p>
                   </div>
 
-                  {metrics.topSpender && (
-                    <span className="rounded-full bg-[#2a234f]/5 px-2.5 py-1 text-xs font-semibold text-[#2a234f]">
-                      Top: {metrics.topSpender.name}
-                    </span>
+                  {metrics.categories.length === 0 ? (
+                    <div className="rounded-xl bg-[#f8f7fb] px-5 py-8 text-center text-sm text-[#77738a]">
+                      No category expenses recorded for this period.
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {metrics.categories.slice(0, 5).map((cat) => (
+                        <div
+                          key={cat.name}
+                          className="group flex flex-col gap-1.5 rounded-xl border border-[#e8e5ef]/70 bg-[#f8f7fb]/40 p-3 transition-all duration-200 hover:translate-x-1 hover:bg-[#f8f7fb] hover:shadow-xs"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              {cat.isSpike && (
+                                <span
+                                  title="Spike detected: >20% increase"
+                                  className="flex items-center gap-1 rounded-full bg-rose-100 px-2 py-0.5 text-[11px] font-bold text-rose-700 animate-pulse"
+                                >
+                                  <Flame size={12} />
+                                  <span>Spike</span>
+                                </span>
+                              )}
+                              <span className="text-sm font-semibold text-[#2a234f]">
+                                {cat.name}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                              <span className="text-sm font-bold text-[#2a234f]">
+                                {formatCurrency(cat.currentAmount)}
+                              </span>
+                              <span
+                                className={`text-xs font-semibold ${
+                                  cat.changeAmount > 0
+                                    ? "text-rose-600"
+                                    : cat.changeAmount < 0
+                                    ? "text-emerald-600"
+                                    : "text-[#77738a]"
+                                }`}
+                              >
+                                {cat.changeAmount > 0 ? "+" : ""}
+                                {cat.changePercentage}%
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Animated Progress Bar */}
+                          <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#e8e5ef]">
+                            <div
+                              className="h-full rounded-full bg-[#2a234f] transition-all duration-700"
+                              style={{
+                                width: `${Math.min(cat.percentageOfTotal, 100)}%`,
+                              }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
 
-                {metrics.members.length === 0 ? (
-                  <div className="rounded-xl bg-[#f8f7fb] px-5 py-8 text-center text-sm text-[#77738a]">
-                    No member expense records available.
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {metrics.members.map((member) => (
-                      <div key={member.name} className="group">
-                        <div className="mb-1.5 flex items-center justify-between gap-3 text-xs">
-                          <div className="flex items-center gap-2">
-                            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#2a234f] text-[10px] font-bold text-[#ffb3c3] transition-transform duration-200 group-hover:scale-110">
-                              {member.name.charAt(0).toUpperCase()}
-                            </div>
-                            <span className="font-semibold text-[#2a234f]">
-                              {member.name}
-                            </span>
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-[#2a234f]">
-                              {formatCurrency(member.currentAmount)}
-                            </span>
-                            <span className="text-[#77738a]">
-                              ({member.percentageOfTotal}%)
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Progress Bar (Matching FamilySpending.tsx blush pink styling) */}
-                        <div className="h-2 w-full overflow-hidden rounded-full bg-[#f8f7fb]">
-                          <div
-                            className="h-full rounded-full bg-[#ffb3c3] transition-all duration-700"
-                            style={{
-                              width: `${Math.min(member.percentageOfTotal, 100)}%`,
-                            }}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
+                {/* Largest Single Expense box at bottom of left card */}
                 {metrics.transactionStats.largestExpense && (
-                  <div className="mt-6 rounded-xl border border-[#e8e5ef] bg-[#f8f7fb] p-3.5 transition-all duration-200 hover:bg-[#f3f1f7]">
+                  <div className="mt-5 rounded-xl border border-[#e8e5ef] bg-[#f8f7fb] p-3.5 transition-all duration-200 hover:bg-[#f3f1f7]">
                     <p className="text-[11px] font-semibold uppercase tracking-wider text-[#77738a]">
                       Largest Single Expense
                     </p>
                     <div className="mt-1 flex items-center justify-between">
-                      <p className="text-sm font-semibold text-[#2a234f]">
-                        {metrics.transactionStats.largestExpense.title} (
-                        {metrics.transactionStats.largestExpense.category})
+                      <p className="text-sm font-semibold text-[#2a234f] truncate pr-2">
+                        {metrics.transactionStats.largestExpense.title}{" "}
+                        <span className="font-normal text-[#77738a]">
+                          ({metrics.transactionStats.largestExpense.category})
+                        </span>
                       </p>
-                      <p className="text-sm font-bold text-[#2a234f]">
+                      <p className="text-sm font-bold text-[#2a234f] shrink-0">
                         {formatCurrency(metrics.transactionStats.largestExpense.amount)}
                       </p>
                     </div>
                   </div>
                 )}
+              </div>
+
+              {/* Right Column: Family Member Dynamics & Insights */}
+              <div className="flex flex-col justify-between rounded-2xl border border-[#e8e5ef] bg-white p-5 shadow-sm transition-shadow duration-300 hover:shadow-md sm:p-6">
+                <div>
+                  <div className="mb-4 flex items-center justify-between gap-2">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <Users size={16} className="text-[#2a234f]" />
+                        <p className="text-sm font-semibold text-[#2a234f]">
+                          Family Member Dynamics
+                        </p>
+                        {metrics.familyDynamics && (
+                          <span
+                            className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                              metrics.familyDynamics.spendingConcentration === "balanced"
+                                ? "bg-emerald-100 text-emerald-800"
+                                : metrics.familyDynamics.spendingConcentration === "concentrated"
+                                ? "bg-amber-100 text-amber-800"
+                                : "bg-slate-100 text-slate-700"
+                            }`}
+                          >
+                            {metrics.familyDynamics.spendingConcentration === "balanced"
+                              ? "Balanced"
+                              : metrics.familyDynamics.spendingConcentration === "concentrated"
+                              ? "Concentrated"
+                              : "Single Driver"}
+                          </span>
+                        )}
+                      </div>
+                      <p className="mt-1 text-xs text-[#77738a] sm:text-sm">
+                        Spending contribution & shifts vs {metrics.period.previous.label}
+                      </p>
+                    </div>
+
+                    {metrics.topSpender && (
+                      <span className="shrink-0 rounded-full bg-[#2a234f]/5 px-2.5 py-1 text-xs font-semibold text-[#2a234f]">
+                        Top: {metrics.topSpender.name}
+                      </span>
+                    )}
+                  </div>
+
+                  {metrics.members.length === 0 ? (
+                    <div className="rounded-xl bg-[#f8f7fb] px-5 py-8 text-center text-sm text-[#77738a]">
+                      No member expense records available.
+                    </div>
+                  ) : (
+                    <div className="space-y-3.5">
+                      {metrics.members.map((member) => (
+                        <div
+                          key={member.name}
+                          className="group rounded-xl border border-[#e8e5ef]/70 bg-[#f8f7fb]/40 p-3 transition-all duration-200 hover:bg-[#f8f7fb] hover:shadow-xs"
+                        >
+                          <div className="mb-1.5 flex items-center justify-between gap-3 text-xs">
+                            <div className="flex items-center gap-2">
+                              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#2a234f] text-[10px] font-bold text-[#ffb3c3] transition-transform duration-200 group-hover:scale-110">
+                                {member.name.charAt(0).toUpperCase()}
+                              </div>
+                              <span className="font-semibold text-[#2a234f]">
+                                {member.name}
+                              </span>
+                              {member.transactionCount > 0 && (
+                                <span className="text-[10px] text-[#77738a]">
+                                  ({member.transactionCount}{" "}
+                                  {member.transactionCount === 1 ? "tx" : "txs"})
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="flex items-center gap-2.5">
+                              <span className="font-bold text-[#2a234f]">
+                                {formatCurrency(member.currentAmount)}
+                              </span>
+                              <span className="text-[#77738a]">
+                                ({member.percentageOfTotal}%)
+                              </span>
+                              <span
+                                className={`flex items-center gap-0.5 text-xs font-semibold ${
+                                  member.changeAmount > 0
+                                    ? "text-rose-600"
+                                    : member.changeAmount < 0
+                                    ? "text-emerald-600"
+                                    : "text-[#77738a]"
+                                }`}
+                              >
+                                {member.changeAmount > 0 ? (
+                                  <TrendingUp size={12} />
+                                ) : member.changeAmount < 0 ? (
+                                  <TrendingDown size={12} />
+                                ) : null}
+                                {member.changeAmount > 0 ? "+" : ""}
+                                {member.changePercentage}%
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Progress Bar (Blush pink accent) */}
+                          <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#e8e5ef]">
+                            <div
+                              className="h-full rounded-full bg-[#ffb3c3] transition-all duration-700"
+                              style={{
+                                width: `${Math.min(member.percentageOfTotal, 100)}%`,
+                              }}
+                            />
+                          </div>
+
+                          {/* Dominant Category Chip */}
+                          {member.topCategory && (
+                            <div className="mt-2 flex items-center gap-1.5 text-[11px] text-[#77738a]">
+                              <Tag size={10} className="text-[#2a234f]/50" />
+                              <span>
+                                Top area:{" "}
+                                <strong className="font-medium text-[#2a234f]">
+                                  {member.topCategory.name}
+                                </strong>{" "}
+                                ({member.topCategory.percentage}% of member spend)
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* AI Family Dynamic Note Callout */}
+                <div className="mt-5 flex items-start gap-2.5 rounded-xl border border-[#e8e5ef] bg-[#f8f7fb] p-3 text-xs text-[#2a234f]">
+                  <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-[#2a234f] text-[#ffb3c3]">
+                    <Bot size={12} />
+                  </div>
+                  <div className="flex-1">
+                    <span className="font-semibold text-[#2a234f]">
+                      AI Family Insight:{" "}
+                    </span>
+                    <span className="text-[#555268]">
+                      {aiInsights.familyDynamicsNote ||
+                        metrics.familyDynamics?.observation ||
+                        "Household expenses are distributed across active family members."}
+                    </span>
+                  </div>
+                </div>
               </div>
             </section>
 

@@ -209,6 +209,7 @@ export interface AIInsightsResult {
   highlights: AIInsightHighlight[];
   recommendations: string[];
   anomalyExplanations?: AIAnomalyExplanation[];
+  familyDynamicsNote?: string;
 }
 
 function generateDeterministicFallbackInsights(
@@ -293,11 +294,18 @@ function generateDeterministicFallbackInsights(
     explanation: a.explanation,
   }));
 
+  const familyDynamicsNote =
+    metrics.familyDynamics?.observation ||
+    (metrics.topSpender
+      ? `${metrics.topSpender.name} accounted for ${metrics.topSpender.percentageOfTotal}% of total family spending this period.`
+      : "Household spending is distributed across active members.");
+
   return {
     summary,
     highlights: highlights.slice(0, 4),
     recommendations: recommendations.slice(0, 2),
     anomalyExplanations,
+    familyDynamicsNote,
   };
 }
 
@@ -330,6 +338,16 @@ export async function generateFinancialInsights(
     metrics.topSpender
       ? `Top Spender: ${metrics.topSpender.name} with ₹${metrics.topSpender.currentAmount.toLocaleString("en-IN")} (${metrics.topSpender.percentageOfTotal}% of family expenses)`
       : null,
+    metrics.members && metrics.members.length > 0
+      ? `Family Member Contributions (${metrics.members.length} members):\n` +
+        metrics.members
+          .map(
+            (m) =>
+              `- ${m.name}: ₹${m.currentAmount.toLocaleString("en-IN")} (${m.percentageOfTotal}% of total expenses, change vs prev: ${m.changePercentage > 0 ? "+" : ""}${m.changePercentage}%, ${m.transactionCount} transactions${m.topCategory ? `, top area: ${m.topCategory.name} [${m.topCategory.percentage}%]` : ""})`,
+          )
+          .join("\n") +
+        (metrics.familyDynamics ? `\nFamily Dynamics Baseline: ${metrics.familyDynamics.observation}` : "")
+      : "No member expense records available.",
     `Transaction Count: ${metrics.transactionStats.totalCount} transactions, Average expense: ₹${metrics.transactionStats.averageExpense.toLocaleString("en-IN")}${metrics.transactionStats.largestExpense ? `, Largest single expense: ₹${metrics.transactionStats.largestExpense.amount.toLocaleString("en-IN")} ('${metrics.transactionStats.largestExpense.title}' in ${metrics.transactionStats.largestExpense.category})` : ""}`,
     metrics.anomalies && metrics.anomalies.length > 0
       ? `Detected Spending Anomalies:\n${metrics.anomalies.map((a) => `- [${a.id}] ${a.title} (${a.severity.toUpperCase()}): ${a.description}`).join("\n")}`
@@ -339,7 +357,7 @@ export async function generateFinancialInsights(
     .join("\n");
 
   const systemPrompt =
-    "You are a family financial advisor. You analyze pre-calculated, authoritative financial metrics and detected anomalies, and provide structured, encouraging, and actionable insights.\n" +
+    "You are a family financial advisor. You analyze pre-calculated, authoritative financial metrics, member contributions, and detected anomalies, and provide structured, encouraging, and actionable insights.\n" +
     "CRITICAL RULES:\n" +
     "1. Never recalculate or invent financial numbers. Use the exact numbers and percentages from the provided metrics.\n" +
     "2. All currency amounts must use the ₹ symbol.\n" +
@@ -361,7 +379,8 @@ export async function generateFinancialInsights(
     '      "id": "exact anomaly id string from prompt",\n' +
     '      "explanation": "1 concise sentence explaining this anomaly to the family in plain English and what to verify."\n' +
     "    }\n" +
-    "  ]\n" +
+    "  ],\n" +
+    '  "familyDynamicsNote": "1-2 concise sentences analyzing the family\'s spending collaboration, member shifts, and primary expenditure drivers."\n' +
     "}\n" +
     "Do NOT include any markdown code blocks, explanation text, or <think> tags. Return the raw JSON only.";
 
@@ -437,11 +456,17 @@ export async function generateFinancialInsights(
         }
       }
 
+      const familyDynamicsNote =
+        typeof parsed.familyDynamicsNote === "string" && parsed.familyDynamicsNote.trim().length > 0
+          ? parsed.familyDynamicsNote.trim()
+          : generateDeterministicFallbackInsights(metrics).familyDynamicsNote;
+
       return {
         summary: parsed.summary,
         highlights: sanitizedHighlights.length > 0 ? sanitizedHighlights : generateDeterministicFallbackInsights(metrics).highlights,
         recommendations: sanitizedRecommendations.length > 0 ? sanitizedRecommendations : generateDeterministicFallbackInsights(metrics).recommendations,
         anomalyExplanations: sanitizedAnomalyExplanations.length > 0 ? sanitizedAnomalyExplanations : generateDeterministicFallbackInsights(metrics).anomalyExplanations,
+        familyDynamicsNote,
       };
     }
 

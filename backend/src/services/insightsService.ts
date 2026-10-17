@@ -24,6 +24,12 @@ export interface CategoryComparison {
   isSpike: boolean;
 }
 
+export interface MemberCategoryBreakdown {
+  name: string;
+  amount: number;
+  percentage: number;
+}
+
 export interface MemberComparison {
   name: string;
   currentAmount: number;
@@ -31,6 +37,20 @@ export interface MemberComparison {
   changeAmount: number;
   changePercentage: number;
   percentageOfTotal: number;
+  trend: "up" | "down" | "neutral";
+  transactionCount: number;
+  topCategory: MemberCategoryBreakdown | null;
+}
+
+export interface FamilySpendingDynamics {
+  activeMemberCount: number;
+  topContributor: {
+    name: string;
+    percentageOfTotal: number;
+    amount: number;
+  } | null;
+  spendingConcentration: "balanced" | "concentrated" | "single_driver";
+  observation: string;
 }
 
 export interface FinancialAnomaly {
@@ -61,6 +81,7 @@ export interface DeterministicFinancialMetrics {
   categorySpikes: CategoryComparison[];
   members: MemberComparison[];
   topSpender: MemberComparison | null;
+  familyDynamics: FamilySpendingDynamics;
   transactionStats: {
     totalCount: number;
     averageExpense: number;
@@ -212,6 +233,7 @@ export async function calculateDeterministicMetrics(
     largestTxRes,
     curTransactionsRes,
     categoryBaselineRes,
+    curMemberCategoryRes,
   ] = await Promise.all([
     // 1. Current period income & expenses
     pool.query(
@@ -399,6 +421,28 @@ export async function calculateDeterministicMetrics(
       `,
       [familyId, current.startDate],
     ),
+
+    // 11. Current period member category breakdown & tx count
+    pool.query(
+      `
+        SELECT
+          fm.name AS member_name,
+          c.name AS category_name,
+          COUNT(t.id) AS tx_count,
+          COALESCE(SUM(t.amount), 0) AS amount
+        FROM transactions t
+        JOIN family_members fm ON fm.id = t.member_id
+        JOIN categories c ON c.id = t.category_id
+        WHERE t.family_id = $1
+          AND t.is_deleted = FALSE
+          AND t.type = 'expense'
+          AND t.transaction_date >= $2
+          AND t.transaction_date < $3
+        GROUP BY fm.name, c.name
+        ORDER BY fm.name, amount DESC
+      `,
+      [familyId, current.startDate, current.endDate],
+    ),
   ]);
 
   const curIncome = Number(curSummaryRes.rows[0]?.income || 0);
@@ -475,7 +519,7 @@ export async function calculateDeterministicMetrics(
 
   const categorySpikes = categoryComparisons.filter((c) => c.isSpike);
 
-  // Members comparison
+  // Members comparison & category details
   const prevMemberMap = new Map<string, number>();
   for (const row of prevMemberRes.rows) {
     prevMemberMap.set(row.member_name, Number(row.amount));
@@ -484,6 +528,38 @@ export async function calculateDeterministicMetrics(
   const curMemberMap = new Map<string, number>();
   for (const row of curMemberRes.rows) {
     curMemberMap.set(row.member_name, Number(row.amount));
+  }
+
+  const memberDetailsMap = new Map<
+    string,
+    {
+      topCategory: MemberCategoryBreakdown | null;
+      totalTxCount: number;
+    }
+  >();
+
+  for (const row of curMemberCategoryRes.rows) {
+    const memName = row.member_name;
+    const catName = row.category_name;
+    const catAmount = Number(row.amount);
+    const txCount = Number(row.tx_count);
+
+    const existing = memberDetailsMap.get(memName);
+    if (!existing) {
+      const memTotalSpend = curMemberMap.get(memName) || 0;
+      const catPercentage =
+        memTotalSpend > 0 ? Number(((catAmount / memTotalSpend) * 100).toFixed(1)) : 0;
+      memberDetailsMap.set(memName, {
+        topCategory: {
+          name: catName,
+          amount: catAmount,
+          percentage: catPercentage,
+        },
+        totalTxCount: txCount,
+      });
+    } else {
+      existing.totalTxCount += txCount;
+    }
   }
 
   const allMemberNames = new Set<string>();
@@ -506,6 +582,11 @@ export async function calculateDeterministicMetrics(
     const percentageOfTotal =
       curExpenses > 0 ? Number(((curAmount / curExpenses) * 100).toFixed(1)) : 0;
 
+    const trend: "up" | "down" | "neutral" =
+      changeAmount > 0 ? "up" : changeAmount < 0 ? "down" : "neutral";
+
+    const details = memberDetailsMap.get(memName);
+
     if (curAmount > 0 || prevAmount > 0) {
       memberComparisons.push({
         name: memName,
@@ -514,6 +595,9 @@ export async function calculateDeterministicMetrics(
         changeAmount,
         changePercentage,
         percentageOfTotal,
+        trend,
+        transactionCount: details?.totalTxCount || 0,
+        topCategory: details?.topCategory || null,
       });
     }
   }
@@ -522,6 +606,39 @@ export async function calculateDeterministicMetrics(
   const topSpender = memberComparisons.length > 0 && memberComparisons[0].currentAmount > 0
     ? memberComparisons[0]
     : null;
+
+  const activeMembers = memberComparisons.filter((m) => m.currentAmount > 0);
+  const activeMemberCount = activeMembers.length;
+  let spendingConcentration: "balanced" | "concentrated" | "single_driver" = "balanced";
+  let familyObservation = "No family member spending recorded for this period.";
+
+  if (activeMemberCount === 1) {
+    spendingConcentration = "single_driver";
+    const driver = activeMembers[0];
+    familyObservation = `${driver.name} accounted for all recorded family spending this period (₹${driver.currentAmount.toLocaleString("en-IN")}${driver.topCategory ? `, primarily in ${driver.topCategory.name}` : ""}).`;
+  } else if (activeMemberCount >= 2 && topSpender) {
+    if (topSpender.percentageOfTotal >= 70) {
+      spendingConcentration = "concentrated";
+      familyObservation = `${topSpender.name} drove ${topSpender.percentageOfTotal}% of total family spending (₹${topSpender.currentAmount.toLocaleString("en-IN")})${topSpender.topCategory ? `, with most expenses in ${topSpender.topCategory.name}` : ""}.`;
+    } else {
+      spendingConcentration = "balanced";
+      const second = activeMembers[1];
+      familyObservation = `Household expenses were shared collaboratively, led by ${topSpender.name} (${topSpender.percentageOfTotal}%) and ${second.name} (${second.percentageOfTotal}%).`;
+    }
+  }
+
+  const familyDynamics: FamilySpendingDynamics = {
+    activeMemberCount,
+    topContributor: topSpender
+      ? {
+          name: topSpender.name,
+          percentageOfTotal: topSpender.percentageOfTotal,
+          amount: topSpender.currentAmount,
+        }
+      : null,
+    spendingConcentration,
+    observation: familyObservation,
+  };
 
   const totalCount = Number(txStatsRes.rows[0]?.count || 0);
   const averageExpense = Number(Number(txStatsRes.rows[0]?.avg_expense || 0).toFixed(2));
@@ -697,6 +814,7 @@ export async function calculateDeterministicMetrics(
     categorySpikes,
     members: memberComparisons,
     topSpender,
+    familyDynamics,
     transactionStats: {
       totalCount,
       averageExpense,

@@ -29,6 +29,12 @@ export interface CategoryComparison {
   isSpike: boolean;
 }
 
+export interface MemberCategoryBreakdown {
+  name: string;
+  amount: number;
+  percentage: number;
+}
+
 export interface MemberComparison {
   name: string;
   currentAmount: number;
@@ -36,6 +42,20 @@ export interface MemberComparison {
   changeAmount: number;
   changePercentage: number;
   percentageOfTotal: number;
+  trend: "up" | "down" | "neutral";
+  transactionCount: number;
+  topCategory: MemberCategoryBreakdown | null;
+}
+
+export interface FamilySpendingDynamics {
+  activeMemberCount: number;
+  topContributor: {
+    name: string;
+    percentageOfTotal: number;
+    amount: number;
+  } | null;
+  spendingConcentration: "balanced" | "concentrated" | "single_driver";
+  observation: string;
 }
 
 export interface FinancialAnomaly {
@@ -66,6 +86,7 @@ export interface DeterministicFinancialMetrics {
   categorySpikes: CategoryComparison[];
   members: MemberComparison[];
   topSpender: MemberComparison | null;
+  familyDynamics: FamilySpendingDynamics;
   transactionStats: {
     totalCount: number;
     averageExpense: number;
@@ -96,6 +117,7 @@ export interface AIInsightsResult {
   highlights: AIInsightHighlight[];
   recommendations: string[];
   anomalyExplanations?: AIAnomalyExplanation[];
+  familyDynamicsNote?: string;
 }
 
 export interface FinancialInsightsData {

@@ -223,12 +223,12 @@ Status: COMPLETE
 
 ## AI-5 — AI Family Spending Insights
 
-- [ ] Define family-level aggregation requirements
-- [ ] Compare useful member/category/period patterns
-- [ ] Generate family spending observations
-- [ ] Add family insight UI
+- [x] Define family-level aggregation requirements
+- [x] Compare useful member/category/period patterns
+- [x] Generate family spending observations
+- [x] Add family insight UI
 
-Status: NEXT
+Status: COMPLETE
 
 ## AI-6 — AI Dashboard / Ask About My Finances
 
@@ -238,7 +238,7 @@ Status: NEXT
 - [ ] Preserve authentication, authorization, and family scoping
 - [ ] Add useful contextual responses without replacing deterministic dashboard metrics
 
-Status: PLANNED
+Status: NEXT
 
 ## AI-7 — AI Budget Recommendations
 
