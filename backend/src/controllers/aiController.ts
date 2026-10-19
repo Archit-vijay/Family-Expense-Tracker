@@ -83,9 +83,21 @@ export async function chatWithAIController(
       error,
     );
 
+    const errCause = (error as { cause?: { code?: string; message?: string } })?.cause;
+    const isConnectionError =
+      error instanceof Error &&
+      (error.message.includes("fetch failed") ||
+        errCause?.code === "ECONNREFUSED" ||
+        errCause?.message?.includes("ECONNREFUSED") ||
+        String(errCause).includes("ECONNREFUSED"));
+
+    const message = isConnectionError
+      ? "Local AI service (Ollama) is offline or unreachable. Please make sure Ollama is running."
+      : "Failed to generate AI response.";
+
     res.status(500).json({
       success: false,
-      message: "Failed to generate AI response.",
+      message,
     });
   }
 }

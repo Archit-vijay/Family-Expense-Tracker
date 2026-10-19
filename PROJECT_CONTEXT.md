@@ -645,10 +645,14 @@ The active reusable tool and analytics layer currently includes:
 - `get_category_spending()`
 - `get_family_transactions()`
 - `get_member_spending()`
-- `get_income_summary()`
+- `get_member_income()`
+- `get_family_members_spending()`
+- `get_family_members_income()`
+- `get_income_summary()` & `get_income_by_date_range()`
 - `calculateDeterministicMetrics()` & `generateFinancialInsights()`
 - Multi-rule anomaly detection engine (outliers with 90-day baseline, velocity spikes, surges, new category incursions)
 - Member spending dynamics engine (category affinities, member transaction counts, period-over-period shift tracking, family concentration classification)
+- Zero-tool hallucination interception & follow-up fallback grounding for conversational assistant turns
 
 All tools and insight queries are authenticated and strictly family-scoped via JWT. Model interactions run fully locally via Ollama with zero external API calls or token fees. Financial numbers are formatted in ₹ (INR) without markdown bolding or list syntax.
 

@@ -183,12 +183,12 @@ export async function getSpendingByDateRange(
     [familyId, startDate, endDate],
   );
 
+  const total = Number(result.rows[0].total_spending);
   return {
     startDate,
     endDate,
-    totalSpending: Number(
-      result.rows[0].total_spending,
-    ),
+    totalSpending: total,
+    formattedTotal: `₹${total.toLocaleString("en-IN")}`,
   };
 }
 
@@ -418,7 +418,7 @@ export async function getMemberSpendingByDateRange(
     };
   }
 
-  return {
+    return {
     memberName: result.rows[0].member_name,
     totalSpending: Number(
       result.rows[0].total_spending,
@@ -426,6 +426,135 @@ export async function getMemberSpendingByDateRange(
     memberFound: true,
     startDate,
     endDate,
+  };
+}
+
+export async function getAllMembersSpendingByDateRange(
+  familyId: number,
+  startDate: string,
+  endDate: string,
+) {
+  const result = await pool.query(
+    `
+      SELECT
+        fm.name AS member_name,
+        COALESCE(SUM(t.amount), 0) AS total_spending,
+        COUNT(t.id) AS transaction_count
+      FROM family_members fm
+      LEFT JOIN transactions t
+        ON t.member_id = fm.id
+        AND t.family_id = $1
+        AND t.type = 'expense'
+        AND t.is_deleted = FALSE
+        AND t.transaction_date >= $2
+        AND t.transaction_date < $3
+      WHERE fm.family_id = $1
+        AND fm.is_active = TRUE
+      GROUP BY fm.id, fm.name
+      ORDER BY total_spending DESC;
+    `,
+    [familyId, startDate, endDate],
+  );
+
+  const members = result.rows.map((row) => ({
+    memberName: row.member_name,
+    totalSpending: Number(row.total_spending),
+    transactionCount: Number(row.transaction_count),
+  }));
+
+  const totalSpending = members.reduce(
+    (sum, m) => sum + m.totalSpending,
+    0,
+  );
+
+  const breakdown = members
+    .map((m) => `${m.memberName}: ₹${m.totalSpending.toLocaleString("en-IN")}`)
+    .join(", ");
+
+  return {
+    startDate,
+    endDate,
+    totalFamilySpending: totalSpending,
+    breakdown,
+    members,
+  };
+}
+
+export async function getIncomeByDateRange(
+  familyId: number,
+  startDate: string,
+  endDate: string,
+) {
+  const result = await pool.query(
+    `
+      SELECT COALESCE(SUM(amount), 0) AS total_income
+      FROM transactions
+      WHERE family_id = $1
+        AND type = 'income'
+        AND is_deleted = FALSE
+        AND transaction_date >= $2
+        AND transaction_date < $3;
+    `,
+    [familyId, startDate, endDate],
+  );
+
+  const total = Number(result.rows[0].total_income);
+  return {
+    startDate,
+    endDate,
+    totalIncome: total,
+    formattedTotal: `₹${total.toLocaleString("en-IN")}`,
+  };
+}
+
+export async function getAllMembersIncomeByDateRange(
+  familyId: number,
+  startDate: string,
+  endDate: string,
+) {
+  const result = await pool.query(
+    `
+      SELECT
+        fm.name AS member_name,
+        COALESCE(SUM(t.amount), 0) AS total_income,
+        COUNT(t.id) AS transaction_count
+      FROM family_members fm
+      LEFT JOIN transactions t
+        ON t.member_id = fm.id
+        AND t.family_id = $1
+        AND t.type = 'income'
+        AND t.is_deleted = FALSE
+        AND t.transaction_date >= $2
+        AND t.transaction_date < $3
+      WHERE fm.family_id = $1
+        AND fm.is_active = TRUE
+      GROUP BY fm.id, fm.name
+      ORDER BY total_income DESC;
+    `,
+    [familyId, startDate, endDate],
+  );
+
+  const members = result.rows.map((row) => ({
+    memberName: row.member_name,
+    totalIncome: Number(row.total_income),
+    transactionCount: Number(row.transaction_count),
+  }));
+
+  const totalIncome = members.reduce(
+    (sum, m) => sum + m.totalIncome,
+    0,
+  );
+
+  const breakdown = members
+    .map((m) => `${m.memberName}: ₹${m.totalIncome.toLocaleString("en-IN")}`)
+    .join(", ");
+
+  return {
+    startDate,
+    endDate,
+    totalFamilyIncome: totalIncome,
+    breakdown,
+    members,
   };
 }
 
@@ -475,11 +604,11 @@ export async function getIncomeSummary(
     [familyId],
   );
 
+  const total = Number(result.rows[0].total_income);
   return {
     period,
-    totalIncome: Number(
-      result.rows[0].total_income,
-    ),
+    totalIncome: total,
+    formattedTotal: `₹${total.toLocaleString("en-IN")}`,
   };
 }
 

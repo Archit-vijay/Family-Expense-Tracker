@@ -52,12 +52,19 @@ export async function generateAIResponse(
   conversationMessages: OllamaMessage[],
   familyId: number,
 ): Promise<string> {
-  const today = new Intl.DateTimeFormat(
-    "en-CA",
-    {
-      timeZone: "Asia/Kolkata",
-    },
-  ).format(new Date());
+  const now = new Date();
+  const today = now.toISOString().slice(0, 10);
+  const curYear = now.getUTCFullYear();
+  const curMonth = now.getUTCMonth();
+  const currentMonthStart = new Date(Date.UTC(curYear, curMonth, 1))
+    .toISOString()
+    .slice(0, 10);
+  const nextMonthStart = new Date(Date.UTC(curYear, curMonth + 1, 1))
+    .toISOString()
+    .slice(0, 10);
+  const lastMonthStart = new Date(Date.UTC(curYear, curMonth - 1, 1))
+    .toISOString()
+    .slice(0, 10);
 
   const messages: OllamaMessage[] = [
     {
@@ -65,18 +72,19 @@ export async function generateAIResponse(
       content:
         "You are a financial assistant for a family expense tracking application. " +
         `Today's date is ${today}. ` +
+        `For 'this month' (the current month), use startDate: '${currentMonthStart}' and endDate: '${nextMonthStart}'. ` +
+        `For 'last month', use startDate: '${lastMonthStart}' and endDate: '${currentMonthStart}'. ` +
         "The family's currency is INR (Indian Rupees). " +
         "When displaying monetary amounts, use the ₹ symbol and do not use $, USD, or other currency symbols. " +
-        "You can answer questions about the user's family finances using the available financial tools. " +
-        "Never invent financial numbers. " +
-        "When financial information is needed, use the appropriate tool. " +
-        "When a user refers to a time period such as today, yesterday, this week, last week, this month, last month, the last few months, the last two months, or a specific month, determine the appropriate date range using today's date and provide exact dates to the tool when available. " +
-        "Keep responses concise and easy to read. " +
-        "Do not use Markdown bold, headings, bullet symbols, or other Markdown formatting. " +
-        "Use plain text only. " +
-        "Do not use emojis unless the user explicitly asks for them. " +
-        "Do not output any internal reasoning or <think> tags. Provide only the direct answer. " +
-        "When answering a simple numerical question, give the answer directly in one or two sentences.",
+        "CRITICAL RULES:\n" +
+        "1. You have NO financial data stored in memory. You must NEVER state, guess, or invent any monetary amount or financial figure without first calling an authoritative financial tool.\n" +
+        "2. For ANY question about finances, spending, expenses, income, earnings, or budgets—including short follow-up questions like 'what about income?', 'and expenses?', or 'how much did we earn?'—you MUST call a financial tool first (e.g. get_spending, get_income_summary, get_family_members_income, get_family_members_spending). Do NOT reply with text until you have tool results.\n" +
+        "3. For verification questions like 'are you sure?', 'verify that', or 'check again', NEVER repeat previous text; you MUST re-call the appropriate financial tool.\n" +
+        "4. Always use aggregation tools (get_spending, get_category_spending, get_family_members_spending, get_family_members_income, get_member_spending, get_member_income, get_income_summary) to answer spending or income questions.\n" +
+        "5. When reporting member-wise spending or income, state each member's exact figure from the tool breakdown. Never say a member earned or spent nothing if their amount is greater than 0.\n" +
+        "6. Never perform mental arithmetic or calculate totals by summing individual transactions from get_family_transactions. Use get_family_transactions ONLY when the user explicitly asks to view, list, or see recent individual transactions.\n" +
+        "7. If a question cannot be answered by the available financial tools, state clearly that you do not have access to that information rather than guessing or attempting to calculate it yourself.\n" +
+        "Keep responses concise and easy to read. Plain text only, no Markdown formatting, no emojis, no <think> tags. When answering a simple numerical question, give the answer directly in one or two sentences.",
     },
     ...conversationMessages.slice(-20),
   ];
@@ -129,6 +137,25 @@ export async function generateAIResponse(
       const content = cleanResponseContent(
         data.message.content || "",
       );
+
+      // Guardrail: If in round 0 the model outputs financial numbers without calling any tool, force a retry with a tool call reminder.
+      const mentionsMoney =
+        /(?:₹|\brupees?\b|\brs\.?\b|\bincome\b|\bspending\b|\bexpenses?\b)/i.test(
+          content,
+        ) && /\d+/.test(content);
+
+      if (round === 0 && mentionsMoney && !isLastRound) {
+        console.warn(
+          "[AI Service] Model attempted to output financial numbers without calling a tool. Forcing tool retry.",
+        );
+        messages.push({
+          role: "system",
+          content:
+            "CRITICAL: Do not guess numbers or reply with text yet. You MUST call an authoritative financial tool (such as get_income_summary or get_spending) to retrieve the real data.",
+        });
+        continue;
+      }
+
       return content || "I was unable to generate a response.";
     }
 

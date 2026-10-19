@@ -558,6 +558,16 @@ The backend AI service was architected with a multi-round agentic loop (`MAX_ROU
 - Assistant responses are constrained to plain text in Indian Rupees (`₹`), strictly forbidding markdown asterisks (`**`) or bullet lists.
 - A regex sanitization pass (`cleanResponseContent`) strips any leaked `<think>...</think>` tags to preserve clean conversational output.
 
+### Zero-Tool Hallucination Interception & Contextual Follow-Up Grounding
+Testing conversational multi-turn flows revealed two failure modes in small local models (`qwen2.5:3b`):
+1. **Lazy Conversational Continuation**: When asked short follow-ups (e.g. *"what about income?"*) or verification questions (*"are you sure?"*), the model would sometimes skip tool calls and generate plausible-sounding text mirroring the previous turn (fabricating numbers like ₹15,000 or ₹20,000).
+2. **Mental Math on Raw Transactions**: When asked for family member breakdowns without a dedicated member aggregation tool, the model fell back to fetching raw transactions via `get_family_transactions` and attempted manual arithmetic, mixing up months and fabricating member totals.
+
+To permanently prevent financial hallucinations:
+- **Dedicated Aggregation Tools**: Implemented `get_family_members_spending` and `get_family_members_income` in PostgreSQL, performing authoritative SQL `GROUP BY` sums across all active members. Explicit negative constraints in tool descriptions prohibit using raw transaction retrieval for computing totals.
+- **Resilient Default Ranges**: Tool execution automatically defaults missing or omitted date arguments to the current calendar month rather than aborting with validation errors on elliptical follow-up questions.
+- **Zero-Tool Hallucination Interceptor**: If the model attempts to generate monetary figures in round 0 without having executed any tool call, the backend intercepts the response, discards the hallucinated draft text completely, and injects a high-priority system reminder forcing an authoritative tool query before answering.
+
 ## AI Financial Insights Architecture Decisions (AI-2)
 
 ### Backend Deterministic Calculation Engine

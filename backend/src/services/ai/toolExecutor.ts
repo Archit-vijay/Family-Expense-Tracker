@@ -7,6 +7,9 @@ import {
   getIncomeSummary,
   getSpendingTrends,
   getMemberIncomeByDateRange,
+  getAllMembersSpendingByDateRange,
+  getAllMembersIncomeByDateRange,
+  getIncomeByDateRange,
 } from "../transactionService.js";
 
 export async function executeFinancialTool(
@@ -16,16 +19,25 @@ export async function executeFinancialTool(
 ) {
   switch (toolName) {
     case "get_spending": {
-      const startDate = arguments_.startDate;
-      const endDate = arguments_.endDate;
+      let startDate: string;
+      let endDate: string;
 
       if (
-        typeof startDate !== "string" ||
-        typeof endDate !== "string"
+        typeof arguments_.startDate === "string" &&
+        typeof arguments_.endDate === "string"
       ) {
-        throw new Error(
-          "startDate and endDate are required.",
-        );
+        startDate = arguments_.startDate;
+        endDate = arguments_.endDate;
+      } else {
+        const now = new Date();
+        const curYear = now.getUTCFullYear();
+        const curMonth = now.getUTCMonth();
+        startDate = new Date(Date.UTC(curYear, curMonth, 1))
+          .toISOString()
+          .slice(0, 10);
+        endDate = new Date(Date.UTC(curYear, curMonth + 1, 1))
+          .toISOString()
+          .slice(0, 10);
       }
 
       const start = new Date(`${startDate}T00:00:00Z`);
@@ -161,6 +173,100 @@ export async function executeFinancialTool(
       return getFamilyTransactions(familyId, limit);
     }
 
+    case "get_family_members_spending": {
+      let startDate: string;
+      let endDate: string;
+
+      if (
+        typeof arguments_.startDate === "string" &&
+        typeof arguments_.endDate === "string"
+      ) {
+        startDate = arguments_.startDate;
+        endDate = arguments_.endDate;
+      } else {
+        const now = new Date();
+        const curYear = now.getUTCFullYear();
+        const curMonth = now.getUTCMonth();
+        startDate = new Date(Date.UTC(curYear, curMonth, 1))
+          .toISOString()
+          .slice(0, 10);
+        endDate = new Date(Date.UTC(curYear, curMonth + 1, 1))
+          .toISOString()
+          .slice(0, 10);
+      }
+
+      const start = new Date(`${startDate}T00:00:00Z`);
+      const end = new Date(`${endDate}T00:00:00Z`);
+
+      if (
+        Number.isNaN(start.getTime()) ||
+        Number.isNaN(end.getTime())
+      ) {
+        throw new Error(
+          "Invalid date format. Use YYYY-MM-DD.",
+        );
+      }
+
+      if (start >= end) {
+        throw new Error(
+          "startDate must be before endDate.",
+        );
+      }
+
+      return getAllMembersSpendingByDateRange(
+        familyId,
+        startDate,
+        endDate,
+      );
+    }
+
+    case "get_family_members_income": {
+      let startDate: string;
+      let endDate: string;
+
+      if (
+        typeof arguments_.startDate === "string" &&
+        typeof arguments_.endDate === "string"
+      ) {
+        startDate = arguments_.startDate;
+        endDate = arguments_.endDate;
+      } else {
+        const now = new Date();
+        const curYear = now.getUTCFullYear();
+        const curMonth = now.getUTCMonth();
+        startDate = new Date(Date.UTC(curYear, curMonth, 1))
+          .toISOString()
+          .slice(0, 10);
+        endDate = new Date(Date.UTC(curYear, curMonth + 1, 1))
+          .toISOString()
+          .slice(0, 10);
+      }
+
+      const start = new Date(`${startDate}T00:00:00Z`);
+      const end = new Date(`${endDate}T00:00:00Z`);
+
+      if (
+        Number.isNaN(start.getTime()) ||
+        Number.isNaN(end.getTime())
+      ) {
+        throw new Error(
+          "Invalid date format. Use YYYY-MM-DD.",
+        );
+      }
+
+      if (start >= end) {
+        throw new Error(
+          "startDate must be before endDate.",
+        );
+      }
+
+      return getAllMembersIncomeByDateRange(
+        familyId,
+        startDate,
+        endDate,
+      );
+    }
+
     case "get_member_spending": {
       const rawMemberName = arguments_.memberName;
 
@@ -264,20 +370,37 @@ export async function executeFinancialTool(
     }
 
     case "get_income_summary": {
+      const startDate = arguments_.startDate;
+      const endDate = arguments_.endDate;
+
+      if (
+        typeof startDate === "string" &&
+        typeof endDate === "string"
+      ) {
+        const start = new Date(`${startDate}T00:00:00Z`);
+        const end = new Date(`${endDate}T00:00:00Z`);
+
+        if (
+          !Number.isNaN(start.getTime()) &&
+          !Number.isNaN(end.getTime()) &&
+          start < end
+        ) {
+          return getIncomeByDateRange(familyId, startDate, endDate);
+        }
+      }
+
       const rawPeriod = arguments_.period;
       const period =
         typeof rawPeriod === "string"
           ? rawPeriod.toLowerCase().replace(/[\s-]+/g, "_")
-          : "";
+          : "current_month";
 
       if (
         period !== "current_month" &&
         period !== "last_month" &&
         period !== "all"
       ) {
-        throw new Error(
-          "Invalid period for get_income_summary.",
-        );
+        return getIncomeSummary(familyId, "current_month");
       }
 
       return getIncomeSummary(
@@ -305,23 +428,29 @@ export async function executeFinancialTool(
     }
 
     case "get_member_income": {
-      const memberName =
-        arguments_.memberName;
-
-      const startDate =
-        arguments_.startDate;
-
-      const endDate =
-        arguments_.endDate;
+      const rawMemberName = arguments_.memberName;
 
       if (
-        typeof memberName !== "string" ||
-        memberName.trim().length === 0
+        typeof rawMemberName !== "string" ||
+        rawMemberName.trim().length === 0
       ) {
         throw new Error(
-          "memberName is required.",
+          "memberName is required for get_member_income.",
         );
       }
+
+      const memberName = rawMemberName.trim();
+      const lowerMember = memberName.toLowerCase();
+      const isPersonalPronoun =
+        lowerMember === "i" ||
+        lowerMember === "me" ||
+        lowerMember === "my" ||
+        lowerMember === "myself" ||
+        lowerMember === "we" ||
+        lowerMember === "our";
+
+      const startDate = arguments_.startDate;
+      const endDate = arguments_.endDate;
 
       if (
         typeof startDate !== "string" ||
@@ -355,9 +484,17 @@ export async function executeFinancialTool(
         );
       }
 
+      if (isPersonalPronoun) {
+        return getIncomeByDateRange(
+          familyId,
+          startDate,
+          endDate,
+        );
+      }
+
       return getMemberIncomeByDateRange(
         familyId,
-        memberName.trim(),
+        memberName,
         startDate,
         endDate,
       );

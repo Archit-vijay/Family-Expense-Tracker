@@ -4,7 +4,7 @@ export const financialTools = [
     function: {
       name: "get_spending",
       description:
-        "Get total spending for a specific date range in YYYY-MM-DD format. Use this tool whenever the user asks about general spending, total expenses, or asks 'how much did I spend', 'how did I spend last month', 'what did we spend', or 'total spending for a period'. The startDate is inclusive and the endDate is exclusive.",
+        "Get total spending for a specific date range in YYYY-MM-DD format. Use this tool whenever the user asks about general spending, total expenses, finances, or asks 'how much did I spend', 'what did we spend', 'how about spending?', or 'what about expenses?'. The startDate is inclusive and the endDate is exclusive.",
       parameters: {
         type: "object",
         properties: {
@@ -61,7 +61,7 @@ export const financialTools = [
     function: {
       name: "get_family_transactions",
       description:
-        "Get recent transactions belonging to the user's family. Use this when the user asks to see, list, or review family transactions. Provide startDate and endDate to filter by a specific date range, or omit them to get the most recent transactions across all time.",
+        "Get a list of recent transactions belonging to the user's family. Use this ONLY when the user explicitly asks to view, list, or see recent transactions (e.g. 'show my recent transactions' or 'what was my last purchase'). NEVER use this tool to calculate spending totals, income totals, or member breakdowns - use get_spending, get_income_summary, get_family_members_spending, or get_family_members_income instead.",
       parameters: {
         type: "object",
         properties: {
@@ -82,6 +82,56 @@ export const financialTools = [
           },
         },
         required: [],
+        additionalProperties: false,
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_family_members_spending",
+      description:
+        "Get the authoritative breakdown of expense spending by each family member for a specific date range. Use this whenever the user asks how much each member spent, who spent what, member-wise expenses, or asks how much 'everyone' or 'all members' or 'each member' or 'each person' in the family spent (e.g. 'how much did everyone in my family spend this month?' or 'member wise spending').",
+      parameters: {
+        type: "object",
+        properties: {
+          startDate: {
+            type: "string",
+            description:
+              "Start date in YYYY-MM-DD format (inclusive).",
+          },
+          endDate: {
+            type: "string",
+            description:
+              "End date in YYYY-MM-DD format (exclusive).",
+          },
+        },
+        required: ["startDate", "endDate"],
+        additionalProperties: false,
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_family_members_income",
+      description:
+        "Get the authoritative breakdown of income earned by each family member for a specific date range. Use this whenever the user asks how much each member earned, who earned what, member-wise income, or asks how much 'everyone' or 'all members' or 'each member' or 'each person' in the family earned (e.g. 'how much did everyone in my family earn this month?' or 'member wise income').",
+      parameters: {
+        type: "object",
+        properties: {
+          startDate: {
+            type: "string",
+            description:
+              "Start date in YYYY-MM-DD format (inclusive).",
+          },
+          endDate: {
+            type: "string",
+            description:
+              "End date in YYYY-MM-DD format (exclusive).",
+          },
+        },
+        required: ["startDate", "endDate"],
         additionalProperties: false,
       },
     },
@@ -121,10 +171,20 @@ export const financialTools = [
   function: {
     name: "get_income_summary",
     description:
-      "Get the total income received by the user's family for a selected time period. Use this when the user asks about family income or earnings.",
+      "Get total income received by the user's family for a selected time period or date range. Use this tool whenever the user asks about income, earnings, or asks follow-up questions like 'what about income?', 'how about income?', 'and income?', 'tell me about income', or 'what was our income'.",
     parameters: {
       type: "object",
       properties: {
+        startDate: {
+          type: "string",
+          description:
+            "Start date in YYYY-MM-DD format (inclusive).",
+        },
+        endDate: {
+          type: "string",
+          description:
+            "End date in YYYY-MM-DD format (exclusive).",
+        },
         period: {
           type: "string",
           enum: [
@@ -133,10 +193,10 @@ export const financialTools = [
             "all",
           ],
           description:
-            "The time period for which to calculate total family income.",
+            "The named time period if specific startDate and endDate are not provided.",
         },
       },
-      required: ["period"],
+      required: [],
       additionalProperties: false,
     },
   },
@@ -166,14 +226,14 @@ export const financialTools = [
   function: {
     name: "get_member_income",
     description:
-      "Get the total income earned by a specific family member during a specific date range. Use this whenever the user asks how much a particular family member earned during a period of time.",
+      "Get total income earned by a specific named family member by their proper name (e.g. 'how much did Archit earn?' or 'how much did Mummy earn?'). Only use when a specific person's name is explicitly given. Do NOT use for 'everyone', 'all members', or family totals - use get_family_members_income or get_income_summary instead.",
     parameters: {
       type: "object",
       properties: {
         memberName: {
           type: "string",
           description:
-            "The name of the family member whose income should be calculated.",
+            "The proper name of the family member whose income should be calculated.",
         },
         startDate: {
           type: "string",
@@ -191,6 +251,7 @@ export const financialTools = [
         "startDate",
         "endDate",
       ],
+      additionalProperties: false,
     },
   },
 },
