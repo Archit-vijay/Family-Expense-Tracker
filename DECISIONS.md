@@ -592,6 +592,26 @@ Per user preference, AI Financial Insights has a dedicated view at `/insights` (
 - Reciprocal navigation provided on both the Dashboard (`Dashboard.tsx`) and AI Assistant (`AIAssistant.tsx`) for fluid discovery across the application.
 - Uses a single vertical page flow with metric cards, executive summary, categorized highlight cards, category shift badges, member distribution progress bars, and actionable tips.
 
+## AI Dashboard & Chat Continuity Architecture Decisions (AI-6)
+
+### Unified Dashboard Intelligence Hub
+Rather than cluttering the dashboard with a separate chatbot overlay or disconnected widget, AI-6 evolves the existing monthly narrative card into a unified Dashboard Intelligence Hub:
+- Displays the lazy-loaded executive monthly summary for the selected period.
+- Embeds an inline "Ask About This Period" inquiry bar with contextual prompt chips (e.g. *"Who spent the most?"*, *"How much did we spend on Food?"*, *"What was our total income?"*).
+- Formats queries with active period context (e.g. `[Context: Family finances for October 2026]`) so the AI evaluates the exact month the user is viewing.
+
+### User-Scoped 2-Hour Inactivity Chat Persistence
+Previously, conversational chat in `/ai-assistant` resided strictly in React component state and was wiped upon browser refresh or page navigation. To balance conversational continuity with privacy and freshness:
+- Chat state is persisted in client `localStorage` scoped to the authenticated user ID (`family_finance_ai_chat_${userId}`).
+- A 2-hour inactivity TTL window (`CHAT_INACTIVITY_TTL_MS = 2 * 60 * 60 * 1000`) is enforced: if the user does not interact with the assistant for 2 hours, the session automatically resets to a clean initial greeting upon next visit.
+- A manual "New Chat" button in the AI Assistant header allows users to instantly reset the conversation at any time.
+
+### Dashboard-to-Assistant Conversational Handoff
+When an answer is rendered in the Dashboard intelligence card:
+- A `"Continue in AI Assistant →"` button appends both the user's question and the AI's verified answer directly into the active chat session via `appendDashboardExchange()`.
+- The user is navigated to `/ai-assistant` with the exchange already present in the message thread.
+- Because the message history is restored and sent to Ollama, follow-up questions (such as *"What did they spend it on?"*) retain full antecedent context.
+
 ---
 
 # DevOps & Deployment — Planned Direction

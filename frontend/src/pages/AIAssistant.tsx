@@ -2,45 +2,60 @@ import {
   ArrowRight,
   Bot,
   Loader2,
+  RotateCcw,
   Send,
   Sparkles,
   TrendingUp,
   User,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
+  useEffect,
   useRef,
   useState,
 } from "react";
 
+import { useAuth } from "../context/AuthContext";
 import {
   sendAIMessage,
   type AIChatMessage,
 } from "../services/aiService";
-
-interface ChatMessage {
-  id: number;
-  role: "user" | "assistant";
-  content: string;
-}
+import {
+  clearChatSession,
+  loadChatSession,
+  saveChatSession,
+  type StoredChatMessage,
+} from "../services/chatStorageService";
 
 function AIAssistant() {
-  const [messages, setMessages] =
-    useState<ChatMessage[]>([
-      {
-        id: 1,
-        role: "assistant",
-        content:
-          "Hi! I'm your Family Finance AI assistant. Ask me about your family's spending, income, transactions, or spending trends.",
-      },
-    ]);
+  const { user } = useAuth();
+  const location = useLocation();
+
+  const [messages, setMessages] = useState<StoredChatMessage[]>(() =>
+    loadChatSession(user?.id),
+  );
 
   const [input, setInput] = useState("");
-  const [isSending, setIsSending] =
-    useState(false);
+  const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState("");
 
-  const nextMessageId = useRef(2);
+  const nextMessageId = useRef(
+    messages.reduce((max, m) => Math.max(max, m.id), 0) + 1,
+  );
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+  // Sync if user identity changes, on initial mount, or on page navigation
+  useEffect(() => {
+    const loaded = loadChatSession(user?.id);
+    setMessages(loaded);
+    nextMessageId.current =
+      loaded.reduce((max, m) => Math.max(max, m.id), 0) + 1;
+  }, [user?.id, location.key]);
+
+  // Auto-scroll to latest message
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isSending]);
 
   async function handleSendMessage() {
     const message = input.trim();
@@ -52,46 +67,42 @@ function AIAssistant() {
     setError("");
     setInput("");
 
-    const userMessage: ChatMessage = {
+    const userMessage: StoredChatMessage = {
       id: nextMessageId.current++,
       role: "user",
       content: message,
     };
 
-    setMessages((current) => [
-      ...current,
-      userMessage,
-    ]);
+    const updatedWithUser = [...messages, userMessage];
+    setMessages(updatedWithUser);
+    saveChatSession(updatedWithUser, user?.id);
 
     try {
       setIsSending(true);
 
-      const conversation: AIChatMessage[] =
-        [...messages, userMessage].map(
-          (chatMessage) => ({
-            role: chatMessage.role,
-            content: chatMessage.content,
-          }),
-        );
+      const conversation: AIChatMessage[] = updatedWithUser.map(
+        (chatMessage) => ({
+          role: chatMessage.role,
+          content: chatMessage.content,
+        }),
+      );
 
-      const response =
-        await sendAIMessage(conversation);
+      const response = await sendAIMessage(conversation);
 
-      const assistantMessage: ChatMessage = {
+      const assistantMessage: StoredChatMessage = {
         id: nextMessageId.current++,
         role: "assistant",
         content: response,
       };
 
-      setMessages((current) => [
-        ...current,
+      const updatedWithAssistant = [
+        ...updatedWithUser,
         assistantMessage,
-      ]);
+      ];
+      setMessages(updatedWithAssistant);
+      saveChatSession(updatedWithAssistant, user?.id);
     } catch (error) {
-      console.error(
-        "Failed to send AI message:",
-        error,
-      );
+      console.error("Failed to send AI message:", error);
 
       setError(
         error instanceof Error
@@ -103,13 +114,17 @@ function AIAssistant() {
     }
   }
 
+  function handleClearChat() {
+    const fresh = clearChatSession(user?.id);
+    setMessages(fresh);
+    nextMessageId.current = 2;
+    setError("");
+  }
+
   function handleKeyDown(
     event: React.KeyboardEvent<HTMLTextAreaElement>,
   ) {
-    if (
-      event.key === "Enter" &&
-      !event.shiftKey
-    ) {
+    if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
       handleSendMessage();
     }
@@ -147,8 +162,7 @@ function AIAssistant() {
         </div>
 
         <p className="mt-3 max-w-2xl text-sm leading-6 text-[#77738a] sm:text-base">
-          Ask questions about your family's
-          spending, income, transactions, and
+          Ask questions about your family's spending, income, transactions, and
           financial trends.
         </p>
       </section>
@@ -156,20 +170,32 @@ function AIAssistant() {
       {/* Chat container */}
       <section className="flex min-h-[600px] flex-col overflow-hidden rounded-2xl border border-[#e8e5ef] bg-white shadow-sm">
         {/* Chat header */}
-        <div className="flex items-center gap-3 border-b border-[#e8e5ef] px-5 py-4 sm:px-6">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#2a234f] text-white">
-            <Bot size={19} />
+        <div className="flex items-center justify-between border-b border-[#e8e5ef] px-5 py-4 sm:px-6">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#2a234f] text-white">
+              <Bot size={19} />
+            </div>
+
+            <div>
+              <h2 className="text-sm font-bold text-[#2a234f]">
+                Family Finance AI
+              </h2>
+
+              <p className="text-xs text-[#77738a]">
+                Connected to your family's financial data · 2h active session
+              </p>
+            </div>
           </div>
 
-          <div>
-            <h2 className="text-sm font-bold text-[#2a234f]">
-              Family Finance AI
-            </h2>
-
-            <p className="text-xs text-[#77738a]">
-              Connected to your family's financial data
-            </p>
-          </div>
+          <button
+            type="button"
+            onClick={handleClearChat}
+            className="flex items-center gap-1.5 rounded-xl border border-[#e8e5ef] bg-white px-3 py-1.5 text-xs font-semibold text-[#77738a] transition-all hover:border-[#ffb3c3] hover:text-[#2a234f] active:scale-95"
+            title="Start a fresh conversation"
+          >
+            <RotateCcw size={13} />
+            <span>New Chat</span>
+          </button>
         </div>
 
         {/* Messages */}
@@ -183,8 +209,7 @@ function AIAssistant() {
                   : "justify-start"
               }`}
             >
-              {message.role ===
-                "assistant" && (
+              {message.role === "assistant" && (
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#f4e5ea] text-[#2a234f]">
                   <Bot size={16} />
                 </div>
@@ -197,9 +222,7 @@ function AIAssistant() {
                     : "rounded-bl-md bg-[#f8f7fb] text-[#2a234f]"
                 }`}
               >
-                <p className="whitespace-pre-wrap">
-                  {message.content}
-                </p>
+                <p className="whitespace-pre-wrap">{message.content}</p>
               </div>
 
               {message.role === "user" && (
@@ -218,10 +241,7 @@ function AIAssistant() {
 
               <div className="rounded-2xl rounded-bl-md bg-[#f8f7fb] px-4 py-3">
                 <div className="flex items-center gap-2 text-sm text-[#77738a]">
-                  <Loader2
-                    size={15}
-                    className="animate-spin"
-                  />
+                  <Loader2 size={15} className="animate-spin" />
                   Thinking...
                 </div>
               </div>
@@ -233,6 +253,8 @@ function AIAssistant() {
               {error}
             </div>
           )}
+
+          <div ref={messagesEndRef} />
         </div>
 
         {/* Input */}
@@ -240,9 +262,7 @@ function AIAssistant() {
           <div className="flex items-end gap-3 rounded-xl border border-[#e8e5ef] bg-[#f8f7fb] p-2 transition-all focus-within:border-[#ffb3c3] focus-within:bg-white focus-within:ring-4 focus-within:ring-[#ffb3c3]/20">
             <textarea
               value={input}
-              onChange={(event) =>
-                setInput(event.target.value)
-              }
+              onChange={(event) => setInput(event.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Ask about your finances..."
               rows={1}
@@ -253,17 +273,12 @@ function AIAssistant() {
             <button
               type="button"
               onClick={handleSendMessage}
-              disabled={
-                !input.trim() || isSending
-              }
+              disabled={!input.trim() || isSending}
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#2a234f] text-white transition-all duration-200 hover:bg-[#1f1a3b] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
               aria-label="Send message"
             >
               {isSending ? (
-                <Loader2
-                  size={17}
-                  className="animate-spin"
-                />
+                <Loader2 size={17} className="animate-spin" />
               ) : (
                 <Send size={17} />
               )}
@@ -271,8 +286,7 @@ function AIAssistant() {
           </div>
 
           <p className="mt-2 text-center text-[11px] text-[#9a96a8]">
-            Press Enter to send · Shift + Enter
-            for a new line
+            Press Enter to send · Shift + Enter for a new line
           </p>
         </div>
       </section>

@@ -3,9 +3,7 @@ import {
   ArrowDownLeft,
   ArrowRight,
   ArrowUpRight,
-  Bot,
   PiggyBank,
-  RefreshCw,
   Sparkles,
   Wallet,
 } from "lucide-react";
@@ -13,6 +11,7 @@ import { Link } from "react-router-dom";
 import AnimatedDropdown from "../components/AnimatedDropdown";
 import CategorySpending from "../components/CategorySpending";
 import ContentState from "../components/ContentState";
+import DashboardAICard from "../components/DashboardAICard";
 import FamilySpending from "../components/FamilySpending";
 import RecentTransactions from "../components/RecentTransactions";
 import SpendingOverview from "../components/SpendingOverview";
@@ -271,38 +270,12 @@ function Dashboard() {
               />
             </section>
 
-            {/* AI narrative — lazy loaded, non-blocking */}
-            {(narrativeLoading || narrative) && (
-              <section
-                className="mt-4 fade-up"
-                style={{ animationDelay: "130ms" }}
-              >
-                <div className="flex items-start gap-3 rounded-2xl border border-[#e8e5ef] bg-white px-5 py-4 shadow-sm">
-                  <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#2a234f]">
-                    {narrativeLoading ? (
-                      <RefreshCw size={14} className="animate-spin text-white" />
-                    ) : (
-                      <Bot size={14} className="text-white" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-[#77738a]">
-                      AI summary · {selectedPeriodLabel}
-                    </p>
-                    {narrativeLoading ? (
-                      <div className="space-y-2">
-                        <div className="h-3.5 w-full animate-pulse rounded-full bg-[#e8e5ef]" />
-                        <div className="h-3.5 w-4/5 animate-pulse rounded-full bg-[#e8e5ef]" />
-                      </div>
-                    ) : (
-                      <p className="text-sm leading-relaxed text-[#2a234f]">
-                        {narrative}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </section>
-            )}
+            {/* AI intelligence hub (monthly narrative + ask about finances) */}
+            <DashboardAICard
+              periodLabel={selectedPeriodLabel}
+              narrative={narrative}
+              narrativeLoading={narrativeLoading}
+            />
 
             <section
               className="mt-6 grid gap-6 xl:grid-cols-[1.55fr_1fr] fade-up"

@@ -568,7 +568,8 @@ The project has completed its:
 - AI Financial Insights (AI-2: deterministic comparative metrics, AI interpretation, spikes detection, dedicated insights UI),
 - AI Monthly Financial Summary (AI-3: specific month selector, YYYY-MM support, lazy-loaded AI narrative summary card on dashboard),
 - AI Anomaly Detection (AI-4: multi-rule deterministic anomaly detection engine, AI natural-language synthesis, integrated Anomaly Radar in AI Insights),
-- AI Family Spending Insights (AI-5: member category affinity, transaction counts, trend changes, concentration classification, and evolved Family Dynamics card).
+- AI Family Spending Insights (AI-5: member category affinity, transaction counts, trend changes, concentration classification, and evolved Family Dynamics card),
+- AI Dashboard / Ask About My Finances (AI-6: interactive Dashboard intelligence hub, contextual period queries, user-scoped 2-hour inactivity chat persistence, and seamless continuation into AI Assistant).
 
 Phase 5 (Design System & UI Polish) is complete.
 
@@ -576,12 +577,13 @@ Phase 6 (Dashboard) is complete. The dashboard now presents live, selected-month
 
 The responsive dashboard includes a custom period selector (including the last 6 calendar months in YYYY-MM format), semantic summary cards, an income-versus-expenses visualization, spending by category, recent transactions using the existing transaction-item visual language, family spending, and a lazy-loaded AI monthly financial narrative. It uses shared loading, empty, and error states. Net Savings is explicitly income minus expenses, not a bank balance.
 
-Phase 8, Milestones AI-1 through AI-5 are complete:
+Phase 8, Milestones AI-1 through AI-6 are complete:
 - **AI-1 (AI Financial Assistant)**: provides rapid, family-scoped tool calling over local Ollama (`qwen2.5:3b`) in `/ai-assistant`.
 - **AI-2 (AI Financial Insights)**: calculates authoritative comparative metrics (expenses, net savings, savings rates, category spikes, and member distribution) in PostgreSQL and TypeScript, interpreting them into concise executive summaries, categorized highlights, and actionable recommendations at `/insights`.
 - **AI-3 (AI Monthly Financial Summary)**: introduces specific calendar month selection and a non-blocking lazy-loaded AI monthly narrative card on the Dashboard.
 - **AI-4 (AI Anomaly Detection)**: mathematically detects outlier transactions (relative to 90-day category baseline), same-day category velocity spikes, category surges (+100% and >= ₹1,500), and new category incursions directly in the backend, pairs them with AI plain-English synthesis (and deterministic fallbacks), and displays them in a dedicated Anomaly Radar section in `/insights`.
 - **AI-5 (AI Family Spending Insights)**: calculates member-level category affinities, transaction counts, and month-over-month shifts, pairs them with spending concentration indicators (`balanced`, `concentrated`, `single_driver`) and local AI dynamic observations, and evolves the `/insights` page layout into a balanced 50/50 two-column presentation.
+- **AI-6 (AI Dashboard / Ask About My Finances)**: evolves the Dashboard monthly summary card into a unified intelligence hub with dynamic inquiry chips and contextual questions for the active period, backed by a 2-hour inactivity TTL user-scoped `localStorage` store and seamless handoff into `/ai-assistant`.
 
 The family invitation, membership-role, and backend authorization milestone is complete. The frontend can accept an invitation, establish the user's authenticated session, fetch the user's family role, display the correct role in the sidebar, display member roles on the Family page, and manage eligible member roles as an admin. The invitation flow also supports existing-account re-invitation after family removal, including existing-password verification and reuse of the global account.
 
@@ -626,7 +628,7 @@ The project implements the following capabilities:
 - **AI-3 — AI Monthly Financial Summary (COMPLETE):** structured monthly financial data turned into a concise family summary on the dashboard.
 - **AI-4 — AI Anomaly Detection (COMPLETE):** backend/statistical detection of unusual activity (outliers, velocity spikes, surges, new categories) followed by AI explanation, integrated into AI Insights.
 - **AI-5 — AI Family Spending Insights (COMPLETE):** member category affinity, transaction counts, trend changes, concentration classification, and evolved Family Dynamics card.
-- **AI-6 — AI Dashboard / Ask About My Finances (NEXT):** a consolidated AI experience using the reusable financial tool layer.
+- **AI-6 — AI Dashboard / Ask About My Finances (COMPLETE):** an integrated dashboard intelligence hub connecting the monthly narrative with contextual inquiries and 2-hour persisted chat continuity.
 - **AI-7 — AI Budget Recommendations (PLANNED):** AI-assisted budget suggestions once Budget Management exists.
 - **AI-8 — AI Budget Risk Detection (PLANNED):** spending-versus-budget analysis and projection once budget data exists.
 
@@ -653,12 +655,13 @@ The active reusable tool and analytics layer currently includes:
 - Multi-rule anomaly detection engine (outliers with 90-day baseline, velocity spikes, surges, new category incursions)
 - Member spending dynamics engine (category affinities, member transaction counts, period-over-period shift tracking, family concentration classification)
 - Zero-tool hallucination interception & follow-up fallback grounding for conversational assistant turns
+- User-scoped 2-hour inactivity TTL chat persistence & Dashboard-to-Assistant conversational handoff
 
 All tools and insight queries are authenticated and strictly family-scoped via JWT. Model interactions run fully locally via Ollama with zero external API calls or token fees. Financial numbers are formatted in ₹ (INR) without markdown bolding or list syntax.
 
 ## Immediate Next Milestone
 
-The next implementation is **AI-6: AI Dashboard / Ask About My Finances**. This will consolidate the reusable financial tools into a lightweight dashboard entry point supporting contextual financial questions with family scoping.
+The next major milestone is **Phase 9 — Budget Management**, which introduces category-based budget allocations, monthly spending progress against limits, remaining buffers, and overspending indicators. AI-7 (AI Budget Recommendations) and AI-8 (AI Budget Risk Detection) will build directly on top of this budget layer once it is complete.
 
 Budget Management remains the planned financial-management phase after the AI foundation/capabilities that depend on it are completed.
 

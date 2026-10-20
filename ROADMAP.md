@@ -232,13 +232,13 @@ Status: COMPLETE
 
 ## AI-6 — AI Dashboard / Ask About My Finances
 
-- [ ] Consolidate reusable financial tools
-- [ ] Add dashboard-level AI entry point
-- [ ] Support natural-language questions across supported financial data
-- [ ] Preserve authentication, authorization, and family scoping
-- [ ] Add useful contextual responses without replacing deterministic dashboard metrics
+- [x] Consolidate reusable financial tools
+- [x] Add dashboard-level AI entry point
+- [x] Support natural-language questions across supported financial data
+- [x] Preserve authentication, authorization, and family scoping
+- [x] Add useful contextual responses without replacing deterministic dashboard metrics
 
-Status: NEXT
+Status: COMPLETE
 
 ## AI-7 — AI Budget Recommendations
 
