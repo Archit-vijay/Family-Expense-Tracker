@@ -640,6 +640,31 @@ The backend exposes `get_budget_status` to Ollama and the AI Assistant:
 - Queries `getBudgetsWithSpending` with strict family scoping and validated month/year parameters.
 - Formats all output amounts authoritatively with `₹` (INR), preventing model mental arithmetic hallucinations when answering budget queries.
 
+## AI Budget Recommendations Architecture (AI-7)
+AI recommendations are strictly advisory and built on deterministic PostgreSQL spending baselines:
+- **Baseline Engine**: Evaluates the family's historical spending over the prior 3 to 6 months per expense category. Essential categories (groceries, utilities, health) receive a 5–15% safety buffer, while discretionary categories receive disciplined targets rounded to clean multiples of ₹500 or ₹1,000.
+- **LLM Reasoning Layer**: Ollama (`qwen2.5:3b`) synthesizes a cohesive monthly strategy and plain-English 1-sentence explanations citing historical averages and specific buffers with the `₹` symbol.
+- **Zero-Downtime Fallback**: If Ollama is offline or returns invalid JSON, the system immediately returns the deterministic calculated baselines and reasons.
+- **Batch Application**: Users can fine-tune recommendations or toggle individual categories in the interactive modal before executing an atomic `POST /api/budgets/batch` with `ON CONFLICT DO UPDATE`.
+
+## AI Budget Risk Detection Architecture (AI-8)
+Budget risk detection acts as an early-warning radar that identifies overspending velocity before the end of the month:
+- **Deterministic Risk Engine (`budgetRiskService.ts`)**: Evaluates active calendar days elapsed (`daysElapsed`) versus days remaining (`daysRemaining`). For each budgeted category, it computes:
+  - `burnRatePerDay`: Actual spending divided by elapsed days.
+  - `projectedMonthEndSpend`: Actual spending plus (`burnRatePerDay * daysRemaining`).
+  - `expectedPaceSpend`: Budget limit scaled by the proportion of the month elapsed (`(daysElapsed / totalDays) * budgetAmount`).
+  - `paceRatio`: Actual spending divided by expected pace spend.
+  - `recommendedDailyCap`: Remaining budget buffer divided by remaining days (₹0 if already exceeded).
+  - Categorizes each budget into `exceeded`, `high_risk` (projected overspend > ₹0 or paceRatio >= 1.25), `moderate_risk` (paceRatio >= 1.0), or `on_track`.
+- **LLM Synthesis & Fallback Layer (`aiService.ts`)**: Ollama (`qwen2.5:3b`) consumes the deterministic metrics and generates:
+  - A 1–2 sentence high-level executive summary of family spending velocity.
+  - A prioritized overall course-correction action plan.
+  - Category-specific proactive spending guidance referencing daily caps and largest recent purchases.
+  - Fallback logic immediately supplies rule-based advice if Ollama is offline or slow, guaranteeing zero disruption.
+- **Interactive UI Radar (`AIBudgetRiskRadar.tsx`)**: Placed within `/budgets` right below the Monthly Budget Health bar:
+  - Highlights overall pacing status with semantic color gradients (rose for critical risk, amber for moderate, brand neutral for on-track).
+  - Displays day progress, executive summary, recommended action, and collapsible per-category pacing analysis cards showing daily caps and burn rates.
+
 ---
 
 # DevOps & Deployment — Planned Direction

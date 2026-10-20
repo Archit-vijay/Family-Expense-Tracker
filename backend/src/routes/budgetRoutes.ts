@@ -7,6 +7,7 @@ import {
   updateBudgetController,
   deleteBudgetController,
   copyPreviousMonthBudgetsController,
+  applyBudgetBatchController,
 } from "../controllers/budgetController.js";
 
 const router = Router();
@@ -44,6 +45,13 @@ router.post(
   authMiddleware,
   requireRole("admin", "member"),
   copyPreviousMonthBudgetsController,
+);
+
+router.post(
+  "/batch",
+  authMiddleware,
+  requireRole("admin", "member"),
+  applyBudgetBatchController,
 );
 
 export default router;

@@ -16,6 +16,7 @@ import {
   Plus,
   Receipt,
   ShoppingBag,
+  Sparkles,
   Trash2,
   Utensils,
   Wallet,
@@ -23,6 +24,8 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
+import AIBudgetRecommendationsModal from "../components/AIBudgetRecommendationsModal";
+import AIBudgetRiskRadar from "../components/AIBudgetRiskRadar";
 import AnimatedDropdown from "../components/AnimatedDropdown";
 import ContentState from "../components/ContentState";
 import StatCard from "../components/Statcard";
@@ -97,6 +100,7 @@ function Budgets() {
   const [editingBudget, setEditingBudget] = useState<BudgetWithSpending | null>(null);
   const [deletingBudget, setDeletingBudget] = useState<BudgetWithSpending | null>(null);
   const [isCopyModalOpen, setIsCopyModalOpen] = useState(false);
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
 
   // Form states
   const [formCategoryId, setFormCategoryId] = useState<string>("");
@@ -319,17 +323,28 @@ function Budgets() {
               </button>
             )}
 
-            {/* Set Budget CTA */}
+            {/* Action Buttons */}
             {canManage && (
-              <button
-                type="button"
-                onClick={() => handleOpenAddModal()}
-                disabled={availableCategories.length === 0}
-                className="inline-flex items-center gap-2 rounded-xl bg-[#2a234f] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1f1a3b] disabled:opacity-50"
-              >
-                <Plus size={16} />
-                <span>Set Budget</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsAIModalOpen(true)}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-[#e8e5ef] bg-white px-3.5 py-2.5 text-sm font-semibold text-[#2a234f] shadow-xs transition hover:bg-[#f8f7fb]"
+                >
+                  <Sparkles size={16} className="text-[#2a234f]" />
+                  <span>AI Recommendations</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleOpenAddModal()}
+                  disabled={availableCategories.length === 0}
+                  className="inline-flex items-center gap-2 rounded-xl bg-[#2a234f] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1f1a3b] disabled:opacity-50"
+                >
+                  <Plus size={16} />
+                  <span>Set Budget</span>
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -368,6 +383,15 @@ function Budgets() {
             <div className="mt-6 flex flex-wrap justify-center gap-3">
               <button
                 type="button"
+                onClick={() => setIsAIModalOpen(true)}
+                className="inline-flex items-center gap-2 rounded-xl bg-[#2a234f] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1f1a3b]"
+              >
+                <Sparkles size={16} />
+                <span>Generate AI Recommendations</span>
+              </button>
+
+              <button
+                type="button"
                 onClick={() => setIsCopyModalOpen(true)}
                 className="inline-flex items-center gap-2 rounded-xl border border-[#e8e5ef] bg-white px-4 py-2.5 text-sm font-semibold text-[#2a234f] shadow-sm transition hover:bg-[#f8f7fb]"
               >
@@ -379,7 +403,7 @@ function Budgets() {
                 type="button"
                 onClick={() => handleOpenAddModal()}
                 disabled={availableCategories.length === 0}
-                className="inline-flex items-center gap-2 rounded-xl bg-[#2a234f] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1f1a3b]"
+                className="inline-flex items-center gap-2 rounded-xl border border-[#e8e5ef] bg-white px-4 py-2.5 text-sm font-semibold text-[#2a234f] shadow-sm transition hover:bg-[#f8f7fb]"
               >
                 <Plus size={16} />
                 <span>Set First Budget</span>
@@ -514,6 +538,13 @@ function Budgets() {
               />
             </div>
           </div>
+
+          {/* AI Budget Risk Radar */}
+          <AIBudgetRiskRadar
+            key={`${selectedMonth}-${selectedYear}-${summary.totalBudgeted}-${summary.totalSpentBudgeted}`}
+            month={selectedMonth}
+            year={selectedYear}
+          />
 
           {/* Category Budgets Grid */}
           <div>
@@ -887,6 +918,17 @@ function Budgets() {
           </div>
         </div>
       )}
+
+      {/* AI Budget Recommendations Modal */}
+      <AIBudgetRecommendationsModal
+        isOpen={isAIModalOpen}
+        onClose={() => setIsAIModalOpen(false)}
+        targetMonth={selectedMonth}
+        targetYear={selectedYear}
+        onApplied={async () => {
+          await loadData(selectedMonth, selectedYear);
+        }}
+      />
     </div>
   );
 }

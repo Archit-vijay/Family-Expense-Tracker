@@ -148,3 +148,133 @@ export async function copyPreviousMonthBudgets(
 
   return result;
 }
+
+export interface AIBudgetRecommendationItem {
+  categoryId: number;
+  categoryName: string;
+  categoryType: string;
+  averageMonthlySpend: number;
+  lastMonthSpend: number;
+  currentBudget: number | null;
+  recommendedAmount: number;
+  reasoning: string;
+}
+
+export interface AIBudgetRecommendationsResult {
+  targetMonth: number;
+  targetYear: number;
+  strategySummary: string;
+  recommendations: AIBudgetRecommendationItem[];
+  totalRecommended: number;
+  totalHistoricalAverage: number;
+}
+
+export async function getAIBudgetRecommendations(
+  month: number,
+  year: number,
+): Promise<AIBudgetRecommendationsResult> {
+  const response = await fetch(
+    `${API_URL}/ai/budget-recommendations?month=${month}&year=${year}`,
+    {
+      headers: getAuthHeaders(),
+    },
+  );
+
+  const result = await response.json();
+  if (!response.ok) {
+    throw new Error(result.message || "Failed to fetch budget recommendations");
+  }
+
+  return result.data;
+}
+
+export async function applyBudgetBatch(
+  budgets: Array<{ categoryId: number; amount: number; month: number; year: number }>,
+): Promise<{ appliedCount: number }> {
+  const response = await fetch(`${API_URL}/budgets/batch`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ budgets }),
+  });
+
+  const result = await response.json();
+  if (!response.ok) {
+    throw new Error(result.message || "Failed to apply budgets");
+  }
+
+  return result.data;
+}
+
+export type RiskLevel = "exceeded" | "high_risk" | "moderate_risk" | "on_track";
+
+export interface CategoryRiskAnalysis {
+  categoryId: number;
+  categoryName: string;
+  categoryType: string;
+  budgetAmount: number;
+  actualSpent: number;
+  burnRatePerDay: number;
+  projectedMonthEndSpend: number;
+  projectedOverspend: number;
+  projectedPercentage: number;
+  expectedPaceSpend: number;
+  paceRatio: number;
+  remainingBuffer: number;
+  daysRemaining: number;
+  recommendedDailyCap: number;
+  riskLevel: RiskLevel;
+  largestTransaction?: {
+    title: string;
+    amount: number;
+    date: string;
+  };
+  explanation?: string;
+  actionableTip?: string;
+}
+
+export interface BudgetRiskReport {
+  month: number;
+  year: number;
+  daysElapsed: number;
+  daysRemaining: number;
+  totalDaysInMonth: number;
+  isCurrentMonth: boolean;
+  totalBudgeted: number;
+  totalSpent: number;
+  totalProjectedSpend: number;
+  totalProjectedOverspend: number;
+  overallPacePercentage: number;
+  overallRiskLevel: RiskLevel;
+  criticalRisksCount: number;
+  moderateRisksCount: number;
+  onTrackCount: number;
+  categories: CategoryRiskAnalysis[];
+  hasBudgets: boolean;
+}
+
+export interface AIBudgetRiskSynthesisResult {
+  month: number;
+  year: number;
+  executiveSummary: string;
+  overallActionPlan: string;
+  report: BudgetRiskReport;
+}
+
+export async function getAIBudgetRisks(
+  month: number,
+  year: number,
+): Promise<AIBudgetRiskSynthesisResult> {
+  const response = await fetch(
+    `${API_URL}/ai/budget-risks?month=${month}&year=${year}`,
+    {
+      headers: getAuthHeaders(),
+    },
+  );
+
+  const result = await response.json();
+  if (!response.ok) {
+    throw new Error(result.message || "Failed to fetch budget risk analysis");
+  }
+
+  return result.data;
+}

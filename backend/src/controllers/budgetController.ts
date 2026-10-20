@@ -7,6 +7,7 @@ import {
   updateBudget,
   deleteBudget,
   copyPreviousMonthBudgets,
+  applyBudgetBatch,
 } from "../services/budgetService.js";
 
 export async function getBudgetsController(
@@ -257,3 +258,46 @@ export async function copyPreviousMonthBudgetsController(
     });
   }
 }
+
+export async function applyBudgetBatchController(
+  req: AuthenticatedRequest,
+  res: Response,
+) {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      res.status(401).json({ success: false, message: "Authentication required." });
+      return;
+    }
+
+    const family = await getFamilyForUser(userId);
+    if (!family) {
+      res.status(403).json({ success: false, message: "User does not belong to a family." });
+      return;
+    }
+
+    const { budgets } = req.body;
+    if (!Array.isArray(budgets) || budgets.length === 0) {
+      res.status(400).json({
+        success: false,
+        message: "An array of budgets is required.",
+      });
+      return;
+    }
+
+    const result = await applyBudgetBatch(family.family_id, budgets);
+
+    res.json({
+      success: true,
+      data: result,
+      message: `Applied ${result.appliedCount} category budget(s) successfully.`,
+    });
+  } catch (error: any) {
+    console.error("Failed to apply budget batch:", error);
+    res.status(400).json({
+      success: false,
+      message: error?.message || "Failed to apply budgets.",
+    });
+  }
+}
+

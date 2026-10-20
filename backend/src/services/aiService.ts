@@ -1,3 +1,5 @@
+import type { BudgetRiskReport } from "./budgetRiskService.js";
+import type { BudgetRecommendationBaselines } from "./budgetRecommendationService.js";
 import {
   OLLAMA_BASE_URL,
   OLLAMA_MODEL,
@@ -501,5 +503,359 @@ export async function generateFinancialInsights(
   } catch (error) {
     console.warn("Error calling LLM for insights, using deterministic fallback:", error);
     return generateDeterministicFallbackInsights(metrics);
+  }
+}
+
+export interface AIBudgetRecommendationItem {
+  categoryId: number;
+  categoryName: string;
+  categoryType: string;
+  averageMonthlySpend: number;
+  lastMonthSpend: number;
+  currentBudget: number | null;
+  recommendedAmount: number;
+  reasoning: string;
+}
+
+export interface AIBudgetRecommendationsResult {
+  targetMonth: number;
+  targetYear: number;
+  strategySummary: string;
+  recommendations: AIBudgetRecommendationItem[];
+  totalRecommended: number;
+  totalHistoricalAverage: number;
+}
+
+export async function generateAIBudgetRecommendations(
+  baselines: BudgetRecommendationBaselines,
+): Promise<AIBudgetRecommendationsResult> {
+  const defaultStrategy =
+    baselines.categories.length === 0
+      ? "No expense categories found to generate recommendations for."
+      : "Based on your recent family spending patterns, these suggested limits provide a comfortable 5% to 10% safety margin while encouraging monthly discipline.";
+
+  const fallbackRecommendations: AIBudgetRecommendationItem[] = baselines.categories.map((c) => ({
+    categoryId: c.categoryId,
+    categoryName: c.categoryName,
+    categoryType: c.categoryType,
+    averageMonthlySpend: c.averageMonthlySpend,
+    lastMonthSpend: c.lastMonthSpend,
+    currentBudget: c.currentBudget,
+    recommendedAmount: c.recommendedAmount,
+    reasoning: c.reasoning,
+  }));
+
+  const totalRecommendedFallback = fallbackRecommendations.reduce((sum, r) => sum + r.recommendedAmount, 0);
+
+  if (baselines.categories.length === 0) {
+    return {
+      targetMonth: baselines.targetMonth,
+      targetYear: baselines.targetYear,
+      strategySummary: defaultStrategy,
+      recommendations: [],
+      totalRecommended: 0,
+      totalHistoricalAverage: 0,
+    };
+  }
+
+  const promptCategories = baselines.categories
+    .map(
+      (c) =>
+        `- Category ID: ${c.categoryId}, Name: "${c.categoryName}"\n` +
+        `  3-Month Monthly Average: ₹${c.averageMonthlySpend.toLocaleString("en-IN")}\n` +
+        `  Last Month Spend: ₹${c.lastMonthSpend.toLocaleString("en-IN")}\n` +
+        `  Current Target: ${c.currentBudget ? `₹${c.currentBudget.toLocaleString("en-IN")}` : "None"}\n` +
+        `  Calculated Baseline: ₹${c.recommendedAmount.toLocaleString("en-IN")}`,
+    )
+    .join("\n");
+
+  const systemPrompt =
+    "You are a family financial advisor. You provide intelligent monthly category budget recommendations for a family based on verified historical spending data.\n" +
+    "CRITICAL RULES:\n" +
+    "1. Recommend prudent, realistic monthly budget targets in positive integer INR (rounded to clean multiples of ₹500 or ₹1,000).\n" +
+    "2. For essential categories (Food, Bills, Utilities, Healthcare, Education), ensure a 5-15% safety buffer above average spending.\n" +
+    "3. For discretionary areas (Shopping, Entertainment, Travel), aim to keep targets disciplined near or slightly above average.\n" +
+    "4. Return ONLY a valid JSON object matching this exact schema:\n" +
+    "{\n" +
+    '  "strategySummary": "2-sentence overall advice on the proposed monthly budget plan.",\n' +
+    '  "recommendations": [\n' +
+    "    {\n" +
+    '      "categoryId": 123,\n' +
+    '      "recommendedAmount": 12500,\n' +
+    '      "reasoning": "1 concise sentence explaining the target using the ₹ symbol."\n' +
+    "    }\n" +
+    "  ]\n" +
+    "}\n" +
+    "Do NOT output markdown, backticks, or conversational text. Return the raw JSON only.";
+
+  try {
+    const response = await fetch(`${OLLAMA_BASE_URL}/api/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: OLLAMA_MODEL,
+        messages: [
+          { role: "system", content: systemPrompt },
+          {
+            role: "user",
+            content:
+              `Planning Period: Month ${baselines.targetMonth}/${baselines.targetYear}\n` +
+              `Total Historical Monthly Average: ₹${baselines.totalHistoricalAverage.toLocaleString("en-IN")}\n` +
+              `Categories:\n${promptCategories}\n\n` +
+              "Provide your budget recommendations JSON.",
+          },
+        ],
+        stream: false,
+        options: { temperature: 0.2 },
+      }),
+    });
+
+    if (!response.ok) {
+      console.warn("Ollama returned status", response.status, "using fallback budget recommendations.");
+      return {
+        targetMonth: baselines.targetMonth,
+        targetYear: baselines.targetYear,
+        strategySummary: defaultStrategy,
+        recommendations: fallbackRecommendations,
+        totalRecommended: totalRecommendedFallback,
+        totalHistoricalAverage: baselines.totalHistoricalAverage,
+      };
+    }
+
+    const data = (await response.json()) as { message?: { content?: string } };
+    const rawContent = data.message?.content?.trim() || "";
+
+    const cleaned = rawContent
+      .replace(/^\`\`\`json\s*/i, "")
+      .replace(/^\`\`\`\s*/i, "")
+      .replace(/\`\`\`\s*$/i, "")
+      .trim();
+
+    const parsed = JSON.parse(cleaned);
+
+    if (parsed && Array.isArray(parsed.recommendations)) {
+      const recMap = new Map<number, { amount: number; reasoning: string }>();
+      for (const r of parsed.recommendations) {
+        if (typeof r.categoryId === "number" && typeof r.recommendedAmount === "number" && r.recommendedAmount > 0) {
+          recMap.set(r.categoryId, {
+            amount: Math.round(r.recommendedAmount),
+            reasoning: typeof r.reasoning === "string" && r.reasoning.trim().length > 0
+              ? r.reasoning.trim()
+              : "",
+          });
+        }
+      }
+
+      const mergedRecommendations: AIBudgetRecommendationItem[] = baselines.categories.map((c) => {
+        const aiRec = recMap.get(c.categoryId);
+        return {
+          categoryId: c.categoryId,
+          categoryName: c.categoryName,
+          categoryType: c.categoryType,
+          averageMonthlySpend: c.averageMonthlySpend,
+          lastMonthSpend: c.lastMonthSpend,
+          currentBudget: c.currentBudget,
+          recommendedAmount: aiRec?.amount ?? c.recommendedAmount,
+          reasoning: aiRec?.reasoning || c.reasoning,
+        };
+      });
+
+      const totalRecommended = mergedRecommendations.reduce((sum, r) => sum + r.recommendedAmount, 0);
+      const strategySummary =
+        typeof parsed.strategySummary === "string" && parsed.strategySummary.trim().length > 0
+          ? parsed.strategySummary.trim()
+          : defaultStrategy;
+
+      return {
+        targetMonth: baselines.targetMonth,
+        targetYear: baselines.targetYear,
+        strategySummary,
+        recommendations: mergedRecommendations,
+        totalRecommended,
+        totalHistoricalAverage: baselines.totalHistoricalAverage,
+      };
+    }
+
+    return {
+      targetMonth: baselines.targetMonth,
+      targetYear: baselines.targetYear,
+      strategySummary: defaultStrategy,
+      recommendations: fallbackRecommendations,
+      totalRecommended: totalRecommendedFallback,
+      totalHistoricalAverage: baselines.totalHistoricalAverage,
+    };
+  } catch (err) {
+    console.warn("Failed to generate AI budget recommendations with Ollama, using fallback:", err);
+    return {
+      targetMonth: baselines.targetMonth,
+      targetYear: baselines.targetYear,
+      strategySummary: defaultStrategy,
+      recommendations: fallbackRecommendations,
+      totalRecommended: totalRecommendedFallback,
+      totalHistoricalAverage: baselines.totalHistoricalAverage,
+    };
+  }
+}
+
+
+export interface AIBudgetRiskSynthesisResult {
+  month: number;
+  year: number;
+  executiveSummary: string;
+  overallActionPlan: string;
+  report: BudgetRiskReport;
+}
+
+export async function generateAIBudgetRiskSynthesis(
+  report: BudgetRiskReport,
+): Promise<AIBudgetRiskSynthesisResult> {
+  const defaultSummary =
+    report.overallRiskLevel === "on_track" && report.criticalRisksCount === 0
+      ? "All planned budget limits are on track with sustainable daily spending velocity."
+      : `High spending velocity detected across ${report.criticalRisksCount + report.moderateRisksCount} category limit(s). Projected month-end overspend is ₹${report.totalProjectedOverspend.toLocaleString("en-IN")}.`;
+
+  const defaultActionPlan =
+    report.overallRiskLevel === "on_track"
+      ? "Maintain current spending patterns to conclude the month within budget targets."
+      : "Adopt recommended daily category caps for the remaining days of the month to prevent compounding overages.";
+
+  if (!report.hasBudgets || (report.criticalRisksCount === 0 && report.moderateRisksCount === 0)) {
+    return {
+      month: report.month,
+      year: report.year,
+      executiveSummary: defaultSummary,
+      overallActionPlan: defaultActionPlan,
+      report,
+    };
+  }
+
+  const atRiskCategories = report.categories.filter((c) => c.riskLevel !== "on_track");
+
+  const promptCategories = atRiskCategories
+    .map(
+      (c) =>
+        `- Category ID: ${c.categoryId}, Name: "${c.categoryName}" (${c.riskLevel.toUpperCase()})\n` +
+        `  Budget: ₹${c.budgetAmount.toLocaleString("en-IN")}, Actual Spent: ₹${c.actualSpent.toLocaleString("en-IN")} on Day ${report.daysElapsed}/${report.totalDaysInMonth}\n` +
+        `  Burn Rate: ₹${c.burnRatePerDay.toLocaleString("en-IN")}/day, Projected Month-End: ₹${c.projectedMonthEndSpend.toLocaleString("en-IN")} (+₹${c.projectedOverspend.toLocaleString("en-IN")} over)\n` +
+        `  Days Remaining: ${report.daysRemaining}, Recommended Remaining Cap: ₹${c.recommendedDailyCap.toLocaleString("en-IN")}/day${c.largestTransaction ? `\n  Largest Txn: ₹${c.largestTransaction.amount.toLocaleString("en-IN")} ('${c.largestTransaction.title}')` : ""}`,
+    )
+    .join("\n\n");
+
+  const systemPrompt =
+    "You are a family financial advisor specializing in budget risk management. You analyze spending pace, burn rates, and month-end overspending projections.\n" +
+    "CRITICAL RULES:\n" +
+    "1. Never recalculate or alter numbers. Use the exact figures provided in the prompt.\n" +
+    "2. All currency amounts must use the ₹ symbol.\n" +
+    "3. Provide constructive, non-judgmental, actionable advice.\n" +
+    "4. Output ONLY valid JSON matching this schema:\n" +
+    "{\n" +
+    '  "executiveSummary": "2-sentence executive summary of the family\'s overall budget risk.",\n' +
+    '  "overallActionPlan": "1-2 sentence high-priority course correction advice for the family.",\n' +
+    '  "categoryExplanations": [\n' +
+    "    {\n" +
+    '      "categoryId": 123,\n' +
+    '      "explanation": "1 concise sentence explaining the pace/risk citing burn rate or largest purchase with ₹.",\n' +
+    '      "actionableTip": "1 concise sentence giving a concrete daily cap or reduction tip for remaining days."\n' +
+    "    }\n" +
+    "  ]\n" +
+    "}\n" +
+    "Do NOT output markdown, backticks, or other text. Raw JSON only.";
+
+  try {
+    const response = await fetch(`${OLLAMA_BASE_URL}/api/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: OLLAMA_MODEL,
+        messages: [
+          { role: "system", content: systemPrompt },
+          {
+            role: "user",
+            content:
+              `Risk Analysis Period: Month ${report.month}/${report.year} (Day ${report.daysElapsed} of ${report.totalDaysInMonth}, ${report.daysRemaining} days left)\n` +
+              `Total Budget: ₹${report.totalBudgeted.toLocaleString("en-IN")}, Actual Spent: ₹${report.totalSpent.toLocaleString("en-IN")}, Projected: ₹${report.totalProjectedSpend.toLocaleString("en-IN")}\n` +
+              `Categories with Elevated Spending Pace:\n${promptCategories}\n\n` +
+              "Provide your budget risk synthesis JSON.",
+          },
+        ],
+        stream: false,
+        options: { temperature: 0.2 },
+      }),
+    });
+
+    if (!response.ok) {
+      console.warn("Ollama returned status", response.status, "using fallback budget risk synthesis.");
+      return {
+        month: report.month,
+        year: report.year,
+        executiveSummary: defaultSummary,
+        overallActionPlan: defaultActionPlan,
+        report,
+      };
+    }
+
+    const data = (await response.json()) as { message?: { content?: string } };
+    const rawContent = data.message?.content?.trim() || "";
+
+    const cleaned = rawContent
+      .replace(/^\`\`\`json\s*/i, "")
+      .replace(/^\`\`\`\s*/i, "")
+      .replace(/\`\`\`\s*$/i, "")
+      .trim();
+
+    const parsed = JSON.parse(cleaned);
+
+    if (parsed && Array.isArray(parsed.categoryExplanations)) {
+      const expMap = new Map<number, { explanation: string; actionableTip: string }>();
+      for (const item of parsed.categoryExplanations) {
+        if (typeof item.categoryId === "number") {
+          expMap.set(item.categoryId, {
+            explanation: typeof item.explanation === "string" ? item.explanation.trim() : "",
+            actionableTip: typeof item.actionableTip === "string" ? item.actionableTip.trim() : "",
+          });
+        }
+      }
+
+      for (const cat of report.categories) {
+        const aiExp = expMap.get(cat.categoryId);
+        if (aiExp?.explanation) {
+          cat.explanation = aiExp.explanation;
+        }
+        if (aiExp?.actionableTip) {
+          cat.actionableTip = aiExp.actionableTip;
+        }
+      }
+
+      return {
+        month: report.month,
+        year: report.year,
+        executiveSummary:
+          typeof parsed.executiveSummary === "string" && parsed.executiveSummary.trim().length > 0
+            ? parsed.executiveSummary.trim()
+            : defaultSummary,
+        overallActionPlan:
+          typeof parsed.overallActionPlan === "string" && parsed.overallActionPlan.trim().length > 0
+            ? parsed.overallActionPlan.trim()
+            : defaultActionPlan,
+        report,
+      };
+    }
+
+    return {
+      month: report.month,
+      year: report.year,
+      executiveSummary: defaultSummary,
+      overallActionPlan: defaultActionPlan,
+      report,
+    };
+  } catch (err) {
+    console.warn("Failed to generate AI budget risk synthesis with Ollama, using fallback:", err);
+    return {
+      month: report.month,
+      year: report.year,
+      executiveSummary: defaultSummary,
+      overallActionPlan: defaultActionPlan,
+      report,
+    };
   }
 }

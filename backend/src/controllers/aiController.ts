@@ -4,7 +4,11 @@ import type { AuthenticatedRequest } from "../middleware/authMiddleware.js";
 import {
   generateAIResponse,
   generateFinancialInsights,
+  generateAIBudgetRecommendations,
+  generateAIBudgetRiskSynthesis,
 } from "../services/aiService.js";
+import { calculateBudgetRisks } from "../services/budgetRiskService.js";
+import { calculateBudgetRecommendationBaselines } from "../services/budgetRecommendationService.js";
 import { calculateDeterministicMetrics } from "../services/insightsService.js";
 import { getFamilyForUser } from "../services/familyService.js";
 
@@ -148,6 +152,135 @@ export async function getFinancialInsightsController(
     res.status(500).json({
       success: false,
       message: "Failed to generate financial insights.",
+    });
+  }
+}
+
+export async function getAIBudgetRecommendationsController(
+  req: AuthenticatedRequest,
+  res: Response,
+) {
+  try {
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      res.status(401).json({
+        success: false,
+        message: "Authentication required.",
+      });
+      return;
+    }
+
+    const family = await getFamilyForUser(userId);
+
+    if (!family) {
+      res.status(403).json({
+        success: false,
+        message: "User does not belong to a family.",
+      });
+      return;
+    }
+
+    const now = new Date();
+    const month = req.query.month
+      ? parseInt(req.query.month as string, 10)
+      : now.getUTCMonth() + 1;
+    const year = req.query.year
+      ? parseInt(req.query.year as string, 10)
+      : now.getUTCFullYear();
+
+    if (isNaN(month) || month < 1 || month > 12) {
+      res.status(400).json({ success: false, message: "Invalid month parameter." });
+      return;
+    }
+
+    if (isNaN(year) || year < 2000 || year > 2100) {
+      res.status(400).json({ success: false, message: "Invalid year parameter." });
+      return;
+    }
+
+    const baselines = await calculateBudgetRecommendationBaselines(
+      family.family_id,
+      month,
+      year,
+    );
+
+    const result = await generateAIBudgetRecommendations(baselines);
+
+    res.json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    console.error("Failed to generate AI budget recommendations:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to generate budget recommendations.",
+    });
+  }
+}
+
+
+export async function getAIBudgetRisksController(
+  req: AuthenticatedRequest,
+  res: Response,
+) {
+  try {
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      res.status(401).json({
+        success: false,
+        message: "Authentication required.",
+      });
+      return;
+    }
+
+    const family = await getFamilyForUser(userId);
+
+    if (!family) {
+      res.status(403).json({
+        success: false,
+        message: "User does not belong to a family.",
+      });
+      return;
+    }
+
+    const now = new Date();
+    const month = req.query.month
+      ? parseInt(req.query.month as string, 10)
+      : now.getUTCMonth() + 1;
+    const year = req.query.year
+      ? parseInt(req.query.year as string, 10)
+      : now.getUTCFullYear();
+
+    if (isNaN(month) || month < 1 || month > 12) {
+      res.status(400).json({ success: false, message: "Invalid month parameter." });
+      return;
+    }
+
+    if (isNaN(year) || year < 2000 || year > 2100) {
+      res.status(400).json({ success: false, message: "Invalid year parameter." });
+      return;
+    }
+
+    const riskReport = await calculateBudgetRisks(
+      family.family_id,
+      month,
+      year,
+    );
+
+    const result = await generateAIBudgetRiskSynthesis(riskReport);
+
+    res.json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    console.error("Failed to generate AI budget risks:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to generate budget risk analysis.",
     });
   }
 }

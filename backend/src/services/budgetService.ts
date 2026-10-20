@@ -389,3 +389,49 @@ export async function copyPreviousMonthBudgets(
     skippedCount: availableCount - copiedCount,
   };
 }
+
+/**
+ * Batch insert or update multiple category budgets atomically.
+ */
+export async function applyBudgetBatch(
+  familyId: number,
+  budgets: Array<{ categoryId: number; amount: number; month: number; year: number }>,
+) {
+  if (!Array.isArray(budgets) || budgets.length === 0) {
+    throw new Error("No budgets provided to apply.");
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    let appliedCount = 0;
+
+    for (const b of budgets) {
+      if (!b.categoryId || !b.amount || b.amount <= 0 || !b.month || !b.year) {
+        continue;
+      }
+
+      await client.query(
+        `
+          INSERT INTO budgets (family_id, category_id, amount, month, year, updated_at)
+          VALUES ($1, $2, $3, $4, $5, NOW())
+          ON CONFLICT (family_id, category_id, month, year)
+          DO UPDATE SET
+            amount = EXCLUDED.amount,
+            updated_at = NOW();
+        `,
+        [familyId, b.categoryId, b.amount, b.month, b.year],
+      );
+      appliedCount++;
+    }
+
+    await client.query("COMMIT");
+    return { appliedCount };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+

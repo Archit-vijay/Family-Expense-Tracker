@@ -244,24 +244,25 @@ Status: COMPLETE
 
 This milestone depends on Budget Management.
 
-- [ ] Analyze validated historical spending
-- [ ] Suggest category/period budget amounts
-- [ ] Explain the factors behind recommendations
-- [ ] Keep recommendations advisory rather than authoritative financial calculations
+- [x] Analyze validated historical spending
+- [x] Suggest category/period budget amounts
+- [x] Explain the factors behind recommendations
+- [x] Keep recommendations advisory rather than authoritative financial calculations
+- [x] Interactive AI recommendation review and 1-click batch application
 
-Status: PLANNED
+Status: COMPLETE
 
 ## AI-8 — AI Budget Risk Detection
 
 This milestone depends on Budget Management and its spending-tracking model.
 
-- [ ] Compare current spending against budget
-- [ ] Calculate deterministic budget progress/projections
-- [ ] Detect potential overspending risk
-- [ ] Use AI to explain the risk and contributing factors
-- [ ] Add budget-risk UI/alerts where appropriate
+- [x] Compare current spending against budget
+- [x] Calculate deterministic budget progress/projections
+- [x] Detect potential overspending risk
+- [x] Use AI to explain the risk and contributing factors
+- [x] Add budget-risk UI/alerts where appropriate
 
-Status: PLANNED
+Status: COMPLETE
 
 ### AI Scope Exclusions
 

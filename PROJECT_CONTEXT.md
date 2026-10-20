@@ -629,8 +629,8 @@ The project implements the following capabilities:
 - **AI-4 — AI Anomaly Detection (COMPLETE):** backend/statistical detection of unusual activity (outliers, velocity spikes, surges, new categories) followed by AI explanation, integrated into AI Insights.
 - **AI-5 — AI Family Spending Insights (COMPLETE):** member category affinity, transaction counts, trend changes, concentration classification, and evolved Family Dynamics card.
 - **AI-6 — AI Dashboard / Ask About My Finances (COMPLETE):** an integrated dashboard intelligence hub connecting the monthly narrative with contextual inquiries and 2-hour persisted chat continuity.
-- **AI-7 — AI Budget Recommendations (PLANNED):** AI-assisted budget suggestions once Budget Management exists.
-- **AI-8 — AI Budget Risk Detection (PLANNED):** spending-versus-budget analysis and projection once budget data exists.
+- **AI-7 — AI Budget Recommendations (COMPLETE):** advisory category allocations and monthly strategy based on 3-6 month historical spending baselines, with interactive review and 1-click batch application.
+- **AI-8 — AI Budget Risk Detection (COMPLETE):** deterministic spending velocity analysis, projected month-end overspending warnings, safe daily spending caps, and proactive LLM advice via the interactive AI Budget Risk Radar.
 
 Transaction categorization and transaction-description/merchant analysis are intentionally outside the current AI scope.
 
@@ -675,10 +675,8 @@ Budget Management is fully implemented across the stack:
 
 ## Immediate Next Milestone
 
-With Budget Management complete, the foundation is in place for:
-- **AI-7 — AI Budget Recommendations**: Advisory AI suggestions for category allocations based on historical spending baselines.
-- **AI-8 — AI Budget Risk Detection**: Projections and risk warnings when spending velocity threatens monthly budget limits.
-- **Phase 10 — Reports & Analytics**: Long-term financial charts, trend reports, and export options.
+With all 8 planned AI capabilities and Budget Management complete, the immediate next milestone is:
+- **Phase 10 — Reports & Analytics**: Long-term financial charts, trend reports, multi-period comparative visualizations, and category analytics.
 
 ---
 
