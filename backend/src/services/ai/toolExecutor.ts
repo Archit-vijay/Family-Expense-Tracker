@@ -1,3 +1,4 @@
+import { getBudgetsWithSpending } from "../budgetService.js";
 import {
   getSpendingByDateRange,
   getCategorySpending,
@@ -499,6 +500,57 @@ export async function executeFinancialTool(
         endDate,
       );
     }
+    case "get_budget_status": {
+      const now = new Date();
+      const month =
+        typeof arguments_.month === "number" && arguments_.month >= 1 && arguments_.month <= 12
+          ? arguments_.month
+          : now.getUTCMonth() + 1;
+      const year =
+        typeof arguments_.year === "number" && arguments_.year >= 2000
+          ? arguments_.year
+          : now.getUTCFullYear();
+
+      const summary = await getBudgetsWithSpending(familyId, month, year);
+
+      if (summary.budgets.length === 0) {
+        return {
+          month,
+          year,
+          message: `No category budgets have been set for ${month}/${year}.`,
+          totalMonthlyExpenses: `₹${Math.round(summary.totalMonthlyExpenses).toLocaleString("en-IN")}`,
+          unbudgetedSpending: summary.unbudgeted.map((u) => ({
+            category: u.categoryName,
+            spent: `₹${Math.round(u.actualSpent).toLocaleString("en-IN")}`,
+          })),
+        };
+      }
+
+      return {
+        month,
+        year,
+        totalBudgeted: `₹${Math.round(summary.totalBudgeted).toLocaleString("en-IN")}`,
+        totalSpentBudgeted: `₹${Math.round(summary.totalSpentBudgeted).toLocaleString("en-IN")}`,
+        totalRemaining: `₹${Math.round(summary.totalRemaining).toLocaleString("en-IN")}`,
+        overallPercentage: `${summary.overallPercentage}%`,
+        overallStatus: summary.overallStatus,
+        overbudgetCount: summary.overbudgetCount,
+        warningCount: summary.warningCount,
+        categoryBudgets: summary.budgets.map((b) => ({
+          category: b.categoryName,
+          budgetAmount: `₹${Math.round(b.amount).toLocaleString("en-IN")}`,
+          actualSpent: `₹${Math.round(b.actualSpent).toLocaleString("en-IN")}`,
+          remaining: `₹${Math.round(b.remaining).toLocaleString("en-IN")}`,
+          percentageUsed: `${b.percentage}%`,
+          status: b.status,
+        })),
+        unbudgetedSpending: summary.unbudgeted.map((u) => ({
+          category: u.categoryName,
+          spent: `₹${Math.round(u.actualSpent).toLocaleString("en-IN")}`,
+        })),
+      };
+    }
+
 
     default:
       throw new Error(

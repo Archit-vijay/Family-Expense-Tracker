@@ -286,29 +286,32 @@ The current AI phase does **not** include:
 
 # Phase 9 — Budget Management
 
-The budget system should allow families to plan spending rather than only record it. AI budget recommendations and budget risk detection will build on this system later.
+The budget system allows families to plan spending rather than only record it. Category spending limits, live tracking against expenses, remaining buffers, overspending alerts, unbudgeted spending breakdowns, dashboard widgets, and AI tool integration are implemented and validated.
 
 Planned functionality:
 
-- [ ] Budget database design
-- [ ] Budget API
-- [ ] Create budget
-- [ ] Edit budget
-- [ ] Delete/deactivate budget where appropriate
-- [ ] Category-based budgets
-- [ ] Budget period
-- [ ] Budget amount
-- [ ] Track spending against budget
-- [ ] Remaining budget
-- [ ] Budget progress indicators
-- [ ] Overspending indication
-- [ ] Budget page UI
-- [ ] Budget integration with dashboard
+- [x] Budget database design
+- [x] Budget API
+- [x] Create budget
+- [x] Edit budget
+- [x] Delete/deactivate budget where appropriate
+- [x] Category-based budgets
+- [x] Budget period (discrete calendar months YYYY-MM)
+- [x] Budget amount
+- [x] Track spending against budget
+- [x] Remaining budget
+- [x] Budget progress indicators
+- [x] Overspending indication
+- [x] Budget page UI
+- [x] Budget integration with dashboard
 
-Important future decision:
-Budget periods and rollover behavior should be explicitly designed before implementation.
+Budget design decisions:
+- Discrete calendar months (YYYY-MM) with independent monthly allocations (no auto-rollover).
+- 1-click convenience utility to copy previous month's budget allocations.
+- Admin and Member can create, update, and delete; Viewer is read-only.
+- Grounded `get_budget_status` AI tool for natural language inquiries.
 
-Status: PLANNED
+Status: COMPLETE
 
 ---
 

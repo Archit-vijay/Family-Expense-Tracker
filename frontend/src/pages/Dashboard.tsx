@@ -12,6 +12,7 @@ import AnimatedDropdown from "../components/AnimatedDropdown";
 import CategorySpending from "../components/CategorySpending";
 import ContentState from "../components/ContentState";
 import DashboardAICard from "../components/DashboardAICard";
+import DashboardBudgetWidget from "../components/DashboardBudgetWidget";
 import FamilySpending from "../components/FamilySpending";
 import RecentTransactions from "../components/RecentTransactions";
 import SpendingOverview from "../components/SpendingOverview";
@@ -67,6 +68,30 @@ function Dashboard() {
         ?.label ?? period,
     [period],
   );
+
+  const { budgetMonth, budgetYear } = useMemo(() => {
+    const now = new Date();
+    const monthMatch = /^(\d{4})-(\d{2})$/.exec(period);
+    if (monthMatch) {
+      return {
+        budgetMonth: parseInt(monthMatch[2], 10),
+        budgetYear: parseInt(monthMatch[1], 10),
+      };
+    }
+    if (period === "previous-month") {
+      const prev = new Date(
+        Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1),
+      );
+      return {
+        budgetMonth: prev.getUTCMonth() + 1,
+        budgetYear: prev.getUTCFullYear(),
+      };
+    }
+    return {
+      budgetMonth: now.getUTCMonth() + 1,
+      budgetYear: now.getUTCFullYear(),
+    };
+  }, [period]);
 
   useEffect(() => {
     let isCurrent = true;
@@ -269,6 +294,15 @@ function Dashboard() {
                 variant="balance"
               />
             </section>
+
+            {/* Monthly Budget Health Widget */}
+            <div className="mt-6 fade-up" style={{ animationDelay: "120ms" }}>
+              <DashboardBudgetWidget
+                month={budgetMonth}
+                year={budgetYear}
+                periodLabel={selectedPeriodLabel}
+              />
+            </div>
 
             {/* AI intelligence hub (monthly narrative + ask about finances) */}
             <DashboardAICard

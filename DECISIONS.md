@@ -614,6 +614,34 @@ When an answer is rendered in the Dashboard intelligence card:
 
 ---
 
+# Budget Management Architecture
+
+## Discrete Monthly Budget Model (No Automatic Rollover)
+The budget system is designed around discrete calendar months (`month` 1–12 and `year` >= 2000), aligning directly with PostgreSQL `transactions` timestamps and the dashboard period selector:
+- Each month maintains independent planned limits per expense category.
+- **No Automatic Rollover**: Unspent budget balances do not automatically compound or inflate subsequent months' limits. This prevents misleading surplus compounding and enforces deliberate monthly planning.
+- **Copy from Previous Month**: A 1-click convenience endpoint (`POST /api/budgets/copy-previous`) allows families to duplicate their prior month's category limits into the current month without manual re-entry (`ON CONFLICT DO NOTHING`).
+
+## Authoritative Database Aggregation & Unbudgeted Spending
+Budget progress calculations are strictly performed in PostgreSQL and backend services:
+- Actual spending is calculated via `LEFT JOIN transactions` where `type = 'expense'`, `is_deleted = FALSE`, and `transaction_date` falls in the target calendar month.
+- Semantic progress tiers:
+  - `safe`: Spending is under 80% of budget limit.
+  - `warning`: Spending has reached or exceeded 80% of budget limit.
+  - `overbudget`: Spending has exceeded 100% of the budget limit.
+- **Unbudgeted Spending Tracking**: Expenses incurred in categories without a configured budget limit for that month are explicitly aggregated and surfaced, ensuring that total monthly expenses match authoritative dashboard and transaction records.
+
+## Role Permissions for Budgets
+- `viewer`: Read-only access to view budget allocations, progress bars, and alerts.
+- `admin` and `member`: Authorized to create, update, delete, and copy monthly category budgets.
+
+## AI Grounding via `get_budget_status` Tool
+The backend exposes `get_budget_status` to Ollama and the AI Assistant:
+- Queries `getBudgetsWithSpending` with strict family scoping and validated month/year parameters.
+- Formats all output amounts authoritatively with `₹` (INR), preventing model mental arithmetic hallucinations when answering budget queries.
+
+---
+
 # DevOps & Deployment — Planned Direction
 
 DevOps is a deliberate future phase of the project because the project is also intended to teach practical deployment and DevOps skills. It should not be started immediately alongside the current AI work. The intended point is after the major application features are sufficiently complete and the application has enough functionality to make production deployment meaningful.

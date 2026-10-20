@@ -659,11 +659,26 @@ The active reusable tool and analytics layer currently includes:
 
 All tools and insight queries are authenticated and strictly family-scoped via JWT. Model interactions run fully locally via Ollama with zero external API calls or token fees. Financial numbers are formatted in ₹ (INR) without markdown bolding or list syntax.
 
+---
+
+# Phase 9 — Budget Management (COMPLETE)
+
+Budget Management is fully implemented across the stack:
+- **Database**: PostgreSQL `budgets` table tracking `family_id`, `category_id`, `amount`, `month`, and `year` with strict uniqueness constraints and positive amount checks.
+- **Backend Service & Aggregation**: `getBudgetsWithSpending` performs authoritative SQL joins with `transactions` in the calendar month to compute actual spending, remaining buffers, percentage progress, and semantic tiers (`safe`, `warning`, `overbudget`).
+- **Unbudgeted Spending Tracking**: Transparently computes expenses in categories without an active budget target so the family has a complete picture of total monthly expenses.
+- **REST Endpoints**: Authenticated `/api/budgets` with role permissions (`admin` and `member` can create/edit/delete/copy; `viewer` is read-only).
+- **1-Click Copy**: `POST /api/budgets/copy-previous` allows duplicating last month's budget limits into the current month.
+- **Frontend Page (`/budgets`)**: Interactive month navigation (`<`, `>`, `This Month`), 4 summary KPI cards, monthly health progress bar, category cards with progress bars and badges, unbudgeted expenses section with quick-budget buttons, and animated Add/Edit/Delete modals.
+- **Dashboard Integration**: `DashboardBudgetWidget` provides high-level budget visibility directly on `/dashboard` with immediate attention tags and direct navigation to `/budgets`.
+- **AI Tool Grounding**: Added `get_budget_status` to Ollama tools and executor, allowing the AI assistant and dashboard card to answer questions about budget limits and progress deterministically.
+
 ## Immediate Next Milestone
 
-The next major milestone is **Phase 9 — Budget Management**, which introduces category-based budget allocations, monthly spending progress against limits, remaining buffers, and overspending indicators. AI-7 (AI Budget Recommendations) and AI-8 (AI Budget Risk Detection) will build directly on top of this budget layer once it is complete.
-
-Budget Management remains the planned financial-management phase after the AI foundation/capabilities that depend on it are completed.
+With Budget Management complete, the foundation is in place for:
+- **AI-7 — AI Budget Recommendations**: Advisory AI suggestions for category allocations based on historical spending baselines.
+- **AI-8 — AI Budget Risk Detection**: Projections and risk warnings when spending velocity threatens monthly budget limits.
+- **Phase 10 — Reports & Analytics**: Long-term financial charts, trend reports, and export options.
 
 ---
 

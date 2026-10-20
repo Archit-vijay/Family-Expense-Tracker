@@ -166,93 +166,118 @@ export const financialTools = [
       },
     },
   },
-{
-  type: "function",
-  function: {
-    name: "get_income_summary",
-    description:
-      "Get total income received by the user's family for a selected time period or date range. Use this tool whenever the user asks about income, earnings, or asks follow-up questions like 'what about income?', 'how about income?', 'and income?', 'tell me about income', or 'what was our income'.",
-    parameters: {
-      type: "object",
-      properties: {
-        startDate: {
-          type: "string",
-          description:
-            "Start date in YYYY-MM-DD format (inclusive).",
+  {
+    type: "function",
+    function: {
+      name: "get_income_summary",
+      description:
+        "Get total income received by the user's family for a selected time period or date range. Use this tool whenever the user asks about income, earnings, or asks follow-up questions like 'what about income?', 'how about income?', 'and income?', 'tell me about income', or 'what was our income'.",
+      parameters: {
+        type: "object",
+        properties: {
+          startDate: {
+            type: "string",
+            description:
+              "Start date in YYYY-MM-DD format (inclusive).",
+          },
+          endDate: {
+            type: "string",
+            description:
+              "End date in YYYY-MM-DD format (exclusive).",
+          },
+          period: {
+            type: "string",
+            enum: [
+              "current_month",
+              "last_month",
+              "all",
+            ],
+            description:
+              "The named time period if specific startDate and endDate are not provided.",
+          },
         },
-        endDate: {
-          type: "string",
-          description:
-            "End date in YYYY-MM-DD format (exclusive).",
-        },
-        period: {
-          type: "string",
-          enum: [
-            "current_month",
-            "last_month",
-            "all",
-          ],
-          description:
-            "The named time period if specific startDate and endDate are not provided.",
-        },
+        required: [],
+        additionalProperties: false,
       },
-      required: [],
-      additionalProperties: false,
     },
   },
-},
-{
-  type: "function",
-  function: {
-    name: "get_spending_trends",
-    description:
-      "Get the user's family monthly expense totals over a selected number of recent months. Use this when the user asks about spending trends, changes in spending over time, or whether spending is increasing or decreasing.",
-    parameters: {
-      type: "object",
-      properties: {
-        months: {
-          type: "integer",
-          description:
-            "Number of recent months to analyze. Use 6 for a normal spending trend question unless the user specifies another period.",
+  {
+    type: "function",
+    function: {
+      name: "get_spending_trends",
+      description:
+        "Get the user's family monthly expense totals over a selected number of recent months. Use this when the user asks about spending trends, changes in spending over time, or whether spending is increasing or decreasing.",
+      parameters: {
+        type: "object",
+        properties: {
+          months: {
+            type: "integer",
+            description:
+              "Number of recent months to analyze. Use 6 for a normal spending trend question unless the user specifies another period.",
+          },
         },
+        required: ["months"],
+        additionalProperties: false,
       },
-      required: ["months"],
-      additionalProperties: false,
     },
   },
-},
-{
-  type: "function",
-  function: {
-    name: "get_member_income",
-    description:
-      "Get total income earned by a specific named family member by their proper name (e.g. 'how much did Archit earn?' or 'how much did Mummy earn?'). Only use when a specific person's name is explicitly given. Do NOT use for 'everyone', 'all members', or family totals - use get_family_members_income or get_income_summary instead.",
-    parameters: {
-      type: "object",
-      properties: {
-        memberName: {
-          type: "string",
-          description:
-            "The proper name of the family member whose income should be calculated.",
+  {
+    type: "function",
+    function: {
+      name: "get_member_income",
+      description:
+        "Get total income earned by a specific named family member by their proper name (e.g. 'how much did Archit earn?' or 'how much did Mummy earn?'). Only use when a specific person's name is explicitly given. Do NOT use for 'everyone', 'all members', or family totals - use get_family_members_income or get_income_summary instead.",
+      parameters: {
+        type: "object",
+        properties: {
+          memberName: {
+            type: "string",
+            description:
+              "The proper name of the family member whose income should be calculated.",
+          },
+          startDate: {
+            type: "string",
+            description:
+              "Start date of the income period in YYYY-MM-DD format. This date is inclusive.",
+          },
+          endDate: {
+            type: "string",
+            description:
+              "End date of the income period in YYYY-MM-DD format. This date is exclusive.",
+          },
         },
-        startDate: {
-          type: "string",
-          description:
-            "Start date of the income period in YYYY-MM-DD format. This date is inclusive.",
-        },
-        endDate: {
-          type: "string",
-          description:
-            "End date of the income period in YYYY-MM-DD format. This date is exclusive.",
-        },
+        required: [
+          "memberName",
+          "startDate",
+          "endDate",
+        ],
+        additionalProperties: false,
       },
-      required: [
-        "memberName",
-        "startDate",
-        "endDate",
-      ],
-      additionalProperties: false,
     },
   },
-},
+  {
+    type: "function",
+    function: {
+      name: "get_budget_status",
+      description:
+        "Get the authoritative monthly budget status, category spending limits, actual spending vs budget targets, remaining buffer, and overbudget alerts for a specific month and year. Use this whenever the user asks about budgets, monthly targets, whether they are over budget, remaining budget buffer, or how much budget is left in general or for a specific category.",
+      parameters: {
+        type: "object",
+        properties: {
+          month: {
+            type: "integer",
+            description:
+              "Calendar month number (1 to 12). If omitted, defaults to the current month.",
+          },
+          year: {
+            type: "integer",
+            description:
+              "Calendar year (e.g. 2026). If omitted, defaults to the current year.",
+          },
+        },
+        required: [],
+        additionalProperties: false,
+      },
+    },
+  },
 ];
