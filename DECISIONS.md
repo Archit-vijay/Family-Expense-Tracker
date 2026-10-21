@@ -31,7 +31,30 @@ Do not move business logic into the frontend simply to make a feature easier.
 
 ---
 
-# Authentication
+# Authentication & Session Management
+
+## Multi-Layered JWT Session Guard & Auto-Logout
+To prevent token-expiry desynchronization where an expired localStorage token leaves the client appearing "logged in" while backend requests fail with 401:
+- **Proactive Client-Side Expiry Inspection (`isTokenExpired`)**: When hydrating `AuthContext` on mount and prior to making authenticated network calls, the client inspects `payload.exp`. If `Date.now() >= exp * 1000`, the session is purged immediately without network overhead.
+- **Centralized 401 Response Interception (`authFetch`)**: Any API response returning `401 Unauthorized` automatically triggers `handleUnauthorized()`, clearing credentials, firing a global `auth:expired` event to reset React state, and redirecting the browser to `/login?session_expired=true`.
+- **User Feedback**: The login page detects `session_expired=true` and renders a prominent security notice rather than leaving the user puzzled by abrupt logouts.
+
+## Duplicate Account Redirection Strategy
+When a new user attempts to register on `/signup` with an email that is already registered in `users`:
+- The backend rejects the request with HTTP `409 Conflict` and semantic error code `EMAIL_ALREADY_EXISTS`.
+- Rather than presenting a dead-end error message, the frontend catches this code and automatically redirects the user to `/login?email=...&exists=true`, pre-populating their email address and rendering a clear notice advising them to sign in.
+
+## Direct Family Code Onboarding System
+To provide friction-free onboarding without requiring email delivery services:
+- Each family possesses a unique, human-readable 6-character uppercase alphanumeric code (e.g. `K92X4P`, omitting ambiguous characters `0, O, 1, I`).
+- Newly registered or unassigned users land on `/onboarding` where they choose between:
+  - **Creating a New Family**: Sets user as `admin`, creates active linked member persona, and seeds starter categories.
+  - **Joining an Existing Family**: Users enter the 6-character code and join as `member`.
+- Admins maintain direct ownership of their family code on `/family` with 1-click clipboard copying and one-click code regeneration.
+
+## Native Canvas 3D Rupee Symbol Projection vs Mobile Touch Variant
+- **Desktop**: The landing page hero renders an interactive 3D solid extruded Indian Rupee (`₹`) symbol with dynamic directional lighting and soft ambient floor shadows using native HTML5 Canvas 3D matrix projection without heavy external 3D dependencies. Smooth mouse interpolation (`lerp`) angles and tilts the solid symbol toward the cursor with rich metallic indigo and blush-pink edge highlights.
+- **Mobile (< 768px)**: Because touch interfaces lack cursor hover and touch dragging conflicts with vertical page scrolling, mobile devices receive a dedicated touch-native hero with an ambient gyroscopic aura and stacked high-contrast preview cards.
 
 ## JWT
 
@@ -664,6 +687,30 @@ Budget risk detection acts as an early-warning radar that identifies overspendin
 - **Interactive UI Radar (`AIBudgetRiskRadar.tsx`)**: Placed within `/budgets` right below the Monthly Budget Health bar:
   - Highlights overall pacing status with semantic color gradients (rose for critical risk, amber for moderate, brand neutral for on-track).
   - Displays day progress, executive summary, recommended action, and collapsible per-category pacing analysis cards showing daily caps and burn rates.
+
+---
+
+# Public Onboarding & Family Code Architecture
+
+## Public Registration & Token Expiry Protection
+- Registration is accessible at `/signup` and includes Google Sign-In support.
+- If a user attempts to sign up with an email that is already registered, the backend returns `409 EMAIL_ALREADY_EXISTS` and the client routes to `/login?email=...&exists=true` with a clear explanation banner.
+- Multi-layer JWT expiration guard: Proactive check in `apiClient.ts` detects expired JWT tokens before requests fire, immediately clearing local credentials, broadcasting `auth:expired`, and redirecting to `/login?session_expired=true` to prevent unauthorized backend errors while logged in.
+
+## 6-Character Shareable Family Access Codes
+- Each family has an alphanumeric 6-character code (`families.code`, unique index), omitting visually ambiguous characters (`0`, `O`, `1`, `I`).
+- Newly registered or unassigned users land on `/onboarding` to either:
+  1. Create a new family (user becomes `admin`, starter categories seeded).
+  2. Join an existing family with a code (user joins as `member` without requiring email invitation).
+- Admins can copy or regenerate their family code on demand on the `/family` page.
+
+## Luxury Landing Page & 3D Interactive Hero
+- Dedicated landing page at `/` matching the brand dark palette (`#2A234F`, `#FFB3C3`, `#100C22`).
+- Desktop Hero features an isolated, studio-rendered 3D solid Indian Rupee (`₹`) in brushed titanium with warm rose-gold beveled edges.
+- Interactive 3D perspective viewport (`perspective: 1200px`, `preserve-3d`) with spring-physics inertia tracking cursor movement across pitch and yaw axes (`rotateX`, `rotateY`).
+- Dynamic real-time specular glare sheen overlay shifts across the metallic face of the Rupee as cursor coordinates change.
+- Multi-layer spatial depth with floating glassmorphic metric badges (`AI Velocity Radar` at `translateZ(60px)` and `Family Access Pass` at `translateZ(50px)`) exhibiting natural parallax depth.
+- Mobile layout features a touch-optimized floating 3D Rupee orb with subtle orbital aura and stacked high-contrast preview cards.
 
 ---
 

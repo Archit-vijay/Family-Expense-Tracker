@@ -1,0 +1,12 @@
+ALTER TABLE families
+ADD COLUMN IF NOT EXISTS code VARCHAR(12);
+
+UPDATE families
+SET code = UPPER(SUBSTRING(MD5(id::TEXT || RANDOM()::TEXT || NOW()::TEXT), 1, 8))
+WHERE code IS NULL;
+
+ALTER TABLE families
+ALTER COLUMN code SET NOT NULL;
+
+CREATE UNIQUE INDEX IF NOT EXISTS unique_family_code
+ON families(UPPER(code));

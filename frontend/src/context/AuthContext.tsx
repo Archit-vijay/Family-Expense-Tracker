@@ -1,10 +1,16 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useState,
   type ReactNode,
 } from "react";
+
+import {
+  isTokenExpired,
+  handleUnauthorized,
+} from "../services/apiClient";
 
 import {
   login as loginUser,
@@ -20,6 +26,7 @@ interface AuthContextType {
   user: AuthUser | null;
   token: string | null;
   familyRole: MyFamily["role"] | null;
+  hasFamily: boolean | null;
   isAuthenticated: boolean;
   login: (
     email: string,
@@ -29,6 +36,7 @@ interface AuthContextType {
     token: string,
     user: AuthUser,
   ) => void;
+  refreshFamily: () => Promise<MyFamily | null>;
   logout: () => void;
 }
 
@@ -43,45 +51,77 @@ interface AuthProviderProps {
 export function AuthProvider({
   children,
 }: AuthProviderProps) {
-  const [user, setUser] = useState<AuthUser | null>(() => {
-    const storedUser = localStorage.getItem("user");
-
-    return storedUser
-      ? JSON.parse(storedUser)
-      : null;
+  const [token, setToken] = useState<string | null>(() => {
+    const storedToken = localStorage.getItem("token");
+    if (storedToken && isTokenExpired(storedToken)) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      return null;
+    }
+    return storedToken;
   });
 
-  const [token, setToken] = useState<string | null>(
-    () => localStorage.getItem("token"),
-  );
+  const [user, setUser] = useState<AuthUser | null>(() => {
+    const storedToken = localStorage.getItem("token");
+    if (storedToken && isTokenExpired(storedToken)) {
+      return null;
+    }
+    const storedUser = localStorage.getItem("user");
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
 
   const [familyRole, setFamilyRole] = useState<
     MyFamily["role"] | null
   >(null);
 
-  useEffect(() => {
-    if (!token) {
+  const [hasFamily, setHasFamily] = useState<boolean | null>(null);
+
+  const refreshFamily = useCallback(async (): Promise<MyFamily | null> => {
+    const currentToken = localStorage.getItem("token");
+    if (!currentToken || isTokenExpired(currentToken)) {
       setFamilyRole(null);
+      setHasFamily(false);
+      return null;
+    }
+
+    try {
+      const family = await getMyFamily();
+      setFamilyRole(family.role);
+      setHasFamily(true);
+      return family;
+    } catch (error: any) {
+      // If 404 or no family membership
+      setFamilyRole(null);
+      setHasFamily(false);
+      return null;
+    }
+  }, []);
+
+  // Listen for global auth expiration events
+  useEffect(() => {
+    const onAuthExpired = () => {
+      setToken(null);
+      setUser(null);
+      setFamilyRole(null);
+      setHasFamily(false);
+    };
+
+    window.addEventListener("auth:expired", onAuthExpired);
+    return () => {
+      window.removeEventListener("auth:expired", onAuthExpired);
+    };
+  }, []);
+
+  // Sync family status when token changes
+  useEffect(() => {
+    if (!token || isTokenExpired(token)) {
+      setFamilyRole(null);
+      setHasFamily(false);
       return;
     }
 
-    async function loadFamilyRole() {
-      try {
-        const family = await getMyFamily();
-
-        setFamilyRole(family.role);
-      } catch (error) {
-        console.error(
-          "Failed to load family role:",
-          error,
-        );
-
-        setFamilyRole(null);
-      }
-    }
-
-    loadFamilyRole();
-  }, [token]);
+    refreshFamily();
+  }, [token, refreshFamily]);
 
   function setSession(
     newToken: string,
@@ -107,15 +147,11 @@ export function AuthProvider({
     });
 
     setSession(data.token, data.user);
+    await refreshFamily();
   }
 
   function logout() {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-
-    setToken(null);
-    setUser(null);
-    setFamilyRole(null);
+    handleUnauthorized();
   }
 
   return (
@@ -124,9 +160,11 @@ export function AuthProvider({
         user,
         token,
         familyRole,
-        isAuthenticated: Boolean(token),
+        hasFamily,
+        isAuthenticated: Boolean(token && !isTokenExpired(token)),
         login,
         setSession,
+        refreshFamily,
         logout,
       }}
     >

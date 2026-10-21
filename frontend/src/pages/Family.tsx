@@ -3,9 +3,11 @@ import {
   Check,
   Copy,
   Edit3,
+  KeyRound,
   Loader2,
   Mail,
   Plus,
+  RefreshCw,
   Trash2,
   X,
   MoreVertical,
@@ -19,6 +21,11 @@ import {
   deactivateFamilyMember,
   type FamilyMember,
 } from "../services/familyMemberService";
+
+import {
+  getFamilyCode,
+  regenerateFamilyCode,
+} from "../services/familyService";
 
 import {
   createInvitation,
@@ -35,6 +42,9 @@ function Family() {
   const isAdmin = familyRole === "admin";
 
   const [members, setMembers] = useState<FamilyMember[]>([]);
+  const [familyCode, setFamilyCode] = useState<string | null>(null);
+  const [isCopyingCode, setIsCopyingCode] = useState(false);
+  const [isRegeneratingCode, setIsRegeneratingCode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -109,7 +119,44 @@ function Family() {
     }
 
     loadMembers();
-  }, []);
+
+    if (isAdmin) {
+      getFamilyCode()
+        .then((code) => setFamilyCode(code))
+        .catch((err) => console.error("Failed to load family code:", err));
+    }
+  }, [isAdmin]);
+
+  async function handleCopyCode() {
+    if (!familyCode) return;
+    try {
+      await navigator.clipboard.writeText(familyCode);
+      setIsCopyingCode(true);
+      setTimeout(() => setIsCopyingCode(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy code:", err);
+    }
+  }
+
+  async function handleRegenerateCode() {
+    if (
+      !window.confirm(
+        "Are you sure you want to regenerate the family code? The previous code will no longer work for new signups.",
+      )
+    ) {
+      return;
+    }
+
+    try {
+      setIsRegeneratingCode(true);
+      const newCode = await regenerateFamilyCode();
+      setFamilyCode(newCode);
+    } catch (err) {
+      console.error("Failed to regenerate code:", err);
+    } finally {
+      setIsRegeneratingCode(false);
+    }
+  }
 
   function openAddModal() {
     setEditingMember(null);
@@ -413,6 +460,69 @@ async function handleUpdateRole() {
           </button>
         </div>
       </section>
+
+      {/* Family Join Code Banner (Admin Only) */}
+      {isAdmin && familyCode && (
+        <section className="mb-6 rounded-2xl border border-[#e8e5ef] bg-white p-5 shadow-xs transition-all">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3.5">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#2a234f] text-[#ffb3c3] shadow-sm">
+                <KeyRound size={20} />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-[#2a234f]">
+                    Family Join Code
+                  </h3>
+                  <span className="rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                    Active
+                  </span>
+                </div>
+                <p className="mt-0.5 text-xs text-[#77738a]">
+                  Share this 6-character code with your family members so they can connect upon signup.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 self-start sm:self-center">
+              <div className="flex items-center rounded-xl border border-[#e8e5ef] bg-[#f8f7fb] px-3.5 py-2 font-mono text-base font-bold tracking-widest text-[#2a234f]">
+                {familyCode}
+              </div>
+
+              <button
+                type="button"
+                onClick={handleCopyCode}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-[#e8e5ef] bg-white px-3.5 py-2 text-xs font-semibold text-[#2a234f] shadow-xs transition hover:bg-[#f8f7fb]"
+              >
+                {isCopyingCode ? (
+                  <>
+                    <Check size={14} className="text-emerald-600" />
+                    <span className="text-emerald-700">Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy size={14} />
+                    <span>Copy Code</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleRegenerateCode}
+                disabled={isRegeneratingCode}
+                title="Regenerate family code"
+                className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#e8e5ef] bg-white text-[#77738a] transition hover:bg-[#f8f7fb] hover:text-[#2a234f] disabled:opacity-50"
+              >
+                <RefreshCw
+                  size={14}
+                  className={isRegeneratingCode ? "animate-spin" : ""}
+                />
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Members */}
       <section className="rounded-2xl border border-[#e8e5ef] bg-white p-5 shadow-sm sm:p-6">

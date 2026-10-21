@@ -8,14 +8,18 @@ import {
 import DashboardLayout from "./layouts/DashboardLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 
+import Landing from "./pages/Landing";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import Onboarding from "./pages/Onboarding";
+import AcceptInvitation from "./pages/AcceptInvitation";
+
 import Dashboard from "./pages/Dashboard";
 import Transactions from "./pages/Transactions";
 import Budgets from "./pages/Budgets";
 import Reports from "./pages/Reports";
 import Family from "./pages/Family";
 import Settings from "./pages/Settings";
-import Login from "./pages/Login";
-import AcceptInvitation from "./pages/AcceptInvitation";
 
 import AIAssistant from "./pages/AIAssistant";
 import AIInsights from "./pages/AIInsights";
@@ -27,10 +31,21 @@ function App() {
     <BrowserRouter>
       <Routes>
 
-        {/* Public routes */}
+        {/* Public Landing & Marketing */}
+        <Route
+          path="/"
+          element={<Landing />}
+        />
+
+        {/* Public Authentication routes */}
         <Route
           path="/login"
           element={<Login />}
+        />
+
+        <Route
+          path="/signup"
+          element={<Signup />}
         />
 
         <Route
@@ -38,7 +53,15 @@ function App() {
           element={<AcceptInvitation />}
         />
 
-        {/* Protected routes */}
+        {/* Protected Onboarding Flow (Full-screen, outside DashboardLayout) */}
+        <Route element={<ProtectedRoute />}>
+          <Route
+            path="/onboarding"
+            element={<Onboarding />}
+          />
+        </Route>
+
+        {/* Protected Main Application (Inside DashboardLayout) */}
         <Route element={<ProtectedRoute />}>
           <Route element={<ErrorBoundary><DashboardLayout /></ErrorBoundary>}>
 
@@ -90,12 +113,12 @@ function App() {
           </Route>
         </Route>
 
-        {/* Unknown routes */}
+        {/* Unknown routes redirect to landing */}
         <Route
           path="*"
           element={
             <Navigate
-              to="/dashboard"
+              to="/"
               replace
             />
           }

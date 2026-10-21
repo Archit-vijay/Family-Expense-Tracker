@@ -55,28 +55,36 @@ The foundation includes the frontend/backend separation, TypeScript setup, Postg
 
 ---
 
-## 2. Authentication
+## 2. Authentication & Public Onboarding
 
-Authentication is implemented using JWT and bcrypt.
-
-Current behavior includes:
-- user authentication,
-- JWT token handling,
-- frontend authentication state,
-- localStorage persistence for token/user state,
-- protected frontend routes.
-
-The application has a `ProtectedRoute` and `AuthContext`.
-
-The invitation acceptance flow can establish a normal authenticated session immediately after account creation. `AuthContext` exposes the authenticated user's family role and loads it from `GET /api/family/me`.
-
-Unauthenticated direct navigation to `/dashboard` was fixed so protected pages cannot simply be opened without authentication.
-
-The login page is intentionally separate from the dashboard layout and does not display the dashboard sidebar.
+Authentication is implemented using JWT and bcrypt with self-serve onboarding:
+- User authentication, registration (`/signup`), and Google Sign-In support.
+- Password hashing with bcrypt (cost factor 12).
+- JWT token handling with a multi-layered session guard:
+  - Proactive client-side token expiration check (`isTokenExpired`) prevents expired tokens from staying visually authenticated.
+  - Centralized 401 response interceptor (`authFetch`) clears local credentials and dispatches an `auth:expired` event.
+  - Automatic redirect to `/login?session_expired=true` displaying a prominent session expiration notice.
+- Duplicate account handling on signup: if a user enters an existing email, they are automatically redirected to `/login?email=...&exists=true` with a clear explanation banner.
+- Luxurious Landing Page (`/`):
+  - Desktop: Features an interactive 3D solid metallic Indian Rupee (`₹`) symbol in brushed obsidian titanium with glowing rose-gold beveled edges and dynamic real-time specular glare tracking the user's cursor with spring physics inertia, dynamic contact floor shadow, and floating 3D parallax depth cards.
+  - Mobile: Dedicated touch-native layout with floating 3D metallic Rupee orb, ambient orbital accents, and stacked high-contrast preview cards.
+- The login and signup pages are separate from the dashboard layout.
+- The application has a `ProtectedRoute` and `AuthContext`.
 
 ---
 
-## 3. Family Invitations & Membership Roles
+## 3. Family Management & Direct Join Codes
+
+Family management supports both invitation links and direct 6-character shareable codes:
+
+### Shareable Family Access Codes
+- Migration `013_add_family_code.sql` adds a unique 6-character alphanumeric `code` to the `families` table (e.g. `K92X4P`, omitting ambiguous characters).
+- `/onboarding` Page: When newly registered or unassigned users log in, they choose between:
+  1. **Create a New Family**: Sets user as `admin`, creates a linked `family_members` row, and seeds essential starter categories (`Food & Dining`, `Housing`, `Utilities`, `Groceries`, `Healthcare`, `Transportation`, `Shopping`, `Salary`, etc.).
+  2. **Join with Family Code**: User inputs the 6-character code, joins with role `member`, and is linked to their family member profile immediately.
+- Admin Code Management: Admins can view their family code with a 1-click **Copy Code** button and **Regenerate Code** capability directly on the `/family` page.
+
+### Family Invitations & Membership Roles
 
 Family invitations are implemented end to end.
 

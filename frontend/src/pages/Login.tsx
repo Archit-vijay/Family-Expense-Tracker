@@ -1,20 +1,27 @@
+import { AlertCircle, AlertTriangle } from "lucide-react";
 import { useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 
 import { useAuth } from "../context/AuthContext";
+import { getMyFamily } from "../services/familyService";
 
 function Login() {
   const navigate = useNavigate();
-  const { login, isAuthenticated } = useAuth();
+  const [searchParams] = useSearchParams();
+  const { login, isAuthenticated, hasFamily } = useAuth();
 
-  const [email, setEmail] = useState("");
+  const sessionExpired = searchParams.get("session_expired") === "true";
+  const accountExists = searchParams.get("exists") === "true";
+  const initialEmail = searchParams.get("email") || "";
+
+  const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState("");
 
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to={hasFamily ? "/dashboard" : "/onboarding"} replace />;
   }
 
   async function handleSubmit(
@@ -33,9 +40,16 @@ function Login() {
 
       await login(email.trim(), password);
 
-      navigate("/dashboard", {
-        replace: true,
-      });
+      const family = await getMyFamily().catch(() => null);
+      if (family) {
+        navigate("/dashboard", {
+          replace: true,
+        });
+      } else {
+        navigate("/onboarding", {
+          replace: true,
+        });
+      }
     } catch (error) {
       console.error("Login failed:", error);
 
@@ -115,7 +129,7 @@ function Login() {
         >
           {/* Top navigation */}
           <header className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <Link to="/" className="flex items-center gap-3 group transition">
               <div
                 className="
                   flex h-10 w-10
@@ -126,6 +140,8 @@ function Login() {
                   text-[#2a234f]
                   shadow-lg
                   shadow-black/20
+                  transition
+                  group-hover:scale-105
                 "
               >
                 ₹
@@ -140,23 +156,32 @@ function Login() {
                   Personal finance
                 </p>
               </div>
-            </div>
+            </Link>
 
-            <div
-              className="
-                hidden
-                items-center
-                gap-2
-                text-[10px]
-                font-medium
-                uppercase
-                tracking-[0.2em]
-                text-white/40
-                sm:flex
-              "
-            >
-              <span className="h-1.5 w-1.5 rounded-full bg-[#ffb3c3]" />
-              Secure access
+            <div className="flex items-center gap-4">
+              <Link
+                to="/"
+                className="text-xs font-medium text-white/60 transition hover:text-white"
+              >
+                ← Back to home
+              </Link>
+
+              <div
+                className="
+                  hidden
+                  items-center
+                  gap-2
+                  text-[10px]
+                  font-medium
+                  uppercase
+                  tracking-[0.2em]
+                  text-white/40
+                  sm:flex
+                "
+              >
+                <span className="h-1.5 w-1.5 rounded-full bg-[#ffb3c3]" />
+                Secure access
+              </div>
             </div>
           </header>
 
@@ -300,7 +325,7 @@ function Login() {
                   "
                 >
                   {/* Card header */}
-                  <div className="mb-8">
+                  <div className="mb-6">
                     <div className="mb-4 flex items-center justify-between">
                       <span
                         className="
@@ -328,15 +353,40 @@ function Login() {
                     </h2>
 
                     <p className="mt-2 text-sm leading-6 text-[#77738a]">
-                      Sign in to continue to your family
-                      finance dashboard.
+                      Sign in to continue to your family finance dashboard.
                     </p>
                   </div>
+
+                  {/* Session Expired Notice */}
+                  {sessionExpired && (
+                    <div className="mb-5 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-900 shadow-xs">
+                      <AlertTriangle size={18} className="mt-0.5 shrink-0 text-amber-600" />
+                      <div>
+                        <p className="font-bold text-amber-950">Session expired</p>
+                        <p className="mt-0.5 text-amber-800">
+                          Your session has timed out for security. Please sign in again to resume.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Account Exists Notice */}
+                  {accountExists && (
+                    <div className="mb-5 flex items-start gap-3 rounded-2xl border border-blue-200 bg-blue-50 p-4 text-xs text-blue-900 shadow-xs">
+                      <AlertCircle size={18} className="mt-0.5 shrink-0 text-blue-600" />
+                      <div>
+                        <p className="font-bold text-blue-950">Account already exists</p>
+                        <p className="mt-0.5 text-blue-800">
+                          An account is already registered with this email. Please sign in with your password.
+                        </p>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Form */}
                   <form
                     onSubmit={handleSubmit}
-                    className="space-y-5"
+                    className="space-y-4"
                   >
                     {/* Email */}
                     <div>
@@ -479,10 +529,23 @@ function Login() {
                     </button>
                   </form>
 
+                  {/* Switch to Signup */}
+                  <div className="mt-5 text-center">
+                    <p className="text-xs text-[#77738a]">
+                      Don't have an account yet?{" "}
+                      <Link
+                        to="/signup"
+                        className="font-semibold text-[#2a234f] underline hover:text-[#1f1a3b]"
+                      >
+                        Sign up for free
+                      </Link>
+                    </p>
+                  </div>
+
                   {/* Card footer */}
                   <div
                     className="
-                      mt-7
+                      mt-6
                       flex
                       items-center
                       gap-2

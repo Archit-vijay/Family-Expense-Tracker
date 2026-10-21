@@ -32,6 +32,11 @@ Status: COMPLETE
 - [x] Persist authentication state
 - [x] Protected routes
 - [x] Keep login outside dashboard layout
+- [x] Multi-layered JWT session guard and automatic logout on token expiry
+- [x] Session expired banner and prompt on login
+- [x] Self-serve signup page (`/signup`) with duplicate account redirect
+- [x] Google sign-in integration support
+- [x] Interactive luxurious landing page (`/`) with 3D canvas wireframe sphere
 
 Status: COMPLETE
 
@@ -49,6 +54,9 @@ Status: COMPLETE
 - [x] Allow an existing account to be re-invited after family removal
 - [x] Verify the existing account password when accepting a re-invitation
 - [x] Reuse existing global accounts instead of creating duplicate users
+- [x] Shareable 6-character family join codes
+- [x] Interactive onboarding choice (`/onboarding`: Create New Family vs Join with Code)
+- [x] Admin family code display with 1-click copy and regeneration
 
 Status: COMPLETE
 
