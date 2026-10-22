@@ -123,7 +123,7 @@ function AcceptInvitation() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f7fb] px-4 py-8 sm:px-6 lg:px-8">
+    <div className="page-enter min-h-screen bg-[#f8f7fb] px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto w-full max-w-3xl">
         {/* Brand */}
         <header className="flex items-center justify-center">

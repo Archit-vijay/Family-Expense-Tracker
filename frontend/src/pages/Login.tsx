@@ -106,6 +106,7 @@ function Login() {
 
       <div
         className="
+          page-enter
           login-gradient
           min-h-screen
           overflow-y-auto

@@ -71,7 +71,7 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-b from-[#f4f1fa] via-[#f8f7fb] to-[#ffffff] text-[#2a234f] flex flex-col justify-between overflow-x-hidden">
+    <div className="page-enter relative min-h-screen bg-gradient-to-b from-[#f4f1fa] via-[#f8f7fb] to-[#ffffff] text-[#2a234f] flex flex-col justify-between overflow-x-hidden">
       {/* Ambient background blur circles */}
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
         <div className="absolute -top-32 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-[#ffb3c3]/20 blur-3xl" />
@@ -108,7 +108,7 @@ export default function Onboarding() {
       </header>
 
       {/* Main Content */}
-      <main className="relative z-10 mx-auto flex w-full max-w-4xl flex-1 flex-col justify-center px-6 py-12">
+      <main className="relative z-10 mx-auto flex w-full max-w-4xl flex-1 flex-col justify-center px-6 py-12 fade-up">
         <div className="text-center max-w-xl mx-auto mb-8">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-[#ffb3c3]/50 bg-[#ffb3c3]/20 px-3.5 py-1 text-xs font-bold text-[#2a234f] shadow-xs">
             <Sparkles size={13} className="text-[#2a234f]" />
@@ -123,22 +123,22 @@ export default function Onboarding() {
         </div>
 
         {/* Animated switch tab pill */}
-        <div className="mx-auto mb-8 flex max-w-sm rounded-2xl border border-[#e8e5ef] bg-white/90 p-1.5 shadow-md shadow-[#2a234f]/5 backdrop-blur-md">
+        <div className="mx-auto mb-8 flex w-full max-w-md sm:max-w-lg rounded-2xl border border-[#e8e5ef] bg-white/90 p-1.5 shadow-md shadow-[#2a234f]/5 backdrop-blur-md">
           <button
             type="button"
             onClick={() => {
               setActiveTab("create");
               setError(null);
             }}
-            className={`group relative flex flex-1 items-center justify-center gap-2 rounded-xl py-2.5 text-xs font-bold transition-all duration-300 transform active:scale-95 ${
+            className={`group relative flex flex-1 items-center justify-center gap-2.5 rounded-xl px-5 py-3 text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-300 transform active:scale-95 ${
               activeTab === "create"
-                ? "bg-[#2a234f] text-white shadow-md shadow-[#2a234f]/25 scale-[1.02]"
+                ? "bg-[#2a234f] text-white shadow-md shadow-[#2a234f]/25"
                 : "text-[#77738a] hover:text-[#2a234f] hover:bg-black/5 hover:-translate-y-0.5"
             }`}
           >
             <Home
-              size={15}
-              className={`transition-transform duration-300 ${
+              size={16}
+              className={`shrink-0 transition-transform duration-300 ${
                 activeTab === "create" ? "scale-110 text-[#ffb3c3]" : "group-hover:scale-110"
               }`}
             />
@@ -151,15 +151,15 @@ export default function Onboarding() {
               setActiveTab("join");
               setError(null);
             }}
-            className={`group relative flex flex-1 items-center justify-center gap-2 rounded-xl py-2.5 text-xs font-bold transition-all duration-300 transform active:scale-95 ${
+            className={`group relative flex flex-1 items-center justify-center gap-2.5 rounded-xl px-5 py-3 text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-300 transform active:scale-95 ${
               activeTab === "join"
-                ? "bg-[#2a234f] text-white shadow-md shadow-[#2a234f]/25 scale-[1.02]"
+                ? "bg-[#2a234f] text-white shadow-md shadow-[#2a234f]/25"
                 : "text-[#77738a] hover:text-[#2a234f] hover:bg-black/5 hover:-translate-y-0.5"
             }`}
           >
             <KeyRound
-              size={15}
-              className={`transition-transform duration-300 ${
+              size={16}
+              className={`shrink-0 transition-transform duration-300 ${
                 activeTab === "join" ? "scale-110 text-[#ffb3c3]" : "group-hover:scale-110"
               }`}
             />

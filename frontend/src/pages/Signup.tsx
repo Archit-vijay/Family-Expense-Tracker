@@ -116,6 +116,7 @@ function Signup() {
 
       <div
         className="
+          page-enter
           signup-gradient
           min-h-screen
           overflow-y-auto

@@ -35,7 +35,7 @@ export default function Landing() {
   }, []);
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-[#100c22] text-white selection:bg-[#ffb3c3] selection:text-[#2a234f]">
+    <div className="page-enter relative min-h-screen overflow-x-hidden bg-[#100c22] text-white selection:bg-[#ffb3c3] selection:text-[#2a234f]">
       {/* Background radial glows */}
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
         <div className="absolute -top-[20%] left-1/2 h-[750px] w-[750px] -translate-x-1/2 rounded-full bg-gradient-to-b from-[#2a234f]/50 via-[#443862]/20 to-transparent blur-3xl" />
@@ -191,7 +191,7 @@ export default function Landing() {
       </header>
 
       {/* Main Hero Section */}
-      <section className="relative z-10 mx-auto max-w-7xl px-6 pt-12 pb-20 sm:px-8 lg:pt-20 lg:pb-32">
+      <section className="relative z-10 mx-auto max-w-7xl px-6 pt-12 pb-20 sm:px-8 lg:pt-20 lg:pb-32 fade-up">
         <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-8">
           {/* Left Column: Headline, pitch, CTAs */}
           <div className="max-w-2xl">
@@ -212,7 +212,7 @@ export default function Landing() {
             </h1>
 
             <p className="mt-6 text-base leading-relaxed text-white/70 sm:text-lg">
-              Manage expenses across household members, monitor real-time spending velocity with AI risk radar, and collaborate seamlessly using shareable 6-character family codes.
+              Manage expenses across household members, monitor real-time spending velocity with AI-powered risk radar, and collaborate seamlessly using shareable family codes.
             </p>
 
             {/* Action buttons */}
@@ -235,8 +235,8 @@ export default function Landing() {
                 <p className="mt-0.5 text-xs text-white/50">Private Household Scoped</p>
               </div>
               <div>
-                <p className="text-xl font-extrabold text-[#ffb3c3] sm:text-2xl">8 AI Tools</p>
-                <p className="mt-0.5 text-xs text-white/50">Local Predictive Radars</p>
+                <p className="text-xl font-extrabold text-[#ffb3c3] sm:text-2xl">Real-Time</p>
+                <p className="mt-0.5 text-xs text-white/50">Predictive AI Radar</p>
               </div>
               <div>
                 <p className="text-xl font-extrabold text-white sm:text-2xl">Instant</p>
@@ -271,12 +271,10 @@ export default function Landing() {
                 </div>
 
                 {/* Mobile Preview Cards */}
-
-                {/* Mobile Preview Cards */}
-                <div className="rounded-2xl border border-white/15 bg-white/5 p-4 backdrop-blur-md">
+                <div className="group rounded-2xl border border-white/15 bg-white/5 p-4 backdrop-blur-md transition-all duration-300 hover:border-[#ffb3c3]/40 hover:bg-white/[0.08] hover:-translate-y-0.5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-xs font-bold text-white">
-                      <Sparkles size={14} className="text-[#ffb3c3]" />
+                      <Sparkles size={14} className="text-[#ffb3c3] transition-transform duration-300 group-hover:scale-110" />
                       <span>AI Budget Risk Alert</span>
                     </div>
                     <span className="rounded-full bg-emerald-400/20 px-2 py-0.5 text-[10px] font-semibold text-emerald-300">
@@ -288,12 +286,12 @@ export default function Landing() {
                   </p>
                 </div>
 
-                <div className="rounded-2xl border border-white/15 bg-white/5 p-4 backdrop-blur-md flex items-center justify-between">
+                <div className="group rounded-2xl border border-white/15 bg-white/5 p-4 backdrop-blur-md transition-all duration-300 hover:border-[#ffb3c3]/40 hover:bg-white/[0.08] hover:-translate-y-0.5 flex items-center justify-between">
                   <div>
                     <p className="text-xs font-bold text-white">Family Code Sharing</p>
                     <p className="text-[11px] text-white/60">One-click connect for your household</p>
                   </div>
-                  <span className="rounded-lg bg-[#ffb3c3]/20 px-2.5 py-1 font-mono text-xs font-bold text-[#ffb3c3]">
+                  <span className="rounded-lg bg-[#ffb3c3]/20 px-2.5 py-1 font-mono text-xs font-bold text-[#ffb3c3] transition-all duration-300 group-hover:bg-[#ffb3c3] group-hover:text-[#2a234f]">
                     K92X4P
                   </span>
                 </div>
@@ -375,14 +373,14 @@ export default function Landing() {
               Proactive AI that interprets your finances in real time.
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-white/70 sm:text-base">
-              Unlike generic expense apps that only report historical totals, Family Finance runs 8 specialized local AI capabilities that forecast velocity, catch anomalies, and advise your family before month-end.
+              Unlike generic expense apps that only report historical totals, Family Finance runs specialized local AI capabilities that forecast velocity, catch anomalies, and advise your family before month-end.
             </p>
           </div>
 
           <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {/* AI Capability 1 */}
-            <div className="rounded-3xl border border-white/15 bg-gradient-to-b from-white/[0.08] to-transparent p-6 backdrop-blur-md">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-400">
+            <div className="group rounded-3xl border border-white/15 bg-gradient-to-b from-white/[0.08] to-transparent p-6 backdrop-blur-md transition-all duration-300 hover:border-[#ffb3c3]/40 hover:bg-white/[0.12] hover:-translate-y-1">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-400 transition-transform duration-300 group-hover:scale-110">
                 <TrendingUp size={20} />
               </div>
               <h3 className="mt-4 text-base font-bold text-white">Budget Risk Radar</h3>
@@ -392,8 +390,8 @@ export default function Landing() {
             </div>
 
             {/* AI Capability 2 */}
-            <div className="rounded-3xl border border-white/15 bg-gradient-to-b from-white/[0.08] to-transparent p-6 backdrop-blur-md">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#ffb3c3]/20 text-[#ffb3c3]">
+            <div className="group rounded-3xl border border-white/15 bg-gradient-to-b from-white/[0.08] to-transparent p-6 backdrop-blur-md transition-all duration-300 hover:border-[#ffb3c3]/40 hover:bg-white/[0.12] hover:-translate-y-1">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#ffb3c3]/20 text-[#ffb3c3] transition-transform duration-300 group-hover:scale-110">
                 <Cpu size={20} />
               </div>
               <h3 className="mt-4 text-base font-bold text-white">Anomaly Detection</h3>
@@ -403,8 +401,8 @@ export default function Landing() {
             </div>
 
             {/* AI Capability 3 */}
-            <div className="rounded-3xl border border-white/15 bg-gradient-to-b from-white/[0.08] to-transparent p-6 backdrop-blur-md">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/20 text-blue-400">
+            <div className="group rounded-3xl border border-white/15 bg-gradient-to-b from-white/[0.08] to-transparent p-6 backdrop-blur-md transition-all duration-300 hover:border-[#ffb3c3]/40 hover:bg-white/[0.12] hover:-translate-y-1">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/20 text-blue-400 transition-transform duration-300 group-hover:scale-110">
                 <Bot size={20} />
               </div>
               <h3 className="mt-4 text-base font-bold text-white">Conversational Advisor</h3>
@@ -414,8 +412,8 @@ export default function Landing() {
             </div>
 
             {/* AI Capability 4 */}
-            <div className="rounded-3xl border border-white/15 bg-gradient-to-b from-white/[0.08] to-transparent p-6 backdrop-blur-md">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/20 text-purple-400">
+            <div className="group rounded-3xl border border-white/15 bg-gradient-to-b from-white/[0.08] to-transparent p-6 backdrop-blur-md transition-all duration-300 hover:border-[#ffb3c3]/40 hover:bg-white/[0.12] hover:-translate-y-1">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/20 text-purple-400 transition-transform duration-300 group-hover:scale-110">
                 <PieChart size={20} />
               </div>
               <h3 className="mt-4 text-base font-bold text-white">1-Click Recommendations</h3>
@@ -457,16 +455,16 @@ export default function Landing() {
 
               {/* Code visual mock */}
               <div className="flex justify-center">
-                <div className="w-full max-w-sm rounded-3xl border border-white/20 bg-white/10 p-6 backdrop-blur-xl shadow-2xl">
+                <div className="group w-full max-w-sm rounded-3xl border border-white/20 bg-white/10 p-6 backdrop-blur-xl shadow-2xl transition-all duration-300 hover:border-[#ffb3c3]/40 hover:bg-white/[0.14] hover:-translate-y-1">
                   <p className="text-xs font-semibold uppercase tracking-wider text-[#ffb3c3]">
                     Household Access Pass
                   </p>
                   <p className="mt-1 text-lg font-bold text-white">Sharma Family Space</p>
-                  <div className="mt-4 flex items-center justify-between rounded-2xl border border-white/15 bg-black/30 p-3.5">
+                  <div className="mt-4 flex items-center justify-between rounded-2xl border border-white/15 bg-black/30 p-3.5 transition-all duration-300 group-hover:border-[#ffb3c3]/30">
                     <span className="font-mono text-xl font-black tracking-widest text-white">
                       LW4YNN
                     </span>
-                    <span className="rounded-lg bg-[#ffb3c3] px-2.5 py-1 text-xs font-bold text-[#2a234f]">
+                    <span className="rounded-lg bg-[#ffb3c3] px-2.5 py-1 text-xs font-bold text-[#2a234f] transition-all duration-300 group-hover:scale-105">
                       Active
                     </span>
                   </div>
@@ -497,8 +495,8 @@ export default function Landing() {
           </div>
 
           <div className="mt-14 grid gap-8 sm:grid-cols-3">
-            <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-7 backdrop-blur-md">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-400">
+            <div className="group rounded-3xl border border-white/10 bg-white/[0.04] p-7 backdrop-blur-md transition-all duration-300 hover:border-[#ffb3c3]/40 hover:bg-white/[0.08] hover:-translate-y-1">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-400 transition-transform duration-300 group-hover:scale-110">
                 <Lock size={22} />
               </div>
               <h3 className="mt-5 text-lg font-bold text-white">Local AI Privacy</h3>
@@ -507,8 +505,8 @@ export default function Landing() {
               </p>
             </div>
 
-            <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-7 backdrop-blur-md">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#ffb3c3]/15 text-[#ffb3c3]">
+            <div className="group rounded-3xl border border-white/10 bg-white/[0.04] p-7 backdrop-blur-md transition-all duration-300 hover:border-[#ffb3c3]/40 hover:bg-white/[0.08] hover:-translate-y-1">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#ffb3c3]/15 text-[#ffb3c3] transition-transform duration-300 group-hover:scale-110">
                 <ShieldCheck size={22} />
               </div>
               <h3 className="mt-5 text-lg font-bold text-white">PostgreSQL Scoping</h3>
@@ -517,8 +515,8 @@ export default function Landing() {
               </p>
             </div>
 
-            <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-7 backdrop-blur-md">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-500/15 text-blue-400">
+            <div className="group rounded-3xl border border-white/10 bg-white/[0.04] p-7 backdrop-blur-md transition-all duration-300 hover:border-[#ffb3c3]/40 hover:bg-white/[0.08] hover:-translate-y-1">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-500/15 text-blue-400 transition-transform duration-300 group-hover:scale-110">
                 <Users size={22} />
               </div>
               <h3 className="mt-5 text-lg font-bold text-white">Session Guard & Auto-Logout</h3>

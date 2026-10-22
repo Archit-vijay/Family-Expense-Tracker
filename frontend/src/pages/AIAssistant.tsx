@@ -16,6 +16,7 @@ import {
 } from "react";
 
 import { useAuth } from "../context/AuthContext";
+import ContentState from "../components/ContentState";
 import {
   sendAIMessage,
   type AIChatMessage,
@@ -37,12 +38,21 @@ function AIAssistant() {
 
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
   const nextMessageId = useRef(
     messages.reduce((max, m) => Math.max(max, m.id), 0) + 1,
   );
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+  // Initial load animation mirroring Dashboard
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 280);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Sync if user identity changes, on initial mount, or on page navigation
   useEffect(() => {
@@ -133,7 +143,7 @@ function AIAssistant() {
   return (
     <div className="page-enter">
       {/* Header */}
-      <section className="mb-8">
+      <section className="mb-8 fade-up">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#ffb3c3]/30 text-[#2a234f]">
@@ -167,8 +177,15 @@ function AIAssistant() {
         </p>
       </section>
 
-      {/* Chat container */}
-      <section className="flex min-h-[600px] flex-col overflow-hidden rounded-2xl border border-[#e8e5ef] bg-white shadow-sm">
+      {isLoading ? (
+        <ContentState
+          variant="loading"
+          title="Connecting to AI Financial Assistant"
+          description="Initializing conversational workspace and grounding models..."
+        />
+      ) : (
+        /* Chat container */
+        <section className="flex min-h-[600px] flex-col overflow-hidden rounded-2xl border border-[#e8e5ef] bg-white shadow-sm fade-up">
         {/* Chat header */}
         <div className="flex items-center justify-between border-b border-[#e8e5ef] px-5 py-4 sm:px-6">
           <div className="flex items-center gap-3">
@@ -290,6 +307,7 @@ function AIAssistant() {
           </p>
         </div>
       </section>
+      )}
     </div>
   );
 }
