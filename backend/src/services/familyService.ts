@@ -231,3 +231,75 @@ export async function regenerateFamilyCode(familyId: number) {
   );
   return result.rows[0]?.code ?? null;
 }
+
+export async function renameFamily(familyId: number, newName: string) {
+  const trimmed = newName.trim();
+  if (trimmed.length < 2) {
+    throw new Error("Family name must be at least 2 characters long.");
+  }
+
+  const result = await pool.query(
+    `
+      UPDATE families
+      SET name = $1, updated_at = NOW()
+      WHERE id = $2
+      RETURNING id, name, code;
+    `,
+    [trimmed, familyId]
+  );
+
+  return result.rows[0];
+}
+
+export async function exportTransactionsCSV(familyId: number): Promise<string> {
+  const result = await pool.query(
+    `
+      SELECT
+        t.id,
+        t.title,
+        t.amount,
+        t.type,
+        COALESCE(c.name, 'Uncategorized') AS category,
+        COALESCE(fm.name, 'Unknown') AS member_name,
+        TO_CHAR(t.transaction_date, 'YYYY-MM-DD') AS transaction_date,
+        TO_CHAR(t.created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at
+      FROM transactions t
+      LEFT JOIN categories c ON c.id = t.category_id
+      LEFT JOIN family_members fm ON fm.id = t.member_id
+      WHERE t.family_id = $1
+        AND t.is_deleted = FALSE
+      ORDER BY t.transaction_date DESC, t.id DESC;
+    `,
+    [familyId]
+  );
+
+  const escape = (val: any) => {
+    if (val === null || val === undefined) return '""';
+    const s = String(val).replace(/"/g, '""');
+    return `"${s}"`;
+  };
+
+  const headers = [
+    "Transaction ID",
+    "Title",
+    "Amount (INR)",
+    "Type",
+    "Category",
+    "Family Member",
+    "Transaction Date",
+    "Created At",
+  ];
+
+  const rows = result.rows.map((r) => [
+    escape(r.id),
+    escape(r.title),
+    escape(r.amount),
+    escape(r.type),
+    escape(r.category),
+    escape(r.member_name),
+    escape(r.transaction_date),
+    escape(r.created_at),
+  ]);
+
+  return [headers.join(","), ...rows.map((row) => row.join(","))].join("\r\n");
+}

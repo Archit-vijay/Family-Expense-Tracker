@@ -1,0 +1,201 @@
+import { AlertCircle, ArrowLeft, KeyRound, Loader2, ShieldCheck } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+
+import { useAuth } from "../context/AuthContext";
+import { verify2FALogin } from "../services/authService";
+import { getMyFamily } from "../services/familyService";
+
+export function Login2FA() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { setSession } = useAuth();
+
+  const tempToken: string | undefined = location.state?.tempToken;
+  const userEmail: string | undefined = location.state?.email;
+
+  const [digits, setDigits] = useState<string[]>(["", "", "", "", "", ""]);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  useEffect(() => {
+    // If user arrived without tempToken, prompt them back to login
+    if (!tempToken) {
+      setError("No active two-factor authentication session found. Please log in first.");
+    } else {
+      // Focus first input box
+      inputRefs.current[0]?.focus();
+    }
+  }, [tempToken]);
+
+  function handleDigitChange(index: number, value: string) {
+    if (error) setError(null);
+
+    // If user pastes multi-character code
+    if (value.length > 1) {
+      const clean = value.replace(/\D/g, "").slice(0, 6);
+      if (clean.length > 0) {
+        const newDigits = [...digits];
+        for (let i = 0; i < 6; i++) {
+          newDigits[i] = clean[i] || "";
+        }
+        setDigits(newDigits);
+        const focusIdx = Math.min(clean.length, 5);
+        inputRefs.current[focusIdx]?.focus();
+        if (clean.length === 6) {
+          executeVerification(newDigits.join(""));
+        }
+      }
+      return;
+    }
+
+    const digit = value.replace(/\D/g, "");
+    const newDigits = [...digits];
+    newDigits[index] = digit;
+    setDigits(newDigits);
+
+    if (digit && index < 5) {
+      inputRefs.current[index + 1]?.focus();
+    }
+
+    if (newDigits.every((d) => d !== "")) {
+      executeVerification(newDigits.join(""));
+    }
+  }
+
+  function handleKeyDown(index: number, e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Backspace" && !digits[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    }
+  }
+
+  async function executeVerification(code: string) {
+    if (!tempToken) {
+      setError("Session expired. Please log in again.");
+      return;
+    }
+
+    if (code.length !== 6) {
+      setError("Please enter the complete 6-digit code.");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const result = await verify2FALogin(tempToken, code);
+      setSession(result.token, result.user);
+
+      const family = await getMyFamily().catch(() => null);
+      if (family) {
+        navigate("/dashboard", { replace: true });
+      } else {
+        navigate("/onboarding", { replace: true });
+      }
+    } catch (err: any) {
+      setError(err?.message || "Invalid two-factor authentication code.");
+      // Clear digits and refocus first
+      setDigits(["", "", "", "", "", ""]);
+      inputRefs.current[0]?.focus();
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    executeVerification(digits.join(""));
+  }
+
+  return (
+    <div className="relative flex min-h-screen w-full items-center justify-center bg-[#17132f] p-4 text-white">
+      {/* Background ambient glows */}
+      <div className="pointer-events-none absolute -left-20 -top-20 h-96 w-96 rounded-full bg-[#ffb3c3]/15 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-20 -right-20 h-96 w-96 rounded-full bg-[#2a234f]/40 blur-3xl" />
+
+      <div className="relative z-10 w-full max-w-md rounded-3xl border border-white/10 bg-[#201a3d]/90 p-8 shadow-2xl backdrop-blur-xl sm:p-10">
+        {/* Header Icon */}
+        <div className="mb-6 flex justify-center">
+          <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-[#ffb3c3]/20 to-[#ffb3c3]/5 border border-[#ffb3c3]/30 shadow-lg shadow-[#ffb3c3]/10">
+            <ShieldCheck className="h-10 w-10 text-[#ffb3c3]" />
+            <div className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-[#ffb3c3] text-[#17132f]">
+              <KeyRound size={13} className="stroke-[2.5]" />
+            </div>
+          </div>
+        </div>
+
+        {/* Title */}
+        <div className="mb-8 text-center">
+          <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
+            Two-Factor Verification
+          </h1>
+          <p className="mt-2 text-xs leading-relaxed text-[#c4c1d6]">
+            Enter the 6-digit security code generated by your authenticator app
+            {userEmail ? <span className="block font-medium text-white/90 mt-0.5">({userEmail})</span> : null}.
+          </p>
+        </div>
+
+        {/* Error Notice */}
+        {error && (
+          <div className="mb-6 flex items-start gap-2.5 rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4 text-xs text-rose-200">
+            <AlertCircle size={16} className="shrink-0 text-rose-400 mt-0.5" />
+            <span className="leading-relaxed">{error}</span>
+          </div>
+        )}
+
+        {/* OTP Input Form */}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="flex justify-between gap-2 sm:gap-3">
+            {digits.map((digit, idx) => (
+              <input
+                key={idx}
+                ref={(el) => {
+                  inputRefs.current[idx] = el;
+                }}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={idx === 0 ? 6 : 1}
+                value={digit}
+                onChange={(e) => handleDigitChange(idx, e.target.value)}
+                onKeyDown={(e) => handleKeyDown(idx, e)}
+                disabled={isLoading || !tempToken}
+                className="h-13 w-12 rounded-xl border border-white/15 bg-white/5 text-center text-xl font-bold text-white transition placeholder-white/20 outline-none focus:border-[#ffb3c3] focus:bg-white/10 focus:ring-4 focus:ring-[#ffb3c3]/20 disabled:opacity-40"
+              />
+            ))}
+          </div>
+
+          <button
+            type="submit"
+            disabled={isLoading || digits.some((d) => !d) || !tempToken}
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#ffb3c3] font-semibold text-[#1f1a3b] shadow-lg shadow-[#ffb3c3]/20 transition hover:bg-[#ff9fb4] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 size={18} className="animate-spin" />
+                <span>Verifying...</span>
+              </>
+            ) : (
+              <span>Verify & Continue</span>
+            )}
+          </button>
+        </form>
+
+        {/* Back Link */}
+        <div className="mt-8 text-center">
+          <Link
+            to="/login"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#c4c1d6] transition hover:text-white"
+          >
+            <ArrowLeft size={14} />
+            <span>Back to sign in</span>
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default Login2FA;

@@ -284,3 +284,51 @@ export async function getAIBudgetRisksController(
     });
   }
 }
+
+export async function getAIHealthController(
+  _req: AuthenticatedRequest,
+  res: Response,
+) {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2000);
+
+    const ollamaUrl = process.env.OLLAMA_BASE_URL || "http://localhost:11434";
+    const response = await fetch(`${ollamaUrl}/api/tags`, {
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (response.ok) {
+      res.json({
+        success: true,
+        data: {
+          status: "online",
+          model: "qwen2.5:3b",
+          provider: "Local Ollama",
+        },
+      });
+      return;
+    }
+
+    res.json({
+      success: true,
+      data: {
+        status: "offline",
+        model: "qwen2.5:3b",
+        provider: "Local Ollama",
+        message: "Ollama returned non-200 status.",
+      },
+    });
+  } catch {
+    res.json({
+      success: true,
+      data: {
+        status: "offline",
+        model: "qwen2.5:3b",
+        provider: "Local Ollama",
+        message: "Ollama instance not responding.",
+      },
+    });
+  }
+}

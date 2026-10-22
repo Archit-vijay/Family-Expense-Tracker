@@ -202,3 +202,27 @@ export async function getFinancialInsights(
 
   return result.data;
 }
+
+export interface AIHealthStatus {
+  status: "online" | "offline";
+  model: string;
+  provider: string;
+  message?: string;
+}
+
+export async function getAIHealth(): Promise<AIHealthStatus> {
+  try {
+    const response = await fetch(`${API_URL}/ai/health`, {
+      headers: getAuthHeaders(),
+    });
+    const result = await response.json();
+    return result.data;
+  } catch {
+    return {
+      status: "offline",
+      model: "qwen2.5:3b",
+      provider: "Local Ollama",
+      message: "Connection to server failed.",
+    };
+  }
+}

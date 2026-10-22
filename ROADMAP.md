@@ -324,77 +324,67 @@ Status: COMPLETE
 
 ---
 
-# Phase 10 — Reports & Analytics
+# Phase 10 — Settings & Workspace Preferences
 
-Reports should turn transaction data into useful financial insight.
+Complete configuration suite for accounts, family spaces, custom categories, and data management:
 
-Planned functionality:
+- [x] Profile display name update with reactive state synchronization
+- [x] Secure password change with current password validation and bcrypt hashing
+- [x] Family space rename (Admin-only)
+- [x] Family access code display, 1-click copy, and regeneration
+- [x] Custom household categories creation and deletion for both expense and income
+- [x] Live local Ollama engine health check (`qwen2.5:3b`)
+- [x] AI chat history clearing
+- [x] One-click transaction data export in RFC-4180 CSV format
+- [x] Removal of redundant Reports section (consolidated into Dashboard & AI Insights)
 
-- [ ] Reports database/API requirements
-- [ ] Monthly income vs expense
-- [ ] Category spending breakdown
-- [ ] Spending trends
-- [ ] Family-member spending breakdown
-- [ ] Date-range filtering
-- [ ] Report summary cards
-- [ ] Useful charts/visualizations
-- [ ] Reports page UI
-- [ ] Connect reports to dashboard insights
+Status: COMPLETE
 
-Charts should be added only where they communicate something useful.
+---
 
-Status: PLANNED
-
-# Phase 10 — Recurring Transactions
+# Phase 11 — Recurring Transactions & Subscriptions
 
 Potential recurring transaction system:
 
-- [ ] Design recurring transaction model
-- [ ] Frequency rules
-- [ ] Start/end dates
-- [ ] Automatic transaction generation
-- [ ] Edit recurring transaction
-- [ ] Disable recurring transaction
-- [ ] UI for recurring transactions
-
-This should be designed carefully because recurring transactions affect database behavior and financial correctness.
+- [ ] Design recurring transaction model (`recurring_transactions` table)
+- [ ] Frequency rules (daily, weekly, monthly, quarterly, yearly)
+- [ ] Due-date calculation and next execution tracking
+- [ ] Automatic or 1-click transaction generation
+- [ ] Edit/pause/resume/cancel recurring transaction
+- [ ] Recurring transactions page UI & upcoming bill radar
+- [ ] Subscription tracking & recurring monthly expense summaries
 
 Status: PLANNED
 
 ---
 
-# Phase 11 — Notifications & Financial Alerts
+# Phase 12 — Notifications & Financial Alerts
 
 Potential alerts:
 
 - [ ] Budget nearing limit
 - [ ] Budget exceeded
-- [ ] Other useful financial reminders
-- [ ] Notification model
-- [ ] Notification UI
-- [ ] Read/unread state
-
-Notifications should be added only after the underlying budget/report functionality is stable.
+- [ ] Recurring bill due soon alerts
+- [ ] Notification model & in-app bell center
+- [ ] Notification UI drawer / dropdown
+- [ ] Read/unread state & clear all
 
 Status: FUTURE
 
 ---
 
-# Phase 12 — Data Export
+# Phase 13 — Advanced Data Export & Reports
 
-Potential functionality:
-
-- [ ] Export transactions
-- [ ] CSV export
-- [ ] Potential report export
-- [ ] Date-range export
-- [ ] Filter-aware export
+- [x] Basic RFC-4180 CSV transaction export (Implemented in Phase 10 Settings)
+- [ ] Date-range filtered export
+- [ ] Category & member filtered export
+- [ ] Formatted PDF financial summary statement export
 
 Status: FUTURE
 
 ---
 
-# Phase 13 — DevOps & Production Deployment
+# Phase 14 — DevOps & Production Deployment
 
 DevOps is a dedicated future learning phase. It should begin after the major application functionality is sufficiently complete, rather than being started alongside the current AI work. The purpose is to learn how to take the application from a working local project to a repeatable, observable production deployment.
 
@@ -435,7 +425,7 @@ Status: FUTURE
 
 ---
 
-# Phase 14 — Production Hardening & Portfolio Readiness
+# Phase 15 — Production Hardening & Portfolio Readiness
 
 After deployment is working, perform a final production-readiness pass across the deployed system.
 
@@ -463,14 +453,14 @@ Status: FUTURE
 
 Unless a new product requirement changes priorities, the recommended development order is:
 
-1. AI Financial Intelligence
-2. Budget management
-3. Reports & analytics
-4. Recurring transactions
-5. Notifications/alerts
-6. Data export
-7. DevOps & production deployment
-8. Production hardening & portfolio readiness
+1. AI Financial Intelligence (Complete)
+2. Budget Management (Complete)
+3. Settings & Workspace Preferences (Complete - Reports consolidated)
+4. Recurring Transactions & Subscriptions (Planned next)
+5. Notifications & Alerts
+6. Advanced Data Export
+7. DevOps & Production Deployment
+8. Production Hardening & Portfolio Readiness
 
 The order can change when there is a strong technical or product reason.
 

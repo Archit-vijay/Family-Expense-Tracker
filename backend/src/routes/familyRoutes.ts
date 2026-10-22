@@ -6,6 +6,8 @@ import {
   joinFamilyController,
   getFamilyCodeController,
   regenerateFamilyCodeController,
+  renameFamilyController,
+  exportTransactionsCSVController,
 } from "../controllers/familyController.js";
 
 import { authMiddleware } from "../middleware/authMiddleware.js";
@@ -30,6 +32,21 @@ router.post(
   "/join",
   authMiddleware,
   joinFamilyController,
+);
+
+// Admin-only family rename
+router.patch(
+  "/name",
+  authMiddleware,
+  requireRole("admin"),
+  renameFamilyController,
+);
+
+// Export transactions CSV
+router.get(
+  "/export",
+  authMiddleware,
+  exportTransactionsCSVController,
 );
 
 // Admin-only code management

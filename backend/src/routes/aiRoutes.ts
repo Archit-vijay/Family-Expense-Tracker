@@ -5,11 +5,18 @@ import {
   getFinancialInsightsController,
   getAIBudgetRecommendationsController,
   getAIBudgetRisksController,
+  getAIHealthController,
 } from "../controllers/aiController.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
 import { requireRole } from "../middleware/roleMiddleware.js";
 
 const router = Router();
+
+router.get(
+  "/health",
+  authMiddleware,
+  getAIHealthController,
+);
 
 router.post(
   "/chat",

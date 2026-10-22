@@ -714,6 +714,58 @@ Budget risk detection acts as an early-warning radar that identifies overspendin
 
 ---
 
+# Settings, Workspace Management & Data Preferences Architecture
+
+## Redundant Reports Elimination & Navigation Consolidation
+To streamline the user experience and avoid analytical redundancy:
+- Standard analytical charts and spend summaries are already thoroughly surfaced in the core Dashboard (`/dashboard`) and AI Insights (`/insights`).
+- The separate placeholder `/reports` section was removed from both the desktop collapsible sidebar and mobile navigation drawer.
+- The frontend routing safely redirects any lingering `/reports` requests to `/insights` (`<Navigate to="/insights" replace />`).
+
+## Reactive Profile Synchronization
+When a user updates their profile name in Settings:
+- The backend updates both the global `users.name` record and any linked active `family_members.name` record for the user's family.
+- Frontend `AuthContext` exposes `updateUser(partialUser)`, updating localStorage and state so that UI elements (top bar greetings, user avatars, member lists) update across the application without requiring a full page refresh.
+
+## Custom Categories & Relational Dependency Guard
+- Families can define custom expense and income categories through `POST /api/categories`.
+- To prevent orphan records and historical data corruption, `DELETE /api/categories/:id` validates that:
+  1. No active (non-soft-deleted) transactions reference the `category_id`.
+  2. No monthly budget allocations reference the `category_id`.
+- If either condition is violated, the backend rejects the deletion with HTTP `400 Bad Request` and a descriptive message indicating the number of dependent transactions or budgets.
+
+## RFC-4180 Compliant CSV Export
+The data export endpoint (`GET /api/family/export`):
+- Generates a standard RFC-4180 CSV stream directly on the backend.
+- Escapes fields containing commas, double quotes, or newlines by enclosing in quotes and doubling internal quotes.
+- Includes transaction date, title, amount, type, category, family member name (`fm.id = t.member_id`), and creation timestamp.
+- Streams the result with proper `Content-Disposition: attachment; filename="family-transactions-YYYY-MM-DD.csv"` and `Content-Type: text/csv` headers for reliable cross-browser download handling.
+
+## Standard RFC 6238 TOTP Two-Factor Authentication
+To provide modern account defense without introducing external third-party authentication services:
+- **Zero-Dependency Implementation (`backend/src/utils/totp.ts`)**: Built directly with Node.js built-in `crypto` module (Base32 encoding/decoding and HMAC-SHA1).
+- **Authenticator Compatibility**: Produces standard `otpauth://` URIs compatible with Google Authenticator, Microsoft Authenticator, Authy, Apple Passwords, and 1Password.
+- **Two-Step Login Flow**:
+  - Valid primary password login for a 2FA-enabled account issues a short-lived `2fa_pending` JWT (`tempToken`, expires in 5 minutes).
+  - The client transitions to a dedicated `/login/2fa` view.
+  - The user provides the 6-digit TOTP code; `POST /api/auth/login/2fa` validates the code against `users.two_factor_secret` with clock-drift window tolerance before issuing the authoritative 7-day application JWT.
+- **Settings Management**: Users can activate 2FA by scanning an in-app rendered QR code (formatted in brand palette `#2A234F`) or copying the Base32 secret key, confirming with a 6-digit code, and disable 2FA after verifying their account password.
+
+## Password Change Security Cooldown
+- To prevent credential stuffing or automated password churning, `changeUserPassword` checks `users.password_changed_at`.
+- A mandatory cooldown (1 hour / configurable) is enforced between password changes, displaying the exact remaining minutes on premature attempts.
+
+## Privacy-Centric Email Masking with Re-Authentication
+- Profile email display is obfuscated by default (`jo••••••@••••••.com`) to guard against shoulder surfing or unintentional exposure in shared family settings.
+- The user can click "Reveal Full Email", which prompts for account password verification (`POST /api/auth/verify-password`) before revealing the plaintext email for that active session.
+
+## Strict Role-Based Settings Visibility
+- **Family Workspace**: Contains workspace renaming and family code regeneration. Strictly hidden from non-admin users.
+- **Custom Categories**: Creating and managing household categories is visible to `admin` and `member` users. Strictly hidden from `viewer` users.
+- Any direct attempt to navigate to unauthorized tabs automatically falls back to `Profile & Security`.
+
+---
+
 # DevOps & Deployment — Planned Direction
 
 DevOps is a deliberate future phase of the project because the project is also intended to teach practical deployment and DevOps skills. It should not be started immediately alongside the current AI work. The intended point is after the major application features are sufficiently complete and the application has enough functionality to make production deployment meaningful.

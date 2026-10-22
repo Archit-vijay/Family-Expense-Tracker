@@ -10,6 +10,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
+import Login2FA from "./pages/Login2FA";
 import Signup from "./pages/Signup";
 import Onboarding from "./pages/Onboarding";
 import AcceptInvitation from "./pages/AcceptInvitation";
@@ -17,7 +18,6 @@ import AcceptInvitation from "./pages/AcceptInvitation";
 import Dashboard from "./pages/Dashboard";
 import Transactions from "./pages/Transactions";
 import Budgets from "./pages/Budgets";
-import Reports from "./pages/Reports";
 import Family from "./pages/Family";
 import Settings from "./pages/Settings";
 
@@ -41,6 +41,16 @@ function App() {
         <Route
           path="/login"
           element={<Login />}
+        />
+
+        <Route
+          path="/login/2fa"
+          element={<Login2FA />}
+        />
+
+        <Route
+          path="/login-2fa"
+          element={<Navigate to="/login/2fa" replace />}
         />
 
         <Route
@@ -97,7 +107,7 @@ function App() {
 
             <Route
               path="/reports"
-              element={<Reports />}
+              element={<Navigate to="/insights" replace />}
             />
 
             <Route

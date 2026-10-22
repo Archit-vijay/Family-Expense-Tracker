@@ -90,3 +90,44 @@ export async function regenerateFamilyCode(): Promise<string> {
 
   return result.data?.code;
 }
+
+export async function renameFamily(name: string): Promise<{ id: number; name: string }> {
+  const response = await authFetch(`${API_URL}/family/name`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ name }),
+  });
+
+  const result = await response.json();
+  if (!response.ok) {
+    throw new Error(result.message || "Failed to rename family.");
+  }
+
+  return result.data;
+}
+
+export async function downloadTransactionsCSV(): Promise<void> {
+  const response = await authFetch(`${API_URL}/family/export`);
+  if (!response.ok) {
+    let errMsg = "Failed to export family transactions.";
+    try {
+      const errJson = await response.json();
+      if (errJson?.message) errMsg = errJson.message;
+    } catch {
+      // fallback to default
+    }
+    throw new Error(errMsg);
+  }
+
+  const blob = await response.blob();
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `family_transactions_${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  window.URL.revokeObjectURL(url);
+  document.body.removeChild(a);
+}

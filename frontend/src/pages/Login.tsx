@@ -38,7 +38,18 @@ function Login() {
       setIsLoading(true);
       setError("");
 
-      await login(email.trim(), password);
+      const loginRes = await login(email.trim(), password);
+
+      if (loginRes?.requires2FA && loginRes?.tempToken) {
+        navigate("/login/2fa", {
+          state: {
+            tempToken: loginRes.tempToken,
+            email: email.trim(),
+          },
+          replace: true,
+        });
+        return;
+      }
 
       const family = await getMyFamily().catch(() => null);
       if (family) {

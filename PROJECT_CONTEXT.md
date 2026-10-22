@@ -681,10 +681,38 @@ Budget Management is fully implemented across the stack:
 - **Dashboard Integration**: `DashboardBudgetWidget` provides high-level budget visibility directly on `/dashboard` with immediate attention tags and direct navigation to `/budgets`.
 - **AI Tool Grounding**: Added `get_budget_status` to Ollama tools and executor, allowing the AI assistant and dashboard card to answer questions about budget limits and progress deterministically.
 
+# Phase 10 — Settings & Workspace Preferences (COMPLETE)
+
+Settings is fully implemented as a centralized administration, personalization, and security hub (`/settings`), replacing the last placeholder in the application:
+- **Navigation Cleanup**: The redundant `/reports` section was removed from both desktop sidebar and mobile navigation drawer, as the Dashboard and AI Insights already provide all reporting and analytics. `/reports` routes are safely redirected to `/insights`.
+- **Role-Based Tab & Settings Visibility**:
+  - The **Family Workspace** tab is strictly visible only to `admin` users.
+  - The **Custom Categories** tab is visible only to `admin` and `member` users, and hidden completely for `viewer` users.
+  - Active tab fallbacks ensure non-authorized roles are automatically redirected to `Profile & Security` if attempting to view unauthorized tabs.
+- **Privacy-First Email Masking**:
+  - Account email address is masked by default on the Profile & Security screen (e.g. `jo••••••@••••••.com`).
+  - Users can click **Reveal Full Email**, requiring verification of their account password via `POST /api/auth/verify-password` before displaying the full email for the session, with a 1-click **Hide Email** toggle to re-mask.
+- **Password Security Cooldown**:
+  - Migration `014_add_user_security_and_2fa.sql` adds `password_changed_at` to the `users` table.
+  - Password updates enforce an active security cooldown (1 hour / configurable) to prevent automated credential churning, displaying the exact remaining minutes in case of early re-attempts and showing the timestamp of the last password change.
+- **Two-Factor Authentication (TOTP 2FA)**:
+  - Standard RFC 6238 time-based one-time password (TOTP) implementation in `backend/src/utils/totp.ts` with zero external dependencies using Node.js `crypto` (Base32 encoding/decoding and HMAC-SHA1).
+  - Works with Google Authenticator, Microsoft Authenticator, Authy, Apple Passwords, and 1Password.
+  - Settings allows 2FA activation with a scannable branded QR code (matching the `#2A234F` palette), copyable Base32 secret key, 6-digit confirmation activation, and password-confirmed 2FA disabling.
+  - Dedicated full-screen luxury login verification page at `/login/2fa` for accounts with 2FA enabled, issuing short-lived `2fa_pending` tokens before granting the full 7-day session.
+- **Custom Household Categories**:
+  - Support for creating custom expense and income categories with duplicate prevention per family.
+  - Category deletion is protected by an active dependency guard: categories referenced by active transactions (`is_deleted = FALSE`) or active monthly budgets cannot be deleted, preserving relational integrity.
+- **AI & Data Preferences**:
+  - Live health check pinging local Ollama engine (`qwen2.5:3b`) via `GET /api/ai/health`.
+  - 1-click button to clear persisted AI chat history.
+  - 1-click RFC-4180 compliant CSV export of family transaction history (`GET /api/family/export`), with fixed column mapping for member relationships.
+  - Active session security guard overview.
+
 ## Immediate Next Milestone
 
-With all 8 planned AI capabilities and Budget Management complete, the immediate next milestone is:
-- **Phase 10 — Reports & Analytics**: Long-term financial charts, trend reports, multi-period comparative visualizations, and category analytics.
+With Settings & Workspace Preferences complete, the immediate next milestone is:
+- **Phase 11 — Recurring Transactions & Subscriptions**: Managing recurring bills, subscriptions, and periodic income with automated generation, frequency cadences (monthly, weekly, yearly), and upcoming payment reminders.
 
 ---
 

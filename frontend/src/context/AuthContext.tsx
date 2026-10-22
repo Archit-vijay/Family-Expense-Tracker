@@ -15,6 +15,7 @@ import {
 import {
   login as loginUser,
   type AuthUser,
+  type LoginResult,
 } from "../services/authService";
 
 import {
@@ -31,12 +32,13 @@ interface AuthContextType {
   login: (
     email: string,
     password: string,
-  ) => Promise<void>;
+  ) => Promise<LoginResult>;
   setSession: (
     token: string,
     user: AuthUser,
   ) => void;
   refreshFamily: () => Promise<MyFamily | null>;
+  updateUser: (updatedUser: AuthUser) => void;
   logout: () => void;
 }
 
@@ -140,19 +142,32 @@ export function AuthProvider({
   async function login(
     email: string,
     password: string,
-  ) {
+  ): Promise<LoginResult> {
     const data = await loginUser({
       email,
       password,
     });
 
-    setSession(data.token, data.user);
-    await refreshFamily();
+    if (data.requires2FA) {
+      return data;
+    }
+
+    if (data.token && data.user) {
+      setSession(data.token, data.user);
+      await refreshFamily();
+    }
+
+    return data;
   }
 
   function logout() {
     handleUnauthorized();
   }
+
+  const updateUser = useCallback((updatedUser: AuthUser) => {
+    setUser(updatedUser);
+    localStorage.setItem("user", JSON.stringify(updatedUser));
+  }, []);
 
   return (
     <AuthContext.Provider
@@ -165,6 +180,7 @@ export function AuthProvider({
         login,
         setSession,
         refreshFamily,
+        updateUser,
         logout,
       }}
     >
