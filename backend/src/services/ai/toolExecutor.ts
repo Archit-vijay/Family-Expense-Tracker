@@ -1,4 +1,5 @@
 import { getBudgetsWithSpending } from "../budgetService.js";
+import { getUpcomingBillsForAI } from "../recurringService.js";
 import {
   getSpendingByDateRange,
   getCategorySpending,
@@ -551,6 +552,54 @@ export async function executeFinancialTool(
       };
     }
 
+
+    case "get_upcoming_bills": {
+      const daysAhead =
+        typeof arguments_.daysAhead === "number"
+          ? Math.max(1, arguments_.daysAhead)
+          : 30;
+      const bills = await getUpcomingBillsForAI(familyId, daysAhead);
+
+      if (bills.length === 0) {
+        return {
+          count: 0,
+          daysAhead,
+          message: `No recurring bills, subscriptions, or income are due within the next ${daysAhead} days.`,
+          items: [],
+        };
+      }
+
+      const totalUpcomingExpenses = bills
+        .filter((b) => b.type === "expense")
+        .reduce((sum, b) => sum + b.amount, 0);
+
+      const totalUpcomingIncome = bills
+        .filter((b) => b.type === "income")
+        .reduce((sum, b) => sum + b.amount, 0);
+
+      return {
+        count: bills.length,
+        daysAhead,
+        totalUpcomingExpenses: `₹${Math.round(totalUpcomingExpenses).toLocaleString("en-IN")}`,
+        totalUpcomingIncome: `₹${Math.round(totalUpcomingIncome).toLocaleString("en-IN")}`,
+        items: bills.map((b) => ({
+          title: b.title,
+          amount: `₹${Math.round(b.amount).toLocaleString("en-IN")}`,
+          type: b.type,
+          frequency: b.frequency,
+          category: b.category,
+          member: b.member,
+          isSubscription: b.isSubscription,
+          nextDueDate: b.nextDueDate,
+          daysUntilDue:
+            b.daysUntilDue === 0
+              ? "Due today"
+              : b.daysUntilDue < 0
+                ? `Overdue by ${Math.abs(b.daysUntilDue)} days`
+                : `Due in ${b.daysUntilDue} days`,
+        })),
+      };
+    }
 
     default:
       throw new Error(

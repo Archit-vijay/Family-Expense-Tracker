@@ -344,17 +344,18 @@ Status: COMPLETE
 
 # Phase 11 — Recurring Transactions & Subscriptions
 
-Potential recurring transaction system:
+Complete recurring transaction and subscription tracking system:
 
-- [ ] Design recurring transaction model (`recurring_transactions` table)
-- [ ] Frequency rules (daily, weekly, monthly, quarterly, yearly)
-- [ ] Due-date calculation and next execution tracking
-- [ ] Automatic or 1-click transaction generation
-- [ ] Edit/pause/resume/cancel recurring transaction
-- [ ] Recurring transactions page UI & upcoming bill radar
-- [ ] Subscription tracking & recurring monthly expense summaries
+- [x] Design recurring transaction model (`recurring_transactions` table with frequency & status constraints)
+- [x] Frequency rules (daily, weekly, monthly, quarterly, yearly) with month-end rollover handling
+- [x] Due-date calculation and next execution tracking (`days_until_due` computation)
+- [x] Automatic or 1-click transaction generation (`recordSingleRecurringNow` and batch `processDueRecurringTransactions`)
+- [x] Edit/pause/resume/cancel recurring transaction
+- [x] Recurring transactions page UI (`/recurring`) & upcoming urgent bill radar
+- [x] Subscription tracking & recurring monthly expense summaries
+- [x] AI Tool Grounding: `get_upcoming_bills` integrated into local Ollama assistant
 
-Status: PLANNED
+Status: COMPLETE
 
 ---
 
@@ -456,8 +457,8 @@ Unless a new product requirement changes priorities, the recommended development
 1. AI Financial Intelligence (Complete)
 2. Budget Management (Complete)
 3. Settings & Workspace Preferences (Complete - Reports consolidated)
-4. Recurring Transactions & Subscriptions (Planned next)
-5. Notifications & Alerts
+4. Recurring Transactions & Subscriptions (Complete)
+5. Notifications & Financial Alerts (Planned next)
 6. Advanced Data Export
 7. DevOps & Production Deployment
 8. Production Hardening & Portfolio Readiness

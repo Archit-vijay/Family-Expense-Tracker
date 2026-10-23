@@ -138,3 +138,26 @@ export async function deactivateTransaction(
     );
   }
 }
+
+export async function bulkDeactivateTransactions(
+  transactionIds: number[],
+): Promise<number> {
+  const response = await fetch(`${API_URL}/transactions/bulk-delete`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeaders(),
+    },
+    body: JSON.stringify({ transactionIds }),
+  });
+
+  if (!response.ok) {
+    const result = await response.json();
+    throw new Error(
+      result.message || "Failed to remove selected transactions",
+    );
+  }
+
+  const result = await response.json();
+  return result.count ?? transactionIds.length;
+}

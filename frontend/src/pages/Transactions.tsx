@@ -3,6 +3,9 @@ import { useMemo, useState, useEffect } from "react";
 import {
   ArrowDownLeft,
   ArrowUpRight,
+  Check,
+  ChevronLeft,
+  ChevronRight,
   Loader2,
   Search,
   SlidersHorizontal,
@@ -12,12 +15,14 @@ import {
 import AnimatedDropdown from "../components/AnimatedDropdown";
 import ContentState from "../components/ContentState";
 import TransactionItem from "../components/TransactionItem";
+import { useAuth } from "../context/AuthContext";
 
 import {
   getTransactions,
   createTransaction,
   updateTransaction,
   deactivateTransaction,
+  bulkDeactivateTransactions,
 } from "../services/transactionService";
 
 import type {
@@ -46,6 +51,9 @@ import type {
 type CategoryFilter = "all" | string;
 
 function Transactions() {
+  const { familyRole } = useAuth();
+  const canEdit = familyRole === "admin" || familyRole === "member";
+
   const [transactionList, setTransactionList] =
     useState<Transaction[]>([]);
 
@@ -88,6 +96,16 @@ function Transactions() {
   const [isRemoving, setIsRemoving] =
     useState(false);
 
+  // Pagination state (10 items per page)
+  const PAGE_SIZE = 10;
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Multi-select / Bulk deletion state
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  const [bulkDeleteError, setBulkDeleteError] = useState("");
+
   useEffect(() => {
     async function loadData() {
       try {
@@ -123,6 +141,12 @@ function Transactions() {
 
     loadData();
   }, []);
+
+  // Reset page and selection when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+    setSelectedIds(new Set());
+  }, [searchTerm, category, type]);
 
   async function handleAddTransaction(
     newTransaction: {
@@ -251,6 +275,12 @@ function Transactions() {
         ),
       );
 
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        next.delete(removingTransaction.id);
+        return next;
+      });
+
       setRemovingTransaction(null);
     } catch (error) {
       console.error(
@@ -332,6 +362,101 @@ function Transactions() {
         0,
       );
 
+  // Pagination calculation
+  const totalPages = Math.max(1, Math.ceil(filteredTransactions.length / PAGE_SIZE));
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
+  const paginatedTransactions = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filteredTransactions.slice(start, start + PAGE_SIZE);
+  }, [filteredTransactions, currentPage]);
+
+  const startIndex = filteredTransactions.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
+  const endIndex = Math.min(currentPage * PAGE_SIZE, filteredTransactions.length);
+
+  const pageNumbers = useMemo(() => {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    const pages: (number | string)[] = [];
+    if (currentPage <= 3) {
+      pages.push(1, 2, 3, 4, "...", totalPages);
+    } else if (currentPage >= totalPages - 2) {
+      pages.push(1, "...", totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
+    } else {
+      pages.push(1, "...", currentPage - 1, currentPage, currentPage + 1, "...", totalPages);
+    }
+    return pages;
+  }, [totalPages, currentPage]);
+
+  // Multi-selection logic
+  const currentPageIds = useMemo(
+    () => paginatedTransactions.map((t) => t.id),
+    [paginatedTransactions]
+  );
+
+  const isAllCurrentPageSelected =
+    currentPageIds.length > 0 &&
+    currentPageIds.every((id) => selectedIds.has(id));
+
+  function handleToggleSelect(transaction: Transaction) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(transaction.id)) {
+        next.delete(transaction.id);
+      } else {
+        next.add(transaction.id);
+      }
+      return next;
+    });
+  }
+
+  function handleToggleSelectAllPage() {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (isAllCurrentPageSelected) {
+        currentPageIds.forEach((id) => next.delete(id));
+      } else {
+        currentPageIds.forEach((id) => next.add(id));
+      }
+      return next;
+    });
+  }
+
+  function handleSelectAllFiltered() {
+    setSelectedIds(new Set(filteredTransactions.map((t) => t.id)));
+  }
+
+  function handleDeselectAll() {
+    setSelectedIds(new Set());
+  }
+
+  async function handleConfirmBulkDelete() {
+    if (selectedIds.size === 0) return;
+    try {
+      setIsBulkDeleting(true);
+      setBulkDeleteError("");
+      const idsToDelete = Array.from(selectedIds);
+      await bulkDeactivateTransactions(idsToDelete);
+
+      setTransactionList((current) =>
+        current.filter((transaction) => !selectedIds.has(transaction.id))
+      );
+      setSelectedIds(new Set());
+      setIsBulkDeleteModalOpen(false);
+    } catch (err: any) {
+      console.error("Bulk delete failed:", err);
+      setBulkDeleteError(err?.message || "Failed to delete selected transactions.");
+    } finally {
+      setIsBulkDeleting(false);
+    }
+  }
+
   return (
     <div className="page-enter">
       {/* Header */}
@@ -352,98 +477,112 @@ function Transactions() {
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={() => {
-              setEditingTransaction(null);
-              setIsModalOpen(true);
-            }}
-            className="
-              group
-              inline-flex items-center justify-center gap-2
-              rounded-xl
-              bg-[#2a234f]
-              px-4 py-3
-              text-sm font-semibold text-white
-              shadow-lg shadow-[#2a234f]/15
-              transition-all duration-200
-              hover:-translate-y-0.5
-              hover:bg-[#1f1a3b]
-              hover:shadow-xl hover:shadow-[#2a234f]/20
-              active:translate-y-0
-              active:scale-[0.98]
-            "
-          >
-            <span className="text-lg leading-none text-[#ffb3c3]">
-              +
-            </span>
+          {canEdit && (
+            <button
+              type="button"
+              onClick={() => {
+                setEditingTransaction(null);
+                setIsModalOpen(true);
+              }}
+              className="
+                group
+                inline-flex items-center justify-center gap-2
+                rounded-xl
+                bg-[#2a234f]
+                px-4 py-3
+                text-sm font-semibold text-white
+                shadow-lg shadow-[#2a234f]/15
+                transition-all duration-200
+                hover:-translate-y-0.5
+                hover:bg-[#1f1a3b]
+                hover:shadow-xl hover:shadow-[#2a234f]/20
+                active:translate-y-0
+                active:scale-[0.98]
+              "
+            >
+              <span className="text-lg leading-none text-[#ffb3c3]">
+                +
+              </span>
 
-            Add transaction
-          </button>
+              Add transaction
+            </button>
+          )}
         </div>
       </section>
 
-      {/* Summary cards */}
-      <section className="grid gap-4 sm:grid-cols-3">
+      {/* Summary cards with signature animations */}
+      <section className="grid gap-4 sm:grid-cols-3 mb-6">
         {/* All transactions */}
-        <div className="rounded-2xl border border-[#e8e5ef] bg-white p-5 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="rounded-xl bg-[#ffb3c3]/20 p-3 text-[#2a234f]">
-              <SlidersHorizontal size={19} />
-            </div>
-
-            <div>
-              <p className="text-xs font-medium text-[#77738a]">
+        <div
+          className="stat-card fade-up cursor-default"
+          style={{ animationDelay: "60ms" }}
+        >
+          <div className="stat-card-accent" />
+          <div className="stat-card-glow" />
+          <div className="stat-card-content">
+            <div className="min-w-0 flex-1">
+              <p className="stat-card-title truncate">
                 All transactions
               </p>
-
-              <p className="mt-1 text-xl font-bold text-[#2a234f]">
+              <p className="stat-card-amount">
                 {transactionList.length}
               </p>
+              <p className="stat-card-description">
+                Total logged records
+              </p>
+            </div>
+            <div className="stat-card-icon shrink-0 ml-3 stat-icon-balance">
+              <SlidersHorizontal size={21} />
             </div>
           </div>
         </div>
 
         {/* Income */}
-        <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-5 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="rounded-xl bg-emerald-100 p-3 text-emerald-600">
-              <ArrowDownLeft size={19} />
-            </div>
-
-            <div>
-              <p className="text-xs font-medium text-emerald-700">
+        <div
+          className="stat-card fade-up cursor-default"
+          style={{ animationDelay: "120ms" }}
+        >
+          <div className="stat-card-accent" />
+          <div className="stat-card-glow" />
+          <div className="stat-card-content">
+            <div className="min-w-0 flex-1">
+              <p className="stat-card-title truncate">
                 Income
               </p>
-
-              <p className="mt-1 text-xl font-bold text-emerald-700">
-                ₹
-                {totalIncome.toLocaleString(
-                  "en-IN",
-                )}
+              <p className="stat-card-amount text-emerald-700">
+                ₹{totalIncome.toLocaleString("en-IN")}
               </p>
+              <p className="stat-card-description">
+                Total cash inflow
+              </p>
+            </div>
+            <div className="stat-card-icon shrink-0 ml-3 stat-icon-income">
+              <ArrowDownLeft size={21} />
             </div>
           </div>
         </div>
 
         {/* Expenses */}
-        <div className="rounded-2xl border border-rose-100 bg-rose-50/50 p-5 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="rounded-xl bg-rose-100 p-3 text-rose-600">
-              <ArrowUpRight size={19} />
-            </div>
-
-            <div>
-              <p className="text-xs font-medium text-rose-700">
+        <div
+          className="stat-card fade-up cursor-default"
+          style={{ animationDelay: "180ms" }}
+        >
+          <div className="stat-card-accent" />
+          <div className="stat-card-glow" />
+          <div className="stat-card-content">
+            <div className="min-w-0 flex-1">
+              <p className="stat-card-title truncate">
                 Expenses
               </p>
-
-              <p className="mt-1 text-xl font-bold text-rose-700">
-                ₹
-                {totalExpenses.toLocaleString(
-                  "en-IN",
-                )}
+              <p className="stat-card-amount text-rose-700">
+                ₹{totalExpenses.toLocaleString("en-IN")}
               </p>
+              <p className="stat-card-description">
+                Total cash outflow
+              </p>
+            </div>
+            <div className="stat-card-icon shrink-0 ml-3 stat-icon-expense">
+              <ArrowUpRight size={21} />
             </div>
           </div>
         </div>
@@ -579,15 +718,92 @@ function Transactions() {
 
       {/* Transaction list */}
       <section className="mt-6 rounded-2xl border border-[#e8e5ef] bg-white p-5 shadow-sm sm:p-6">
-        <div className="mb-2">
-          <h2 className="text-base font-bold text-[#2a234f]">
-            All Transactions
-          </h2>
+        {/* List Header with Select All Action */}
+        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-base font-bold text-[#2a234f]">
+              All Transactions
+            </h2>
 
-          <p className="mt-1 text-xs text-[#9a96a8]">
-            August 2026
-          </p>
+            <p className="mt-0.5 text-xs text-[#9a96a8]">
+              {filteredTransactions.length === 0
+                ? "No transactions"
+                : `Showing ${startIndex}–${endIndex} of ${filteredTransactions.length} records`}
+            </p>
+          </div>
+
+          {canEdit && paginatedTransactions.length > 0 && (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleToggleSelectAllPage}
+                className="inline-flex items-center gap-2 rounded-xl border border-[#e8e5ef] bg-[#f8f7fb] px-3 py-1.5 text-xs font-semibold text-[#2a234f] transition hover:bg-[#ffb3c3]/20 active:scale-95"
+              >
+                <span
+                  className={`flex h-4 w-4 items-center justify-center rounded-md border transition ${
+                    isAllCurrentPageSelected
+                      ? "border-[#2a234f] bg-[#2a234f] text-white"
+                      : "border-[#d9d5e3] bg-white"
+                  }`}
+                >
+                  {isAllCurrentPageSelected && <Check size={11} strokeWidth={3} />}
+                </span>
+                <span>
+                  {isAllCurrentPageSelected ? "Deselect Page" : "Select Page (10)"}
+                </span>
+              </button>
+            </div>
+          )}
         </div>
+
+        {/* Floating / Sticky Bulk Action Bar */}
+        {selectedIds.size > 0 && canEdit && (
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#2a234f]/20 bg-[#2a234f] p-3 text-white shadow-lg animate-fade-in">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <span className="flex h-7 px-2.5 items-center justify-center rounded-xl bg-[#ffb3c3] text-xs font-black text-[#2a234f]">
+                {selectedIds.size}
+              </span>
+              <span className="text-xs font-semibold text-white/90 sm:text-sm">
+                {selectedIds.size === 1
+                  ? "1 transaction selected"
+                  : `${selectedIds.size} transactions selected`}
+              </span>
+
+              {filteredTransactions.length > currentPageIds.length &&
+                selectedIds.size < filteredTransactions.length && (
+                  <button
+                    type="button"
+                    onClick={handleSelectAllFiltered}
+                    className="text-xs text-[#ffb3c3] underline underline-offset-2 hover:text-white transition"
+                  >
+                    Select all {filteredTransactions.length} matching
+                  </button>
+                )}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleDeselectAll}
+                className="rounded-xl px-3 py-1.5 text-xs font-semibold text-white/70 transition hover:bg-white/10 hover:text-white"
+              >
+                Clear
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setBulkDeleteError("");
+                  setIsBulkDeleteModalOpen(true);
+                }}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-rose-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-sm transition hover:bg-rose-700 active:scale-95"
+              >
+                <Trash2 size={13} />
+                <span>Delete Selected</span>
+              </button>
+            </div>
+          </div>
+        )}
 
         {isLoading ? (
           <ContentState
@@ -603,13 +819,16 @@ function Transactions() {
           />
         ) : (
           <div className="space-y-3">
-            {filteredTransactions.map(
+            {paginatedTransactions.map(
               (transaction) => (
                 <TransactionItem
                   key={transaction.id}
                   transaction={transaction}
                   onEdit={handleEditTransaction}
                   onRemove={handleRemoveTransaction}
+                  selectable={canEdit}
+                  isSelected={selectedIds.has(transaction.id)}
+                  onToggleSelect={handleToggleSelect}
                 />
               ),
             )}
@@ -631,6 +850,62 @@ function Transactions() {
             )}
           </div>
         )}
+
+        {/* Pagination Bar (at bottom) */}
+        {!isLoading && totalPages > 1 && (
+          <div className="mt-6 flex flex-col items-center justify-between gap-4 border-t border-[#e8e5ef] pt-4 sm:flex-row">
+            <p className="text-xs text-[#77738a]">
+              Showing <span className="font-semibold text-[#2a234f]">{startIndex}</span> to{" "}
+              <span className="font-semibold text-[#2a234f]">{endIndex}</span> of{" "}
+              <span className="font-semibold text-[#2a234f]">{filteredTransactions.length}</span> transactions
+            </p>
+
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="inline-flex h-9 items-center gap-1 rounded-xl border border-[#e8e5ef] bg-white px-3 text-xs font-semibold text-[#2a234f] shadow-2xs transition hover:bg-[#f8f7fb] disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <ChevronLeft size={15} />
+                <span className="hidden sm:inline">Previous</span>
+              </button>
+
+              <div className="flex items-center gap-1">
+                {pageNumbers.map((p, idx) =>
+                  typeof p === "number" ? (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setCurrentPage(p)}
+                      className={`flex h-9 w-9 items-center justify-center rounded-xl text-xs font-bold transition ${
+                        currentPage === p
+                          ? "bg-[#2a234f] text-white shadow-xs"
+                          : "border border-transparent text-[#77738a] hover:border-[#e8e5ef] hover:bg-[#f8f7fb] hover:text-[#2a234f]"
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ) : (
+                    <span key={`ellipsis-${idx}`} className="px-1 text-xs text-[#9a96a8]">
+                      ...
+                    </span>
+                  )
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="inline-flex h-9 items-center gap-1 rounded-xl border border-[#e8e5ef] bg-white px-3 text-xs font-semibold text-[#2a234f] shadow-2xs transition hover:bg-[#f8f7fb] disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <span className="hidden sm:inline">Next</span>
+                <ChevronRight size={15} />
+              </button>
+            </div>
+          </div>
+        )}
       </section>
 
       {/* Add / Edit transaction modal */}
@@ -649,7 +924,7 @@ function Transactions() {
         />
       )}
 
-      {/* Remove confirmation */}
+      {/* Remove confirmation (single) */}
       {removingTransaction && (
         <div
           className="
@@ -765,6 +1040,71 @@ function Transactions() {
                 {isRemoving
                   ? "Removing..."
                   : "Remove transaction"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Delete Confirmation Modal */}
+      {isBulkDeleteModalOpen && (
+        <div
+          className="fixed inset-0 z-60 flex items-center justify-center bg-[#2a234f]/50 p-4 backdrop-blur-sm"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget && !isBulkDeleting) {
+              setIsBulkDeleteModalOpen(false);
+              setBulkDeleteError("");
+            }
+          }}
+        >
+          <div className="w-full max-w-sm rounded-2xl border border-[#e8e5ef] bg-white p-6 shadow-2xl shadow-[#2a234f]/20 animate-scale-in">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-rose-50 text-rose-600">
+              <Trash2 size={20} />
+            </div>
+
+            <h2 className="mt-5 text-lg font-bold text-[#2a234f]">
+              Remove {selectedIds.size} transaction{selectedIds.size > 1 ? "s" : ""}?
+            </h2>
+
+            <p className="mt-2 text-sm leading-6 text-[#77738a]">
+              Are you sure you want to remove{" "}
+              <span className="font-semibold text-[#2a234f]">
+                {selectedIds.size} selected transaction{selectedIds.size > 1 ? "s" : ""}
+              </span>
+              ? They will no longer appear in your active transaction list.
+            </p>
+
+            {bulkDeleteError && (
+              <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-600">
+                {bulkDeleteError}
+              </div>
+            )}
+
+            <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                disabled={isBulkDeleting}
+                onClick={() => {
+                  setIsBulkDeleteModalOpen(false);
+                  setBulkDeleteError("");
+                }}
+                className="rounded-xl border border-[#e8e5ef] px-4 py-2.5 text-sm font-semibold text-[#77738a] transition-colors hover:bg-[#f8f7fb] hover:text-[#2a234f] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                disabled={isBulkDeleting}
+                onClick={handleConfirmBulkDelete}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-rose-600/10 transition-all duration-200 hover:bg-rose-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isBulkDeleting && (
+                  <Loader2 size={16} className="animate-spin" />
+                )}
+                {isBulkDeleting
+                  ? "Removing..."
+                  : `Remove ${selectedIds.size} Transaction${selectedIds.size > 1 ? "s" : ""}`}
               </button>
             </div>
           </div>

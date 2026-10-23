@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   ArrowDownLeft,
   ArrowUpRight,
+  Check,
   Edit3,
   MoreVertical,
   Trash2,
@@ -14,12 +15,18 @@ interface TransactionItemProps {
   transaction: Transaction;
   onEdit?: (transaction: Transaction) => void;
   onRemove?: (transaction: Transaction) => void;
+  selectable?: boolean;
+  isSelected?: boolean;
+  onToggleSelect?: (transaction: Transaction) => void;
 }
 
 function TransactionItem({
   transaction,
   onEdit,
   onRemove,
+  selectable = false,
+  isSelected = false,
+  onToggleSelect,
 }: TransactionItemProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -75,7 +82,8 @@ function TransactionItem({
         py-4
         last:border-b-0
         sm:gap-4
-
+        transition-colors
+        ${isSelected ? "bg-[#ffb3c3]/15 rounded-xl px-2 -mx-2" : ""}
         ${
           isMenuOpen
             ? "z-30"
@@ -83,6 +91,25 @@ function TransactionItem({
         }
       `}
     >
+      {/* Checkbox for bulk actions */}
+      {selectable && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleSelect?.(transaction);
+          }}
+          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-lg border transition-all duration-150 ${
+            isSelected
+              ? "border-[#2a234f] bg-[#2a234f] text-white shadow-xs"
+              : "border-[#d9d5e3] bg-white hover:border-[#2a234f]"
+          }`}
+          aria-label={isSelected ? `Deselect ${transaction.title}` : `Select ${transaction.title}`}
+        >
+          {isSelected && <Check size={12} strokeWidth={3} />}
+        </button>
+      )}
+
       {/* Transaction icon */}
       <div
         className={`

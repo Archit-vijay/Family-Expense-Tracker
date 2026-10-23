@@ -18,6 +18,7 @@ import AcceptInvitation from "./pages/AcceptInvitation";
 import Dashboard from "./pages/Dashboard";
 import Transactions from "./pages/Transactions";
 import Budgets from "./pages/Budgets";
+import Recurring from "./pages/Recurring";
 import Family from "./pages/Family";
 import Settings from "./pages/Settings";
 
@@ -103,6 +104,11 @@ function App() {
             <Route
               path="/budgets"
               element={<Budgets />}
+            />
+
+            <Route
+              path="/recurring"
+              element={<Recurring />}
             />
 
             <Route

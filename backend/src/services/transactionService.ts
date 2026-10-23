@@ -165,6 +165,37 @@ export async function deactivateTransaction(
   return result.rows[0] ?? null;
 }
 
+export async function deactivateTransactions(
+  familyId: number,
+  transactionIds: number[],
+) {
+  if (transactionIds.length === 0) {
+    return [];
+  }
+
+  const result = await pool.query(
+    `
+      UPDATE transactions
+      SET
+        is_deleted = TRUE,
+        updated_at = NOW()
+      WHERE
+        id = ANY($1::int[])
+        AND family_id = $2
+        AND is_deleted = FALSE
+      RETURNING
+        id,
+        title,
+        amount,
+        type,
+        transaction_date::text AS transaction_date;
+    `,
+    [transactionIds, familyId],
+  );
+
+  return result.rows;
+}
+
 export async function getSpendingByDateRange(
   familyId: number,
   startDate: string,

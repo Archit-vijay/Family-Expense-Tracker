@@ -7,6 +7,7 @@ import {
   createTransactionController,
   updateTransactionController,
   deactivateTransactionController,
+  bulkDeactivateTransactionsController,
 } from "../controllers/transactionController.js";
 
 const router = Router();
@@ -37,6 +38,14 @@ router.delete(
   authMiddleware,
   requireRole("admin", "member"),
   deactivateTransactionController,
+);
+
+
+router.post(
+  "/bulk-delete",
+  authMiddleware,
+  requireRole("admin", "member"),
+  bulkDeactivateTransactionsController,
 );
 
 export default router;

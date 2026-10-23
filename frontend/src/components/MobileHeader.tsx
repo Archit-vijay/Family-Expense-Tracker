@@ -59,6 +59,7 @@ function MobileHeader() {
     },
     { label: "Transactions", to: "/transactions" },
     { label: "Budgets", to: "/budgets" },
+    { label: "Recurring & Bills", to: "/recurring" },
     { label: "Family", to: "/family" },
     { label: "Settings", to: "/settings" },
   ];

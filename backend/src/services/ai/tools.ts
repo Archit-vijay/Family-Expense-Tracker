@@ -280,4 +280,24 @@ export const financialTools = [
       },
     },
   },
+  {
+    type: "function",
+    function: {
+      name: "get_upcoming_bills",
+      description:
+        "Get scheduled recurring bills, subscriptions, and recurring income due within a given number of days (default 30 days). Use this whenever the user asks about upcoming bills, due dates, subscriptions, rent due, EMIs, salary dates, or what payments are coming up soon.",
+      parameters: {
+        type: "object",
+        properties: {
+          daysAhead: {
+            type: "integer",
+            description:
+              "Number of days ahead to inspect for due dates (e.g. 7, 14, 30). Defaults to 30.",
+          },
+        },
+        required: [],
+        additionalProperties: false,
+      },
+    },
+  },
 ];

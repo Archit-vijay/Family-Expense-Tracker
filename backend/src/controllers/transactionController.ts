@@ -1,6 +1,6 @@
 import type { Response } from "express";
 
-import { getTransactions, createTransaction, updateTransaction, deactivateTransaction } from "../services/transactionService.js";
+import { getTransactions, createTransaction, updateTransaction, deactivateTransaction, deactivateTransactions } from "../services/transactionService.js";
 
 import type { AuthenticatedRequest } from "../middleware/authMiddleware.js";
 import { getFamilyForUser } from "../services/familyService.js";
@@ -320,6 +320,71 @@ export async function deactivateTransactionController(
     res.status(500).json({
       success: false,
       message: "Failed to remove transaction.",
+    });
+  }
+}
+
+export async function bulkDeactivateTransactionsController(
+  req: AuthenticatedRequest,
+  res: Response,
+) {
+  try {
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      res.status(401).json({
+        success: false,
+        message: "Authentication required.",
+      });
+      return;
+    }
+
+    const family = await getFamilyForUser(userId);
+
+    if (!family) {
+      res.status(403).json({
+        success: false,
+        message: "User does not belong to a family.",
+      });
+      return;
+    }
+
+    const { transactionIds } = req.body;
+
+    if (!Array.isArray(transactionIds) || transactionIds.length === 0) {
+      res.status(400).json({
+        success: false,
+        message: "transactionIds must be a non-empty array of transaction IDs.",
+      });
+      return;
+    }
+
+    const validIds = transactionIds.map(Number).filter(id => Number.isInteger(id) && id > 0);
+
+    if (validIds.length === 0) {
+      res.status(400).json({
+        success: false,
+        message: "No valid transaction IDs provided.",
+      });
+      return;
+    }
+
+    const deactivated = await deactivateTransactions(
+      family.family_id,
+      validIds,
+    );
+
+    res.json({
+      success: true,
+      count: deactivated.length,
+      data: deactivated,
+      message: `Successfully removed ${deactivated.length} transaction(s).`,
+    });
+  } catch (error) {
+    console.error("Failed to bulk remove transactions:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to remove transactions.",
     });
   }
 }
