@@ -708,6 +708,12 @@ Settings is fully implemented as a centralized administration, personalization, 
   - 1-click button to clear persisted AI chat history.
   - 1-click RFC-4180 compliant CSV export of family transaction history (`GET /api/family/export`), with fixed column mapping for member relationships.
   - Active session security guard overview.
+- **Full-Website Dark Mode & Appearance Theme**:
+  - Global, comprehensive dark mode implementation with `ThemeContext` supporting `light`, `dark`, and `system` preferences persisted in `localStorage`.
+  - Anti-FOUC inline script in `index.html` preventing theme flash on page load.
+  - Interactive theme selection cards in Settings (`/settings`) with live mini-card mockups and active status indicator.
+  - Comprehensive Tailwind v4 `@custom-variant dark` styling across all pages, modals, cards, dropdowns, inputs, and semantic status elements.
+  - Convenient quick-toggle button added to desktop sidebar and mobile navigation drawer user menus.
 
 # Phase 11 — Recurring Transactions & Subscriptions (COMPLETE)
 

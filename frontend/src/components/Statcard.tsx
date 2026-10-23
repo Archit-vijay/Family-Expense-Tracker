@@ -3,10 +3,10 @@ import type { ReactNode } from "react";
 
 interface StatCardProps {
   title: string;
-  amount: string;
-  description: string;
+  amount: ReactNode;
+  description: ReactNode;
   icon: LucideIcon;
-  variant?: "income" | "expense" | "savings" | "balance";
+  variant?: "income" | "expense" | "savings" | "balance" | "subscription" | "amber";
   badge?: ReactNode;
 }
 
@@ -18,7 +18,7 @@ function StatCard({
   variant = "balance",
   badge,
 }: StatCardProps) {
-  const styles = {
+  const styles: Record<string, { icon: string; glow: string }> = {
     income: {
       icon: "stat-icon-income",
       glow: "stat-glow-income",
@@ -35,9 +35,17 @@ function StatCard({
       icon: "stat-icon-balance",
       glow: "stat-glow-balance",
     },
+    subscription: {
+      icon: "stat-icon-subscription",
+      glow: "stat-glow-balance",
+    },
+    amber: {
+      icon: "stat-icon-amber",
+      glow: "stat-glow-balance",
+    },
   };
 
-  const currentStyle = styles[variant];
+  const currentStyle = styles[variant] || styles.balance;
 
   return (
     <div className={`stat-card ${currentStyle.glow}`}>
@@ -56,13 +64,13 @@ function StatCard({
             {badge}
           </div>
 
-          <p className="stat-card-amount">
+          <div className="stat-card-amount">
             {amount}
-          </p>
+          </div>
 
-          <p className="stat-card-description">
+          <div className="stat-card-description">
             {description}
-          </p>
+          </div>
         </div>
 
         <div className={`stat-card-icon shrink-0 ml-3 ${currentStyle.icon}`}>

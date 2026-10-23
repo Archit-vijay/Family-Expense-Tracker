@@ -94,10 +94,10 @@ export default function DashboardAICard({
 
   return (
     <section className="mt-4 fade-up" style={{ animationDelay: "130ms" }}>
-      <div className="overflow-hidden rounded-2xl border border-[#e8e5ef] bg-white shadow-sm transition-all">
+      <div className="overflow-hidden rounded-2xl border border-[#e8e5ef] bg-white shadow-sm transition-all dark:border-[#2e265c] dark:bg-[#161130]">
         {/* Top: AI Narrative Summary */}
         <div className="flex items-start gap-3.5 px-5 py-4 sm:px-6">
-          <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#2a234f] text-white">
+          <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#2a234f] text-white dark:bg-[#352a6a]">
             {narrativeLoading ? (
               <RefreshCw size={15} className="animate-spin text-white" />
             ) : (
@@ -107,10 +107,10 @@ export default function DashboardAICard({
 
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-[#77738a]">
+              <p className="text-xs font-semibold uppercase tracking-wider text-[#77738a] dark:text-[#a5a0ba]">
                 AI monthly summary · {periodLabel}
               </p>
-              <span className="inline-flex items-center gap-1 rounded-full bg-[#f4e5ea] px-2.5 py-0.5 text-[11px] font-semibold text-[#2a234f]">
+              <span className="inline-flex items-center gap-1 rounded-full bg-[#f4e5ea] px-2.5 py-0.5 text-[11px] font-semibold text-[#2a234f] dark:bg-[#2e1d3a] dark:text-[#ffb3c3]">
                 <Sparkles size={11} className="text-[#ff859d]" />
                 Live Advisor
               </span>
@@ -118,15 +118,15 @@ export default function DashboardAICard({
 
             {narrativeLoading ? (
               <div className="mt-2 space-y-2">
-                <div className="h-3.5 w-full animate-pulse rounded-full bg-[#e8e5ef]" />
-                <div className="h-3.5 w-4/5 animate-pulse rounded-full bg-[#e8e5ef]" />
+                <div className="h-3.5 w-full animate-pulse rounded-full bg-[#e8e5ef] dark:bg-[#2e265c]" />
+                <div className="h-3.5 w-4/5 animate-pulse rounded-full bg-[#e8e5ef] dark:bg-[#2e265c]" />
               </div>
             ) : narrative ? (
-              <p className="mt-1.5 text-sm leading-relaxed text-[#2a234f]">
+              <p className="mt-1.5 text-sm leading-relaxed text-[#2a234f] dark:text-[#f5f3fa]">
                 {narrative}
               </p>
             ) : (
-              <p className="mt-1.5 text-sm text-[#77738a] italic">
+              <p className="mt-1.5 text-sm text-[#77738a] italic dark:text-[#a5a0ba]">
                 Summary will appear as family activity is recorded.
               </p>
             )}
@@ -134,12 +134,12 @@ export default function DashboardAICard({
         </div>
 
         {/* Divider */}
-        <div className="border-t border-[#f0edf5]" />
+        <div className="border-t border-[#f0edf5] dark:border-[#2e265c]" />
 
         {/* Bottom: Ask About My Finances (AI-6) */}
-        <div className="bg-[#fcfbfe] px-5 py-4 sm:px-6">
+        <div className="bg-[#fcfbfe] px-5 py-4 sm:px-6 dark:bg-[#120d28]">
           <div className="flex flex-wrap items-center justify-between gap-2 mb-2.5">
-            <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[#77738a]">
+            <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[#77738a] dark:text-[#a5a0ba]">
               <HelpCircle size={13} className="text-[#ff859d]" />
               <span>Ask about this period</span>
             </div>
@@ -152,7 +152,7 @@ export default function DashboardAICard({
                   type="button"
                   disabled={isAsking}
                   onClick={() => handleAskQuestion(q)}
-                  className="rounded-full border border-[#e8e5ef] bg-white px-2.5 py-1 text-xs text-[#2a234f] transition-all hover:border-[#ffb3c3] hover:bg-[#fff7f9] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="rounded-full border border-[#e8e5ef] bg-white px-2.5 py-1 text-xs text-[#2a234f] transition-all hover:border-[#ffb3c3] hover:bg-[#fff7f9] active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 dark:border-[#2e265c] dark:bg-[#1c1540] dark:text-[#f5f3fa] dark:hover:border-[#ffb3c3] dark:hover:bg-[#251d54]"
                 >
                   {q}
                 </button>
@@ -170,14 +170,14 @@ export default function DashboardAICard({
                 onKeyDown={handleKeyDown}
                 disabled={isAsking}
                 placeholder={`Ask anything about ${periodLabel} finances...`}
-                className="w-full rounded-xl border border-[#e8e5ef] bg-white py-2.5 pl-3.5 pr-10 text-sm text-[#2a234f] outline-none transition-all placeholder:text-[#9a96a8] focus:border-[#ffb3c3] focus:ring-4 focus:ring-[#ffb3c3]/20 disabled:cursor-not-allowed disabled:opacity-60"
+                className="w-full rounded-xl border border-[#e8e5ef] bg-white py-2.5 pl-3.5 pr-10 text-sm text-[#2a234f] outline-none transition-all placeholder:text-[#9a96a8] focus:border-[#ffb3c3] focus:ring-4 focus:ring-[#ffb3c3]/20 disabled:cursor-not-allowed disabled:opacity-60 dark:border-[#2e265c] dark:bg-[#161130] dark:text-[#f5f3fa] dark:placeholder:text-[#726b8e]"
               />
 
               <button
                 type="button"
                 onClick={() => handleAskQuestion()}
                 disabled={!question.trim() || isAsking}
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 flex h-7 w-7 items-center justify-center rounded-lg bg-[#2a234f] text-white transition-all hover:bg-[#1f1a3b] active:scale-95 disabled:cursor-not-allowed disabled:opacity-30"
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 flex h-7 w-7 items-center justify-center rounded-lg bg-[#2a234f] text-white transition-all hover:bg-[#1f1a3b] active:scale-95 disabled:cursor-not-allowed disabled:opacity-30 dark:bg-[#352a6a] dark:hover:bg-[#433585]"
                 aria-label="Ask AI"
               >
                 {isAsking ? (
@@ -191,24 +191,24 @@ export default function DashboardAICard({
 
           {/* Error notice if asking failed */}
           {askError && (
-            <div className="mt-3 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-2 text-xs font-medium text-rose-600">
+            <div className="mt-3 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-2 text-xs font-medium text-rose-600 dark:border-rose-500/30 dark:bg-rose-950/30 dark:text-rose-400">
               {askError}
             </div>
           )}
 
           {/* Inline Verified Answer Box */}
           {answer && (
-            <div className="mt-3.5 rounded-xl border border-[#e8e5ef] bg-white p-4 shadow-sm fade-up">
+            <div className="mt-3.5 rounded-xl border border-[#e8e5ef] bg-white p-4 shadow-sm fade-up dark:border-[#2e265c] dark:bg-[#161130]">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-start gap-2.5">
-                  <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-[#f4e5ea] text-[#2a234f]">
+                  <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-[#f4e5ea] text-[#2a234f] dark:bg-[#2e1d3a] dark:text-[#ffb3c3]">
                     <Sparkles size={13} className="text-[#ff859d]" />
                   </div>
                   <div>
-                    <p className="text-xs font-semibold text-[#77738a] mb-0.5">
+                    <p className="text-xs font-semibold text-[#77738a] mb-0.5 dark:text-[#a5a0ba]">
                       "{lastAskedQuestion}"
                     </p>
-                    <p className="text-sm font-medium leading-relaxed text-[#2a234f]">
+                    <p className="text-sm font-medium leading-relaxed text-[#2a234f] dark:text-[#f5f3fa]">
                       {answer}
                     </p>
                   </div>
@@ -216,11 +216,11 @@ export default function DashboardAICard({
               </div>
 
               {/* Action Bar */}
-              <div className="mt-3 flex items-center justify-end gap-2 border-t border-[#f0edf5] pt-2.5">
+              <div className="mt-3 flex items-center justify-end gap-2 border-t border-[#f0edf5] pt-2.5 dark:border-[#2e265c]">
                 <button
                   type="button"
                   onClick={handleContinueInAssistant}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#2a234f] px-3 py-1.5 text-xs font-semibold text-white transition-all hover:bg-[#1f1a3b] active:scale-95"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#2a234f] px-3 py-1.5 text-xs font-semibold text-white transition-all hover:bg-[#1f1a3b] active:scale-95 dark:bg-[#352a6a] dark:hover:bg-[#433585]"
                 >
                   <span>Continue in AI Assistant</span>
                   <ArrowRight size={13} />

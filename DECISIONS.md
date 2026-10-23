@@ -764,6 +764,12 @@ To provide modern account defense without introducing external third-party authe
 - **Custom Categories**: Creating and managing household categories is visible to `admin` and `member` users. Strictly hidden from `viewer` users.
 - Any direct attempt to navigate to unauthorized tabs automatically falls back to `Profile & Security`.
 
+## System-Wide Dark Mode & Theme Architecture
+- **Palette Translation**: Rather than flat monochrome gray, dark mode maps the application's visual identity to deep midnight navy/purple surfaces (`#0F0B21`, `#161130`, `#181236`) matching the brand's primary `#2A234F` hue and luxury aesthetic.
+- **Accent Radiance**: Blush pink (`#FFB3C3`) is maintained as the primary interactive accent, standing out with high visual contrast against dark backgrounds.
+- **Zero-Flicker Hydration**: Anti-FOUC JavaScript in `<head>` inspects `localStorage` and `prefers-color-scheme` synchronously before DOM paint, eliminating flash of light mode.
+- **Multi-Level Control**: Full interactive 3-card selector (Light, Dark, System Default) in Settings (`/settings`) with instant preview, complemented by quick-toggle access in the desktop and mobile navigation menus.
+
 ---
 
 # Recurring Transactions & Subscriptions Architecture

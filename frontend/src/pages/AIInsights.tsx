@@ -203,30 +203,30 @@ export default function AIInsights() {
         aiInsights && (
           <div className="space-y-6">
             {/* Executive AI Summary Card */}
-            <div className="relative overflow-hidden rounded-2xl border border-[#e8e5ef] bg-gradient-to-br from-white via-[#fcfbff] to-[#fff7f9] p-6 shadow-sm transition-all duration-300 hover:border-[#ffb3c3]/70 hover:shadow-md fade-up">
+            <div className="relative overflow-hidden rounded-2xl border border-[#e8e5ef] bg-gradient-to-br from-white via-[#fcfbff] to-[#fff7f9] p-6 shadow-sm transition-all duration-300 hover:border-[#ffb3c3]/70 hover:shadow-md fade-up dark:border-[#2e265c] dark:from-[#171135] dark:via-[#1c1540] dark:to-[#130e2c]">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex items-start gap-4">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#2a234f] text-[#ffb3c3] shadow-lg shadow-[#2a234f]/20 transition-transform duration-300 hover:scale-105 hover:rotate-3">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#2a234f] text-[#ffb3c3] shadow-lg shadow-[#2a234f]/20 transition-transform duration-300 hover:scale-105 hover:rotate-3 dark:bg-[#352a6a]">
                     <Sparkles size={22} />
                   </div>
                   <div>
                     <div className="flex flex-wrap items-center gap-2.5">
-                      <h2 className="text-base font-bold text-[#2a234f]">
+                      <h2 className="text-base font-bold text-[#2a234f] dark:text-[#f5f3fa]">
                         Executive Financial Summary
                       </h2>
-                      <span className="rounded-full bg-[#2a234f]/5 px-2.5 py-0.5 text-xs font-semibold text-[#77738a]">
+                      <span className="rounded-full bg-[#2a234f]/5 px-2.5 py-0.5 text-xs font-semibold text-[#77738a] dark:bg-white/10 dark:text-[#a5a0ba]">
                         {metrics.period.current.label} vs {metrics.period.previous.label}
                       </span>
                     </div>
 
-                    <p className="mt-2.5 text-base leading-relaxed text-[#2a234f]">
+                    <p className="mt-2.5 text-base leading-relaxed text-[#2a234f] dark:text-[#f5f3fa]">
                       {aiInsights.summary}
                     </p>
                   </div>
                 </div>
 
                 {data?.generatedAt && (
-                  <span className="shrink-0 self-start rounded-lg bg-white/80 px-2.5 py-1 text-xs font-medium text-[#77738a] shadow-xs">
+                  <span className="shrink-0 self-start rounded-lg bg-white/80 px-2.5 py-1 text-xs font-medium text-[#77738a] shadow-xs dark:border dark:border-[#2e265c] dark:bg-[#120d28]/80 dark:text-[#a5a0ba]">
                     Updated{" "}
                     {new Date(data.generatedAt).toLocaleTimeString([], {
                       hour: "2-digit",
@@ -356,10 +356,10 @@ export default function AIInsights() {
                       key={index}
                       className={`group relative flex flex-col justify-between rounded-xl border p-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
                         isPositive
-                          ? "border-emerald-200 bg-emerald-50/30 hover:border-emerald-300"
+                          ? "border-emerald-200 bg-emerald-50/30 hover:border-emerald-300 dark:border-emerald-500/30 dark:bg-emerald-950/20"
                           : isWarning
-                          ? "border-amber-200 bg-amber-50/30 hover:border-amber-300"
-                          : "border-[#e8e5ef] bg-[#f8f7fb]/60 hover:border-[#2a234f]/30"
+                          ? "border-amber-200 bg-amber-50/30 hover:border-amber-300 dark:border-amber-500/30 dark:bg-amber-950/20"
+                          : "border-[#e8e5ef] bg-[#f8f7fb]/60 hover:border-[#2a234f]/30 dark:border-[#2e265c] dark:bg-[#120d28]/60"
                       }`}
                     >
                       <div>
@@ -367,10 +367,10 @@ export default function AIInsights() {
                           <div
                             className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-transform duration-200 group-hover:scale-110 ${
                               isPositive
-                                ? "bg-emerald-100 text-emerald-700"
+                                ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400"
                                 : isWarning
-                                ? "bg-amber-100 text-amber-700"
-                                : "bg-[#2a234f]/10 text-[#2a234f]"
+                                ? "bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400"
+                                : "bg-[#2a234f]/10 text-[#2a234f] dark:bg-[#352a6a] dark:text-[#ffb3c3]"
                             }`}
                           >
                             {isPositive ? (
@@ -385,10 +385,10 @@ export default function AIInsights() {
                           <h4
                             className={`text-sm font-bold ${
                               isPositive
-                                ? "text-emerald-950"
+                                ? "text-emerald-950 dark:text-emerald-300"
                                 : isWarning
-                                ? "text-amber-950"
-                                : "text-[#2a234f]"
+                                ? "text-amber-950 dark:text-amber-300"
+                                : "text-[#2a234f] dark:text-[#f5f3fa]"
                             }`}
                           >
                             {highlight.title}
@@ -453,15 +453,15 @@ export default function AIInsights() {
               </div>
 
               {!metrics.anomalies || metrics.anomalies.length === 0 ? (
-                <div className="flex items-center gap-3.5 rounded-xl border border-emerald-100 bg-emerald-50/40 p-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 shadow-xs">
+                <div className="flex items-center gap-3.5 rounded-xl border border-emerald-100 bg-emerald-50/40 p-4 dark:border-emerald-500/30 dark:bg-emerald-950/20">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 shadow-xs dark:bg-emerald-950/40 dark:text-emerald-400">
                     <ShieldCheck size={20} />
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-emerald-950">
+                    <h4 className="text-sm font-bold text-emerald-950 dark:text-emerald-300">
                       No Spending Anomalies Detected
                     </h4>
-                    <p className="mt-0.5 text-xs text-[#77738a]">
+                    <p className="mt-0.5 text-xs text-[#77738a] dark:text-[#a5a0ba]">
                       All family expenses are pacing within expected historical category baselines and normal variance ranges for this period.
                     </p>
                   </div>
@@ -477,10 +477,10 @@ export default function AIInsights() {
                         key={anomaly.id}
                         className={`group relative flex flex-col justify-between rounded-xl border p-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
                           isHigh
-                            ? "border-rose-200 bg-rose-50/30 hover:border-rose-300"
+                            ? "border-rose-200 bg-rose-50/30 hover:border-rose-300 dark:border-rose-500/30 dark:bg-rose-950/20"
                             : isMedium
-                            ? "border-amber-200 bg-amber-50/30 hover:border-amber-300"
-                            : "border-[#e8e5ef] bg-[#f8f7fb]/60 hover:border-[#2a234f]/30"
+                            ? "border-amber-200 bg-amber-50/30 hover:border-amber-300 dark:border-amber-500/30 dark:bg-amber-950/20"
+                            : "border-[#e8e5ef] bg-[#f8f7fb]/60 hover:border-[#2a234f]/30 dark:border-[#2e265c] dark:bg-[#120d28]/60"
                         }`}
                       >
                         <div>
@@ -490,12 +490,12 @@ export default function AIInsights() {
                               <span
                                 className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider ${
                                   anomaly.type === "outlier_transaction"
-                                    ? "bg-rose-100 text-rose-700"
+                                    ? "bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400"
                                     : anomaly.type === "velocity_spike"
-                                    ? "bg-amber-100 text-amber-800"
+                                    ? "bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400"
                                     : anomaly.type === "category_surge"
-                                    ? "bg-purple-100 text-purple-800"
-                                    : "bg-blue-100 text-blue-800"
+                                    ? "bg-purple-100 text-purple-800 dark:bg-purple-950/40 dark:text-purple-400"
+                                    : "bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-400"
                                 }`}
                               >
                                 {anomaly.type === "outlier_transaction" && <AlertCircle size={12} />}
@@ -516,38 +516,38 @@ export default function AIInsights() {
                               <span
                                 className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
                                   isHigh
-                                    ? "bg-rose-200/80 text-rose-900"
+                                    ? "bg-rose-200/80 text-rose-900 dark:bg-rose-950/60 dark:text-rose-300"
                                     : isMedium
-                                    ? "bg-amber-200/80 text-amber-900"
-                                    : "bg-slate-200 text-slate-700"
+                                    ? "bg-amber-200/80 text-amber-900 dark:bg-amber-950/60 dark:text-amber-300"
+                                    : "bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
                                 }`}
                               >
                                 {anomaly.severity}
                               </span>
                             </div>
 
-                            <span className="text-sm font-bold text-[#2a234f]">
+                            <span className="text-sm font-bold text-[#2a234f] dark:text-[#f5f3fa]">
                               {formatCurrency(anomaly.amount)}
                             </span>
                           </div>
 
                           {/* Title & Description */}
-                          <h4 className="text-sm font-bold text-[#2a234f]">
+                          <h4 className="text-sm font-bold text-[#2a234f] dark:text-[#f5f3fa]">
                             {anomaly.title}
                           </h4>
-                          <p className="mt-1 text-xs leading-relaxed text-[#77738a]">
+                          <p className="mt-1 text-xs leading-relaxed text-[#77738a] dark:text-[#a5a0ba]">
                             {anomaly.description}
                           </p>
                         </div>
 
                         {/* AI Explanation Callout */}
-                        <div className="mt-3.5 flex items-start gap-2.5 rounded-lg border border-[#e8e5ef] bg-white/90 p-2.5 text-xs text-[#2a234f]">
-                          <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-[#2a234f] text-[#ffb3c3]">
+                        <div className="mt-3.5 flex items-start gap-2.5 rounded-lg border border-[#e8e5ef] bg-white/90 p-2.5 text-xs text-[#2a234f] dark:border-[#2e265c] dark:bg-[#110c26] dark:text-[#f5f3fa]">
+                          <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-[#2a234f] text-[#ffb3c3] dark:bg-[#352a6a]">
                             <Bot size={12} />
                           </div>
                           <div className="flex-1">
-                            <span className="font-semibold text-[#2a234f]">AI Note: </span>
-                            <span className="text-[#555268]">{anomaly.explanation}</span>
+                            <span className="font-semibold text-[#2a234f] dark:text-[#f5f3fa]">AI Note: </span>
+                            <span className="text-[#555268] dark:text-[#cfcbdc]">{anomaly.explanation}</span>
                           </div>
                         </div>
                       </div>
@@ -563,19 +563,19 @@ export default function AIInsights() {
               style={{ animationDelay: "200ms" }}
             >
               {/* Left Column: Category Shifts & Spikes */}
-              <div className="flex flex-col justify-between rounded-2xl border border-[#e8e5ef] bg-white p-5 shadow-sm transition-shadow duration-300 hover:shadow-md sm:p-6">
+              <div className="flex flex-col justify-between rounded-2xl border border-[#e8e5ef] bg-white p-5 shadow-sm transition-shadow duration-300 hover:shadow-md sm:p-6 dark:border-[#2e265c] dark:bg-[#161130]">
                 <div>
                   <div className="mb-4">
-                    <p className="text-sm font-semibold text-[#2a234f]">
+                    <p className="text-sm font-semibold text-[#2a234f] dark:text-[#f5f3fa]">
                       Category Shifts & Spikes
                     </p>
-                    <p className="mt-1 text-xs text-[#77738a] sm:text-sm">
+                    <p className="mt-1 text-xs text-[#77738a] sm:text-sm dark:text-[#a5a0ba]">
                       Expense shifts compared to {metrics.period.previous.label}
                     </p>
                   </div>
 
                   {metrics.categories.length === 0 ? (
-                    <div className="rounded-xl bg-[#f8f7fb] px-5 py-8 text-center text-sm text-[#77738a]">
+                    <div className="rounded-xl bg-[#f8f7fb] px-5 py-8 text-center text-sm text-[#77738a] dark:bg-[#120d28] dark:text-[#a5a0ba]">
                       No category expenses recorded for this period.
                     </div>
                   ) : (
@@ -583,35 +583,35 @@ export default function AIInsights() {
                       {metrics.categories.slice(0, 5).map((cat) => (
                         <div
                           key={cat.name}
-                          className="group flex flex-col gap-1.5 rounded-xl border border-[#e8e5ef]/70 bg-[#f8f7fb]/40 p-3 transition-all duration-200 hover:translate-x-1 hover:bg-[#f8f7fb] hover:shadow-xs"
+                          className="group flex flex-col gap-1.5 rounded-xl border border-[#e8e5ef]/70 bg-[#f8f7fb]/40 p-3 transition-all duration-200 hover:translate-x-1 hover:bg-[#f8f7fb] hover:shadow-xs dark:border-[#2e265c] dark:bg-[#120d28]/60 dark:hover:bg-[#1a133d]"
                         >
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               {cat.isSpike && (
                                 <span
                                   title="Spike detected: >20% increase"
-                                  className="flex items-center gap-1 rounded-full bg-rose-100 px-2 py-0.5 text-[11px] font-bold text-rose-700 animate-pulse"
+                                  className="flex items-center gap-1 rounded-full bg-rose-100 px-2 py-0.5 text-[11px] font-bold text-rose-700 animate-pulse dark:bg-rose-950/40 dark:text-rose-400"
                                 >
                                   <Flame size={12} />
                                   <span>Spike</span>
                                 </span>
                               )}
-                              <span className="text-sm font-semibold text-[#2a234f]">
+                              <span className="text-sm font-semibold text-[#2a234f] dark:text-[#f5f3fa]">
                                 {cat.name}
                               </span>
                             </div>
 
                             <div className="flex items-center gap-3">
-                              <span className="text-sm font-bold text-[#2a234f]">
+                              <span className="text-sm font-bold text-[#2a234f] dark:text-[#f5f3fa]">
                                 {formatCurrency(cat.currentAmount)}
                               </span>
                               <span
                                 className={`text-xs font-semibold ${
                                   cat.changeAmount > 0
-                                    ? "text-rose-600"
+                                    ? "text-rose-600 dark:text-rose-400"
                                     : cat.changeAmount < 0
-                                    ? "text-emerald-600"
-                                    : "text-[#77738a]"
+                                    ? "text-emerald-600 dark:text-emerald-400"
+                                    : "text-[#77738a] dark:text-[#a5a0ba]"
                                 }`}
                               >
                                 {cat.changeAmount > 0 ? "+" : ""}
@@ -621,9 +621,9 @@ export default function AIInsights() {
                           </div>
 
                           {/* Animated Progress Bar */}
-                          <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#e8e5ef]">
+                          <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#e8e5ef] dark:bg-[#2e265c]">
                             <div
-                              className="h-full rounded-full bg-[#2a234f] transition-all duration-700"
+                              className="h-full rounded-full bg-[#2a234f] transition-all duration-700 dark:bg-[#ffb3c3]"
                               style={{
                                 width: `${Math.min(cat.percentageOfTotal, 100)}%`,
                               }}
@@ -637,18 +637,18 @@ export default function AIInsights() {
 
                 {/* Largest Single Expense box at bottom of left card */}
                 {metrics.transactionStats.largestExpense && (
-                  <div className="mt-5 rounded-xl border border-[#e8e5ef] bg-[#f8f7fb] p-3.5 transition-all duration-200 hover:bg-[#f3f1f7]">
-                    <p className="text-[11px] font-semibold uppercase tracking-wider text-[#77738a]">
+                  <div className="mt-5 rounded-xl border border-[#e8e5ef] bg-[#f8f7fb] p-3.5 transition-all duration-200 hover:bg-[#f3f1f7] dark:border-[#2e265c] dark:bg-[#120d28] dark:hover:bg-[#1a133d]">
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-[#77738a] dark:text-[#a5a0ba]">
                       Largest Single Expense
                     </p>
                     <div className="mt-1 flex items-center justify-between">
-                      <p className="text-sm font-semibold text-[#2a234f] truncate pr-2">
+                      <p className="text-sm font-semibold text-[#2a234f] truncate pr-2 dark:text-[#f5f3fa]">
                         {metrics.transactionStats.largestExpense.title}{" "}
-                        <span className="font-normal text-[#77738a]">
+                        <span className="font-normal text-[#77738a] dark:text-[#a5a0ba]">
                           ({metrics.transactionStats.largestExpense.category})
                         </span>
                       </p>
-                      <p className="text-sm font-bold text-[#2a234f] shrink-0">
+                      <p className="text-sm font-bold text-[#2a234f] shrink-0 dark:text-[#f5f3fa]">
                         {formatCurrency(metrics.transactionStats.largestExpense.amount)}
                       </p>
                     </div>
@@ -657,23 +657,23 @@ export default function AIInsights() {
               </div>
 
               {/* Right Column: Family Member Dynamics & Insights */}
-              <div className="flex flex-col justify-between rounded-2xl border border-[#e8e5ef] bg-white p-5 shadow-sm transition-shadow duration-300 hover:shadow-md sm:p-6">
+              <div className="flex flex-col justify-between rounded-2xl border border-[#e8e5ef] bg-white p-5 shadow-sm transition-shadow duration-300 hover:shadow-md sm:p-6 dark:border-[#2e265c] dark:bg-[#161130]">
                 <div>
                   <div className="mb-4 flex items-center justify-between gap-2">
                     <div>
                       <div className="flex items-center gap-2">
-                        <Users size={16} className="text-[#2a234f]" />
-                        <p className="text-sm font-semibold text-[#2a234f]">
+                        <Users size={16} className="text-[#2a234f] dark:text-[#ffb3c3]" />
+                        <p className="text-sm font-semibold text-[#2a234f] dark:text-[#f5f3fa]">
                           Family Member Dynamics
                         </p>
                         {metrics.familyDynamics && (
                           <span
                             className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
                               metrics.familyDynamics.spendingConcentration === "balanced"
-                                ? "bg-emerald-100 text-emerald-800"
+                                ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400"
                                 : metrics.familyDynamics.spendingConcentration === "concentrated"
-                                ? "bg-amber-100 text-amber-800"
-                                : "bg-slate-100 text-slate-700"
+                                ? "bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400"
+                                : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
                             }`}
                           >
                             {metrics.familyDynamics.spendingConcentration === "balanced"
@@ -684,20 +684,20 @@ export default function AIInsights() {
                           </span>
                         )}
                       </div>
-                      <p className="mt-1 text-xs text-[#77738a] sm:text-sm">
+                      <p className="mt-1 text-xs text-[#77738a] sm:text-sm dark:text-[#a5a0ba]">
                         Spending contribution & shifts vs {metrics.period.previous.label}
                       </p>
                     </div>
 
                     {metrics.topSpender && (
-                      <span className="shrink-0 rounded-full bg-[#2a234f]/5 px-2.5 py-1 text-xs font-semibold text-[#2a234f]">
+                      <span className="shrink-0 rounded-full bg-[#2a234f]/5 px-2.5 py-1 text-xs font-semibold text-[#2a234f] dark:bg-white/10 dark:text-[#f5f3fa]">
                         Top: {metrics.topSpender.name}
                       </span>
                     )}
                   </div>
 
                   {metrics.members.length === 0 ? (
-                    <div className="rounded-xl bg-[#f8f7fb] px-5 py-8 text-center text-sm text-[#77738a]">
+                    <div className="rounded-xl bg-[#f8f7fb] px-5 py-8 text-center text-sm text-[#77738a] dark:bg-[#120d28] dark:text-[#a5a0ba]">
                       No member expense records available.
                     </div>
                   ) : (
@@ -705,18 +705,18 @@ export default function AIInsights() {
                       {metrics.members.map((member) => (
                         <div
                           key={member.name}
-                          className="group rounded-xl border border-[#e8e5ef]/70 bg-[#f8f7fb]/40 p-3 transition-all duration-200 hover:bg-[#f8f7fb] hover:shadow-xs"
+                          className="group rounded-xl border border-[#e8e5ef]/70 bg-[#f8f7fb]/40 p-3 transition-all duration-200 hover:bg-[#f8f7fb] hover:shadow-xs dark:border-[#2e265c] dark:bg-[#120d28]/60 dark:hover:bg-[#1a133d]"
                         >
                           <div className="mb-1.5 flex items-center justify-between gap-3 text-xs">
                             <div className="flex items-center gap-2">
-                              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#2a234f] text-[10px] font-bold text-[#ffb3c3] transition-transform duration-200 group-hover:scale-110">
+                              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#2a234f] text-[10px] font-bold text-[#ffb3c3] transition-transform duration-200 group-hover:scale-110 dark:bg-[#352a6a]">
                                 {member.name.charAt(0).toUpperCase()}
                               </div>
-                              <span className="font-semibold text-[#2a234f]">
+                              <span className="font-semibold text-[#2a234f] dark:text-[#f5f3fa]">
                                 {member.name}
                               </span>
                               {member.transactionCount > 0 && (
-                                <span className="text-[10px] text-[#77738a]">
+                                <span className="text-[10px] text-[#77738a] dark:text-[#a5a0ba]">
                                   ({member.transactionCount}{" "}
                                   {member.transactionCount === 1 ? "tx" : "txs"})
                                 </span>
@@ -724,19 +724,19 @@ export default function AIInsights() {
                             </div>
 
                             <div className="flex items-center gap-2.5">
-                              <span className="font-bold text-[#2a234f]">
+                              <span className="font-bold text-[#2a234f] dark:text-[#f5f3fa]">
                                 {formatCurrency(member.currentAmount)}
                               </span>
-                              <span className="text-[#77738a]">
+                              <span className="text-[#77738a] dark:text-[#a5a0ba]">
                                 ({member.percentageOfTotal}%)
                               </span>
                               <span
                                 className={`flex items-center gap-0.5 text-xs font-semibold ${
                                   member.changeAmount > 0
-                                    ? "text-rose-600"
+                                    ? "text-rose-600 dark:text-rose-400"
                                     : member.changeAmount < 0
-                                    ? "text-emerald-600"
-                                    : "text-[#77738a]"
+                                    ? "text-emerald-600 dark:text-emerald-400"
+                                    : "text-[#77738a] dark:text-[#a5a0ba]"
                                 }`}
                               >
                                 {member.changeAmount > 0 ? (
@@ -751,7 +751,7 @@ export default function AIInsights() {
                           </div>
 
                           {/* Progress Bar (Blush pink accent) */}
-                          <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#e8e5ef]">
+                          <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#e8e5ef] dark:bg-[#2e265c]">
                             <div
                               className="h-full rounded-full bg-[#ffb3c3] transition-all duration-700"
                               style={{
@@ -762,11 +762,11 @@ export default function AIInsights() {
 
                           {/* Dominant Category Chip */}
                           {member.topCategory && (
-                            <div className="mt-2 flex items-center gap-1.5 text-[11px] text-[#77738a]">
-                              <Tag size={10} className="text-[#2a234f]/50" />
+                            <div className="mt-2 flex items-center gap-1.5 text-[11px] text-[#77738a] dark:text-[#a5a0ba]">
+                              <Tag size={10} className="text-[#2a234f]/50 dark:text-[#ffb3c3]/70" />
                               <span>
                                 Top area:{" "}
-                                <strong className="font-medium text-[#2a234f]">
+                                <strong className="font-medium text-[#2a234f] dark:text-[#f5f3fa]">
                                   {member.topCategory.name}
                                 </strong>{" "}
                                 ({member.topCategory.percentage}% of member spend)
@@ -780,15 +780,15 @@ export default function AIInsights() {
                 </div>
 
                 {/* AI Family Dynamic Note Callout */}
-                <div className="mt-5 flex items-start gap-2.5 rounded-xl border border-[#e8e5ef] bg-[#f8f7fb] p-3 text-xs text-[#2a234f]">
-                  <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-[#2a234f] text-[#ffb3c3]">
+                <div className="mt-5 flex items-start gap-2.5 rounded-xl border border-[#e8e5ef] bg-[#f8f7fb] p-3 text-xs text-[#2a234f] dark:border-[#2e265c] dark:bg-[#120d28] dark:text-[#f5f3fa]">
+                  <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-[#2a234f] text-[#ffb3c3] dark:bg-[#352a6a]">
                     <Bot size={12} />
                   </div>
                   <div className="flex-1">
-                    <span className="font-semibold text-[#2a234f]">
+                    <span className="font-semibold text-[#2a234f] dark:text-[#f5f3fa]">
                       AI Family Insight:{" "}
                     </span>
-                    <span className="text-[#555268]">
+                    <span className="text-[#555268] dark:text-[#cfcbdc]">
                       {aiInsights.familyDynamicsNote ||
                         metrics.familyDynamics?.observation ||
                         "Household expenses are distributed across active family members."}
@@ -801,18 +801,18 @@ export default function AIInsights() {
             {/* Row 4: AI Actionable Recommendations */}
             {aiInsights.recommendations.length > 0 && (
               <section
-                className="rounded-2xl border border-[#e8e5ef] bg-white p-5 shadow-sm transition-shadow duration-300 hover:shadow-md sm:p-6 fade-up"
+                className="rounded-2xl border border-[#e8e5ef] bg-white p-5 shadow-sm transition-shadow duration-300 hover:shadow-md sm:p-6 fade-up dark:border-[#2e265c] dark:bg-[#161130]"
                 style={{ animationDelay: "250ms" }}
               >
                 <div className="mb-4 flex items-center gap-2.5">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#2a234f] text-[#ffb3c3] shadow-sm">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#2a234f] text-[#ffb3c3] shadow-sm dark:bg-[#352a6a]">
                     <Lightbulb size={19} />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-[#2a234f]">
+                    <h3 className="text-base font-bold text-[#2a234f] dark:text-[#f5f3fa]">
                       AI Actionable Recommendations
                     </h3>
-                    <p className="text-xs text-[#77738a]">
+                    <p className="text-xs text-[#77738a] dark:text-[#a5a0ba]">
                       Practical steps tailored to your family's recent financial behavior
                     </p>
                   </div>
@@ -822,12 +822,12 @@ export default function AIInsights() {
                   {aiInsights.recommendations.map((rec, index) => (
                     <div
                       key={index}
-                      className="group flex items-start gap-3.5 rounded-xl border border-[#e8e5ef]/70 bg-[#f8f7fb]/60 p-4 transition-all duration-200 hover:translate-x-1.5 hover:border-[#ffb3c3] hover:bg-white hover:shadow-xs"
+                      className="group flex items-start gap-3.5 rounded-xl border border-[#e8e5ef]/70 bg-[#f8f7fb]/60 p-4 transition-all duration-200 hover:translate-x-1.5 hover:border-[#ffb3c3] hover:bg-white hover:shadow-xs dark:border-[#2e265c] dark:bg-[#120d28] dark:hover:border-[#ffb3c3] dark:hover:bg-[#1a133d]"
                     >
-                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-[#2a234f] text-xs font-bold text-[#ffb3c3] shadow-xs transition-transform duration-200 group-hover:scale-110">
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-[#2a234f] text-xs font-bold text-[#ffb3c3] shadow-xs transition-transform duration-200 group-hover:scale-110 dark:bg-[#352a6a]">
                         {index + 1}
                       </span>
-                      <p className="text-sm leading-relaxed text-[#2a234f]">
+                      <p className="text-sm leading-relaxed text-[#2a234f] dark:text-[#f5f3fa]">
                         {rec}
                       </p>
                     </div>

@@ -199,23 +199,23 @@ export default function AIBudgetRecommendationsModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2a234f]/40 p-4 backdrop-blur-xs">
-      <div className="flex max-h-[90vh] w-full max-w-3xl flex-col rounded-2xl border border-[#e8e5ef] bg-white shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+      <div className="flex max-h-[90vh] w-full max-w-3xl flex-col rounded-2xl border border-[#e8e5ef] bg-white shadow-2xl animate-in fade-in zoom-in-95 duration-150 dark:border-[#2e265c] dark:bg-[#161130]">
         {/* Modal Header */}
-        <div className="flex items-start justify-between border-b border-[#e8e5ef] p-6 pb-4">
+        <div className="flex items-start justify-between border-b border-[#e8e5ef] p-6 pb-4 dark:border-[#2e265c]">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#2a234f] text-[#ffb3c3] shadow-xs">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#2a234f] text-[#ffb3c3] shadow-xs dark:bg-[#352a6a]">
               <Sparkles size={22} />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-xl font-bold text-[#2a234f]">
+                <h3 className="text-xl font-bold text-[#2a234f] dark:text-[#f5f3fa]">
                   AI Budget Recommendations
                 </h3>
-                <span className="rounded-full border border-purple-200 bg-purple-50 px-2.5 py-0.5 text-xs font-semibold text-purple-700">
+                <span className="rounded-full border border-purple-200 bg-purple-50 px-2.5 py-0.5 text-xs font-semibold text-purple-700 dark:border-purple-500/30 dark:bg-purple-950/40 dark:text-purple-300">
                   {MONTH_NAMES[targetMonth - 1]} {targetYear}
                 </span>
               </div>
-              <p className="mt-0.5 text-xs text-[#77738a]">
+              <p className="mt-0.5 text-xs text-[#77738a] dark:text-[#a5a0ba]">
                 Prudent category limits tailored from your family's recent spending baselines.
               </p>
             </div>
@@ -224,7 +224,7 @@ export default function AIBudgetRecommendationsModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1 text-[#77738a] hover:bg-[#f8f7fb] hover:text-[#2a234f]"
+            className="rounded-lg p-1 text-[#77738a] hover:bg-[#f8f7fb] hover:text-[#2a234f] dark:text-[#a5a0ba] dark:hover:bg-[#1f1642] dark:hover:text-[#f5f3fa]"
           >
             <X size={20} />
           </button>
@@ -234,16 +234,16 @@ export default function AIBudgetRecommendationsModal({
         <div className="flex-1 overflow-y-auto p-6 space-y-5">
           {isLoading ? (
             <div className="py-16 text-center">
-              <Loader2 size={32} className="mx-auto animate-spin text-[#2a234f]" />
-              <h4 className="mt-4 text-base font-bold text-[#2a234f]">
+              <Loader2 size={32} className="mx-auto animate-spin text-[#2a234f] dark:text-[#ffb3c3]" />
+              <h4 className="mt-4 text-base font-bold text-[#2a234f] dark:text-[#f5f3fa]">
                 Analyzing historical spending patterns...
               </h4>
-              <p className="mt-1 text-xs text-[#77738a]">
+              <p className="mt-1 text-xs text-[#77738a] dark:text-[#a5a0ba]">
                 Calculating 3-month averages and synthesizing customized safety buffers.
               </p>
             </div>
           ) : error ? (
-            <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm font-semibold text-rose-700">
+            <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm font-semibold text-rose-700 dark:border-rose-500/30 dark:bg-rose-950/30 dark:text-rose-400">
               <div className="flex items-center gap-2">
                 <AlertTriangle size={18} />
                 <span>{error}</span>
@@ -252,27 +252,27 @@ export default function AIBudgetRecommendationsModal({
           ) : data ? (
             <>
               {/* Strategy Summary Card */}
-              <div className="rounded-xl border border-[#e8e5ef] bg-gradient-to-r from-[#f8f7fb] to-[#faf8fc] p-4">
+              <div className="rounded-xl border border-[#e8e5ef] bg-gradient-to-r from-[#f8f7fb] to-[#faf8fc] p-4 dark:border-[#2e265c] dark:from-[#171135] dark:to-[#120d28]">
                 <div className="flex items-start gap-3">
-                  <Sparkles size={18} className="mt-0.5 text-[#2a234f] shrink-0" />
+                  <Sparkles size={18} className="mt-0.5 text-[#2a234f] shrink-0 dark:text-[#ffb3c3]" />
                   <div>
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-[#2a234f]">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-[#2a234f] dark:text-[#ffb3c3]">
                       AI Financial Strategy
                     </h4>
-                    <p className="mt-1 text-sm leading-relaxed text-[#504c66]">
+                    <p className="mt-1 text-sm leading-relaxed text-[#504c66] dark:text-[#cfcbdc]">
                       {data.strategySummary}
                     </p>
-                    <div className="mt-2.5 flex items-center gap-4 text-xs text-[#77738a]">
+                    <div className="mt-2.5 flex items-center gap-4 text-xs text-[#77738a] dark:text-[#a5a0ba]">
                       <span>
                         Historical Average:{" "}
-                        <strong className="text-[#2a234f]">
+                        <strong className="text-[#2a234f] dark:text-[#f5f3fa]">
                           {formatINR(data.totalHistoricalAverage)}/mo
                         </strong>
                       </span>
                       <span>•</span>
                       <span>
                         Recommended Cap:{" "}
-                        <strong className="text-[#2a234f]">
+                        <strong className="text-[#2a234f] dark:text-[#f5f3fa]">
                           {formatINR(data.totalRecommended)}
                         </strong>
                       </span>
@@ -287,17 +287,17 @@ export default function AIBudgetRecommendationsModal({
                   <button
                     type="button"
                     onClick={handleToggleAll}
-                    className="flex h-5 w-5 items-center justify-center rounded-md border border-[#cfcbdc] bg-white transition hover:border-[#2a234f]"
+                    className="flex h-5 w-5 items-center justify-center rounded-md border border-[#cfcbdc] bg-white transition hover:border-[#2a234f] dark:border-[#3d3378] dark:bg-[#120d28]"
                   >
                     {selectedIds.size === data.recommendations.length && (
-                      <Check size={14} className="text-[#2a234f]" />
+                      <Check size={14} className="text-[#2a234f] dark:text-[#ffb3c3]" />
                     )}
                   </button>
-                  <span className="text-xs font-bold text-[#2a234f]">
+                  <span className="text-xs font-bold text-[#2a234f] dark:text-[#f5f3fa]">
                     Select Categories ({selectedIds.size} of {data.recommendations.length} selected)
                   </span>
                 </div>
-                <span className="text-xs text-[#77738a]">
+                <span className="text-xs text-[#77738a] dark:text-[#a5a0ba]">
                   You can tweak any recommended amount directly.
                 </span>
               </div>
@@ -313,8 +313,8 @@ export default function AIBudgetRecommendationsModal({
                       key={item.categoryId}
                       className={`rounded-xl border p-4 transition-all ${
                         isSelected
-                          ? "border-[#cfcbdc] bg-white shadow-xs"
-                          : "border-[#e8e5ef] bg-[#f8f7fb]/60 opacity-60"
+                          ? "border-[#cfcbdc] bg-white shadow-xs dark:border-[#3d3378] dark:bg-[#120d28]"
+                          : "border-[#e8e5ef] bg-[#f8f7fb]/60 opacity-60 dark:border-[#2e265c] dark:bg-[#120d28]/40"
                       }`}
                     >
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -325,31 +325,31 @@ export default function AIBudgetRecommendationsModal({
                             onClick={() => handleToggle(item.categoryId)}
                             className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition ${
                               isSelected
-                                ? "border-[#2a234f] bg-[#2a234f] text-white"
-                                : "border-[#cfcbdc] bg-white hover:border-[#2a234f]"
+                                ? "border-[#2a234f] bg-[#2a234f] text-white dark:border-[#ffb3c3] dark:bg-[#ffb3c3] dark:text-[#2a234f]"
+                                : "border-[#cfcbdc] bg-white hover:border-[#2a234f] dark:border-[#3d3378] dark:bg-[#161130]"
                             }`}
                           >
                             {isSelected && <Check size={13} />}
                           </button>
 
-                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#f8f7fb] text-[#2a234f]">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#f8f7fb] text-[#2a234f] dark:bg-[#1c1540] dark:text-[#f5f3fa]">
                             <Icon size={18} />
                           </div>
 
                           <div>
                             <div className="flex items-center gap-2">
-                              <h4 className="font-bold text-[#2a234f]">
+                              <h4 className="font-bold text-[#2a234f] dark:text-[#f5f3fa]">
                                 {item.categoryName}
                               </h4>
                               {item.currentBudget && (
-                                <span className="rounded-md border border-gray-200 bg-gray-50 px-1.5 py-0.5 text-[10px] font-semibold text-gray-600">
+                                <span className="rounded-md border border-gray-200 bg-gray-50 px-1.5 py-0.5 text-[10px] font-semibold text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
                                   Current: {formatINR(item.currentBudget)}
                                 </span>
                               )}
                             </div>
-                            <p className="text-xs text-[#77738a]">
+                            <p className="text-xs text-[#77738a] dark:text-[#a5a0ba]">
                               3-mo avg:{" "}
-                              <strong className="text-[#2a234f]">
+                              <strong className="text-[#2a234f] dark:text-[#f5f3fa]">
                                 {formatINR(item.averageMonthlySpend)}
                               </strong>
                               {item.lastMonthSpend > 0 && (
@@ -361,9 +361,9 @@ export default function AIBudgetRecommendationsModal({
 
                         {/* Amount Input */}
                         <div className="flex items-center gap-2 sm:self-center">
-                          <span className="text-xs font-semibold text-[#77738a]">Target:</span>
+                          <span className="text-xs font-semibold text-[#77738a] dark:text-[#a5a0ba]">Target:</span>
                           <div className="relative w-32">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-[#77738a]">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-[#77738a] dark:text-[#a5a0ba]">
                               ₹
                             </span>
                             <input
@@ -375,7 +375,7 @@ export default function AIBudgetRecommendationsModal({
                               onChange={(e) =>
                                 handleAmountChange(item.categoryId, e.target.value)
                               }
-                              className="h-9 w-full rounded-lg border border-[#e8e5ef] bg-white pl-7 pr-2.5 text-sm font-bold text-[#2a234f] focus:border-[#2a234f] focus:outline-hidden disabled:bg-gray-100"
+                              className="h-9 w-full rounded-lg border border-[#e8e5ef] bg-white pl-7 pr-2.5 text-sm font-bold text-[#2a234f] focus:border-[#2a234f] focus:outline-hidden disabled:bg-gray-100 dark:border-[#2e265c] dark:bg-[#161130] dark:text-[#f5f3fa] dark:focus:border-[#ffb3c3] dark:disabled:bg-[#100c24]"
                             />
                           </div>
                         </div>
@@ -383,7 +383,7 @@ export default function AIBudgetRecommendationsModal({
 
                       {/* Reasoning Banner */}
                       {item.reasoning && (
-                        <div className="mt-3 rounded-lg border border-[#e8e5ef] bg-[#f8f7fb] px-3 py-1.5 text-xs text-[#504c66]">
+                        <div className="mt-3 rounded-lg border border-[#e8e5ef] bg-[#f8f7fb] px-3 py-1.5 text-xs text-[#504c66] dark:border-[#2e265c] dark:bg-[#161130] dark:text-[#cfcbdc]">
                           💡 {item.reasoning}
                         </div>
                       )}
@@ -396,11 +396,11 @@ export default function AIBudgetRecommendationsModal({
         </div>
 
         {/* Modal Footer */}
-        <div className="flex flex-col gap-3 border-t border-[#e8e5ef] p-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <div className="flex flex-col gap-3 border-t border-[#e8e5ef] p-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 dark:border-[#2e265c]">
           <div className="flex items-center gap-2">
-            <Wallet size={18} className="text-[#2a234f]" />
-            <span className="text-xs text-[#77738a]">Total Selected Budget:</span>
-            <span className="text-base font-bold text-[#2a234f]">
+            <Wallet size={18} className="text-[#2a234f] dark:text-[#ffb3c3]" />
+            <span className="text-xs text-[#77738a] dark:text-[#a5a0ba]">Total Selected Budget:</span>
+            <span className="text-base font-bold text-[#2a234f] dark:text-[#f5f3fa]">
               {formatINR(totalSelectedBudget)}
             </span>
           </div>
@@ -410,7 +410,7 @@ export default function AIBudgetRecommendationsModal({
               type="button"
               onClick={onClose}
               disabled={isApplying}
-              className="rounded-xl border border-[#e8e5ef] px-4 py-2 text-sm font-semibold text-[#77738a] hover:bg-[#f8f7fb]"
+              className="rounded-xl border border-[#e8e5ef] px-4 py-2 text-sm font-semibold text-[#77738a] hover:bg-[#f8f7fb] dark:border-[#2e265c] dark:text-[#a5a0ba] dark:hover:bg-[#1f1642]"
             >
               Cancel
             </button>

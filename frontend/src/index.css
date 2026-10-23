@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
 :root {
     font-family: "Plus Jakarta Sans", sans-serif;
@@ -553,4 +554,336 @@ button {
     transition: none;
     transform: none;
   }
+}
+
+/* =========================================
+   COMPREHENSIVE DARK MODE SYSTEM
+   ========================================= */
+
+html.dark {
+  color-scheme: dark;
+}
+
+html.dark body {
+  background-color: #0f0b21;
+  color: #f5f3fa;
+}
+
+/* Background surfaces */
+html.dark .bg-white {
+  background-color: #161130;
+}
+
+html.dark .bg-\[\#f8f7fb\] {
+  background-color: #0f0b21;
+}
+
+html.dark .border-\[\#e8e5ef\] {
+  border-color: #2e265c;
+}
+
+/* Light & Pastel Tints override for Dark Mode */
+html.dark .bg-\[\#fcfbfe\],
+html.dark .bg-\[\#fcfbff\],
+html.dark .bg-\[\#fff7f9\],
+html.dark .bg-\[\#faf8fc\],
+html.dark .bg-\[\#f4e5ea\] {
+  background-color: #120d28;
+}
+
+html.dark .bg-white\/70,
+html.dark .bg-white\/80,
+html.dark .bg-white\/90 {
+  background-color: #120d28;
+}
+
+html.dark .bg-\[\#f8f7fb\]\/40,
+html.dark .bg-\[\#f8f7fb\]\/60,
+html.dark .bg-\[\#f8f7fb\]\/70 {
+  background-color: #120d28;
+}
+
+html.dark .border-\[\#f0edf5\],
+html.dark .border-\[\#f0eef6\] {
+  border-color: #2e265c;
+}
+
+html.dark .bg-\[\#f0eef6\],
+html.dark .bg-\[\#f0edf5\] {
+  background-color: #201744;
+}
+
+html.dark .text-\[\#504c66\],
+html.dark .text-\[\#555268\] {
+  color: #cfcbdc;
+}
+
+html.dark .bg-\[\#2a234f\]\/5,
+html.dark .bg-\[\#2a234f\]\/10 {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Gradients with light endpoints in dark mode */
+html.dark .to-white {
+  --tw-gradient-to: #161130 var(--tw-gradient-to-position, to 100%);
+}
+
+html.dark .from-white {
+  --tw-gradient-from: #171135 var(--tw-gradient-from-position, from 0%);
+}
+
+/* Hover transitions in dark mode */
+html.dark .hover\:bg-white:hover {
+  background-color: #1c1540;
+}
+
+html.dark .hover\:bg-\[\#fff7f9\]:hover {
+  background-color: #251d54;
+}
+
+html.dark .hover\:bg-\[\#f3f1f7\]:hover {
+  background-color: #201744;
+}
+
+html.dark .focus-within\:bg-white:focus-within {
+  background-color: #161130;
+}
+
+/* Typography */
+html.dark .text-\[\#2a234f\] {
+  color: #f5f3fa;
+}
+
+html.dark .text-\[\#77738a\] {
+  color: #a5a0ba;
+}
+
+html.dark .text-\[\#9a96a8\] {
+  color: #8882a0;
+}
+
+/* Inputs, textareas, search bars */
+html.dark input,
+html.dark textarea,
+html.dark select {
+  color: #f5f3fa;
+}
+
+html.dark input.bg-white,
+html.dark input.bg-\[\#f8f7fb\],
+html.dark textarea.bg-white,
+html.dark textarea.bg-\[\#f8f7fb\] {
+  background-color: #110c26;
+  border-color: #2e265c;
+  color: #f5f3fa;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #726b8e;
+}
+
+/* Stat Cards */
+html.dark .stat-card {
+  background: linear-gradient(
+    135deg,
+    #171135 0%,
+    #1a133d 70%,
+    #130e2c 100%
+  );
+  border-color: #2e265c;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+}
+
+html.dark .stat-card:hover {
+  border-color: rgba(255, 179, 195, 0.85);
+  box-shadow:
+    0 16px 36px rgba(0, 0, 0, 0.65),
+    0 0 24px rgba(255, 179, 195, 0.15);
+}
+
+html.dark .stat-card-title {
+  color: #a5a0ba;
+}
+
+html.dark .stat-card:hover .stat-card-title {
+  color: #ffffff;
+}
+
+html.dark .stat-card-amount {
+  color: #ffffff;
+}
+
+html.dark .stat-card-description {
+  color: #a5a0ba;
+}
+
+html.dark .stat-card-glow {
+  background: rgba(255, 179, 195, 0);
+}
+
+html.dark .stat-card:hover .stat-card-glow {
+  background: rgba(255, 179, 195, 0.22);
+}
+
+/* Stat Card Icon Variants in Dark Mode */
+html.dark .stat-icon-income {
+  background: rgba(16, 185, 129, 0.18);
+  color: #34d399;
+}
+
+html.dark .stat-card:hover .stat-icon-income {
+  background: #10b981;
+  color: #ffffff;
+}
+
+html.dark .stat-icon-expense {
+  background: rgba(244, 63, 94, 0.18);
+  color: #fb7185;
+}
+
+html.dark .stat-card:hover .stat-icon-expense {
+  background: #f43f5e;
+  color: #ffffff;
+}
+
+html.dark .stat-icon-balance {
+  background: #2a234f;
+  color: #ffb3c3;
+}
+
+html.dark .stat-card:hover .stat-icon-balance {
+  background: #ffb3c3;
+  color: #2a234f;
+}
+
+html.dark .stat-icon-subscription {
+  background: rgba(147, 51, 234, 0.22);
+  color: #c084fc;
+}
+
+html.dark .stat-card:hover .stat-icon-subscription {
+  background: #9333ea;
+  color: #ffffff;
+}
+
+html.dark .stat-icon-amber {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+}
+
+html.dark .stat-card:hover .stat-icon-amber {
+  background: #f59e0b;
+  color: #ffffff;
+}
+
+/* Modals, Dropdowns, Action Menus */
+html.dark .modal-enter,
+html.dark .menu-enter {
+  background-color: #171135;
+  border-color: #2e265c;
+  color: #f5f3fa;
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.7);
+}
+
+/* Hover transitions */
+html.dark .hover\:bg-\[\#f8f7fb\]:hover {
+  background-color: #201744;
+}
+
+/* Transaction List Item */
+html.dark .transaction-item {
+  border-color: #2e265c;
+}
+
+html.dark .transaction-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* Mobile Header */
+html.dark header.sticky {
+  background-color: rgba(22, 17, 48, 0.9);
+  border-color: #2e265c;
+}
+
+/* Action button subtle border contrast */
+html.dark button.bg-\[\#2a234f\]:not(.stat-card-amount) {
+  background-color: #2a234f;
+  border: 1px solid #3d3378;
+}
+
+html.dark button.bg-\[\#2a234f\]:hover:not(.stat-card-amount) {
+  background-color: #352a6a;
+}
+
+/* Semantic Tint Backgrounds */
+html.dark .bg-emerald-50,
+html.dark .bg-emerald-50\/50,
+html.dark .bg-emerald-50\/70 {
+  background-color: rgba(16, 185, 129, 0.12);
+}
+
+html.dark .border-emerald-100,
+html.dark .border-emerald-200 {
+  border-color: rgba(16, 185, 129, 0.28);
+}
+
+html.dark .text-emerald-600,
+html.dark .text-emerald-700,
+html.dark .text-emerald-800 {
+  color: #34d399;
+}
+
+html.dark .bg-rose-50,
+html.dark .bg-rose-50\/50,
+html.dark .bg-rose-50\/70 {
+  background-color: rgba(244, 63, 94, 0.12);
+}
+
+html.dark .border-rose-100,
+html.dark .border-rose-200 {
+  border-color: rgba(244, 63, 94, 0.28);
+}
+
+html.dark .text-rose-600,
+html.dark .text-rose-700,
+html.dark .text-rose-800 {
+  color: #fb7185;
+}
+
+html.dark .bg-amber-50,
+html.dark .bg-amber-50\/50,
+html.dark .bg-amber-50\/70 {
+  background-color: rgba(245, 158, 11, 0.12);
+}
+
+html.dark .border-amber-200,
+html.dark .border-amber-200\/80 {
+  border-color: rgba(245, 158, 11, 0.28);
+}
+
+html.dark .text-amber-700,
+html.dark .text-amber-800,
+html.dark .text-amber-900,
+html.dark .text-amber-950 {
+  color: #fcd34d;
+}
+
+html.dark .bg-purple-50,
+html.dark .bg-purple-100 {
+  background-color: rgba(147, 51, 234, 0.15);
+}
+
+html.dark .text-purple-600,
+html.dark .text-purple-700 {
+  color: #c084fc;
+}
+
+/* Scrollbars in dark mode */
+html.dark ::-webkit-scrollbar-thumb {
+  background: #2e265c;
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #473c88;
 }

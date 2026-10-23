@@ -25,6 +25,7 @@ import {
 import React, { useEffect, useMemo, useState } from "react";
 
 import ContentState from "../components/ContentState";
+import StatCard from "../components/Statcard";
 import { useAuth } from "../context/AuthContext";
 import {
   createRecurringTransaction,
@@ -427,131 +428,87 @@ export function Recurring() {
       ) : (
         <div className="space-y-6 fade-up">
           {/* Top 4 KPI Summary Cards with signature animations */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <section
+            className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 fade-up"
+            style={{ animationDelay: "100ms" }}
+          >
             {/* Card 1: Monthly Committed Expenses */}
-            <div
-              className="stat-card fade-up cursor-default"
-              style={{ animationDelay: "60ms" }}
-            >
-              <div className="stat-card-accent" />
-              <div className="stat-card-glow" />
-              <div className="stat-card-content">
-                <div className="min-w-0 flex-1">
-                  <p className="stat-card-title truncate">
-                    Committed Expenses
-                  </p>
-                  <p className="stat-card-amount">
-                    ₹{summary?.monthlyCommittedExpense.toLocaleString("en-IN") || 0}
-                    <span className="text-xs font-normal text-[#77738a]"> / mo</span>
-                  </p>
-                  <p className="stat-card-description">
-                    Normalized monthly fixed costs
-                  </p>
-                </div>
-                <div className="stat-card-icon shrink-0 ml-3 stat-icon-expense">
-                  <TrendingDown size={21} />
-                </div>
-              </div>
-            </div>
+            <StatCard
+              title="Committed Expenses"
+              amount={
+                <>
+                  ₹{summary?.monthlyCommittedExpense.toLocaleString("en-IN") || 0}
+                  <span className="text-xs font-normal text-[#77738a] dark:text-[#a5a0ba]"> / mo</span>
+                </>
+              }
+              description="Normalized monthly fixed costs"
+              icon={TrendingDown}
+              variant="expense"
+            />
 
             {/* Card 2: Active Subscriptions */}
-            <div
-              className="stat-card fade-up cursor-default"
-              style={{ animationDelay: "120ms" }}
-            >
-              <div className="stat-card-accent" />
-              <div className="stat-card-glow" />
-              <div className="stat-card-content">
-                <div className="min-w-0 flex-1">
-                  <p className="stat-card-title truncate">
-                    Subscriptions
-                  </p>
-                  <p className="stat-card-amount">
-                    {summary?.activeSubscriptionsCount || 0}
-                    <span className="text-xs font-normal text-[#77738a]"> active</span>
-                  </p>
-                  <p className="stat-card-description">
-                    ₹{summary?.monthlySubscriptionCost.toLocaleString("en-IN") || 0} / mo streaming & subs
-                  </p>
-                </div>
-                <div className="stat-card-icon shrink-0 ml-3 stat-icon-subscription">
-                  <Tv size={21} />
-                </div>
-              </div>
-            </div>
+            <StatCard
+              title="Subscriptions"
+              amount={
+                <>
+                  {summary?.activeSubscriptionsCount || 0}
+                  <span className="text-xs font-normal text-[#77738a] dark:text-[#a5a0ba]"> active</span>
+                </>
+              }
+              description={`₹${summary?.monthlySubscriptionCost.toLocaleString("en-IN") || 0} / mo streaming & subs`}
+              icon={Tv}
+              variant="subscription"
+            />
 
             {/* Card 3: Next Due Date Radar */}
-            <div
-              className="stat-card fade-up cursor-default"
-              style={{ animationDelay: "180ms" }}
-            >
-              <div className="stat-card-accent" />
-              <div className="stat-card-glow" />
-              <div className="stat-card-content">
-                <div className="min-w-0 flex-1">
-                  <p className="stat-card-title truncate">
-                    Next Due Bill
-                  </p>
-                  {summary?.nextUpcomingItem ? (
-                    <>
-                      <p className="stat-card-amount truncate text-xl sm:text-2xl" title={summary.nextUpcomingItem.title}>
-                        {summary.nextUpcomingItem.title}
-                      </p>
-                      <div className="stat-card-description flex items-center gap-1.5 font-semibold text-amber-700">
-                        <Clock size={13} className="shrink-0" />
-                        <span className="truncate">
-                          {summary.nextUpcomingItem.daysUntilDue === 0
-                            ? "Due today"
-                            : summary.nextUpcomingItem.daysUntilDue === 1
-                              ? "Due tomorrow"
-                              : `Due in ${summary.nextUpcomingItem.daysUntilDue}d`}
-                          {" · "}₹{summary.nextUpcomingItem.amount.toLocaleString("en-IN")}
-                        </span>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <p className="stat-card-amount text-xl text-[#77738a]">
-                        None pending
-                      </p>
-                      <p className="stat-card-description text-[#9a96a8]">
-                        No active commitments due
-                      </p>
-                    </>
-                  )}
-                </div>
-                <div className="stat-card-icon shrink-0 ml-3 stat-icon-amber">
-                  <CalendarClock size={21} />
-                </div>
-              </div>
-            </div>
+            <StatCard
+              title="Next Due Bill"
+              amount={
+                summary?.nextUpcomingItem ? (
+                  <span className="truncate text-xl sm:text-2xl" title={summary.nextUpcomingItem.title}>
+                    {summary.nextUpcomingItem.title}
+                  </span>
+                ) : (
+                  <span className="text-xl text-[#77738a] dark:text-[#a5a0ba]">
+                    None pending
+                  </span>
+                )
+              }
+              description={
+                summary?.nextUpcomingItem ? (
+                  <span className="flex items-center gap-1.5 font-semibold text-amber-700 dark:text-amber-400">
+                    <Clock size={13} className="shrink-0" />
+                    <span className="truncate">
+                      {summary.nextUpcomingItem.daysUntilDue === 0
+                        ? "Due today"
+                        : summary.nextUpcomingItem.daysUntilDue === 1
+                          ? "Due tomorrow"
+                          : `Due in ${summary.nextUpcomingItem.daysUntilDue}d`}
+                      {" · "}₹{summary.nextUpcomingItem.amount.toLocaleString("en-IN")}
+                    </span>
+                  </span>
+                ) : (
+                  "No active commitments due"
+                )
+              }
+              icon={CalendarClock}
+              variant={summary?.nextUpcomingItem ? "amber" : "balance"}
+            />
 
             {/* Card 4: Recurring Income */}
-            <div
-              className="stat-card fade-up cursor-default"
-              style={{ animationDelay: "240ms" }}
-            >
-              <div className="stat-card-accent" />
-              <div className="stat-card-glow" />
-              <div className="stat-card-content">
-                <div className="min-w-0 flex-1">
-                  <p className="stat-card-title truncate">
-                    Recurring Income
-                  </p>
-                  <p className="stat-card-amount">
-                    ₹{summary?.monthlyCommittedIncome.toLocaleString("en-IN") || 0}
-                    <span className="text-xs font-normal text-[#77738a]"> / mo</span>
-                  </p>
-                  <p className="stat-card-description">
-                    Expected monthly salary & retainers
-                  </p>
-                </div>
-                <div className="stat-card-icon shrink-0 ml-3 stat-icon-income">
-                  <TrendingUp size={21} />
-                </div>
-              </div>
-            </div>
-          </div>
+            <StatCard
+              title="Recurring Income"
+              amount={
+                <>
+                  ₹{summary?.monthlyCommittedIncome.toLocaleString("en-IN") || 0}
+                  <span className="text-xs font-normal text-[#77738a] dark:text-[#a5a0ba]"> / mo</span>
+                </>
+              }
+              description="Expected monthly salary & retainers"
+              icon={TrendingUp}
+              variant="income"
+            />
+          </section>
 
           {/* Upcoming Due Radar Banner (if any bills are due in <= 7 days) */}
           {urgentDueItems.length > 0 && (

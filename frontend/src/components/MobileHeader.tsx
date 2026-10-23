@@ -3,14 +3,18 @@ import {
   ChevronUp,
   LogOut,
   Menu,
+  Moon,
+  Sun,
   X,
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 
 function MobileHeader() {
   const { user, familyRole, logout } = useAuth();
+  const { theme, resolvedTheme, setTheme } = useTheme();
   const navigate = useNavigate();
 
   const [isNavigationOpen, setIsNavigationOpen] = useState(false);
@@ -198,13 +202,34 @@ function MobileHeader() {
 
                 {/* Dropdown Menu */}
                 <div
-                  className={`absolute bottom-full left-0 right-0 z-50 mb-2 overflow-hidden rounded-xl border border-white/10 bg-[#211b40] p-1 shadow-2xl shadow-black/30 transition-all duration-200 ease-out ${
+                  className={`absolute bottom-full left-0 right-0 z-50 mb-2 overflow-hidden rounded-xl border border-white/10 bg-[#211b40] p-1.5 shadow-2xl shadow-black/30 transition-all duration-200 ease-out ${
                     isUserMenuOpen
                       ? "translate-y-0 scale-100 opacity-100 pointer-events-auto"
                       : "translate-y-2 scale-[0.98] opacity-0 pointer-events-none"
                   }`}
                   aria-hidden={!isUserMenuOpen}
                 >
+                  {/* Theme Toggle Button */}
+                  <button
+                    type="button"
+                    onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+                    className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-xs font-medium text-white/80 transition-colors duration-150 hover:bg-white/10 hover:text-white"
+                  >
+                    <span className="flex items-center gap-2">
+                      {resolvedTheme === "dark" ? (
+                        <Sun size={15} className="text-amber-300" />
+                      ) : (
+                        <Moon size={15} className="text-[#ffb3c3]" />
+                      )}
+                      <span>{resolvedTheme === "dark" ? "Light Mode" : "Dark Mode"}</span>
+                    </span>
+                    <span className="text-[10px] font-bold text-white/40 uppercase tracking-wider">
+                      {theme === "system" ? "Auto" : theme}
+                    </span>
+                  </button>
+
+                  <div className="my-1 h-px bg-white/10" />
+
                   <button
                     type="button"
                     onClick={handleLogout}

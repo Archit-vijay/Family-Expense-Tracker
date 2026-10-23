@@ -9,7 +9,11 @@ import {
   EyeOff,
   FolderPlus,
   KeyRound,
+  Laptop,
   Loader2,
+  Moon,
+  Sun,
+  SunMoon,
   Lock,
   RefreshCw,
   RotateCcw,
@@ -25,6 +29,7 @@ import { Link } from "react-router-dom";
 
 import ContentState from "../components/ContentState";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 import {
   changePassword,
   disableTwoFactor,
@@ -46,7 +51,6 @@ import {
   getCategories,
   type Category,
 } from "../services/categoryService";
-import { getAIHealth, type AIHealthStatus } from "../services/aiService";
 import { clearChatSession } from "../services/chatStorageService";
 
 type SettingsTab = "profile" | "family" | "categories" | "data";
@@ -69,6 +73,7 @@ function getMaskedEmail(email: string): string {
 
 function Settings() {
   const { user, familyRole, updateUser, refreshFamily } = useAuth();
+  const { theme, resolvedTheme, setTheme } = useTheme();
 
   const [activeTab, setActiveTab] = useState<SettingsTab>("profile");
   const [isPageLoading, setIsPageLoading] = useState(true);
@@ -138,8 +143,6 @@ function Settings() {
   const [categoryError, setCategoryError] = useState<string | null>(null);
 
   // Tab 4: AI & Data State
-  const [aiHealth, setAiHealth] = useState<AIHealthStatus | null>(null);
-  const [isCheckingAI, setIsCheckingAI] = useState(false);
   const [isExportingCSV, setIsExportingCSV] = useState(false);
   const [chatCleared, setChatCleared] = useState(false);
 
@@ -158,14 +161,9 @@ function Settings() {
 
     async function loadData() {
       try {
-        const [familyData, cats, health, secStatus] = await Promise.all([
+        const [familyData, cats, secStatus] = await Promise.all([
           getMyFamily().catch(() => null),
           getCategories().catch(() => []),
-          getAIHealth().catch(() => ({
-            status: "offline" as const,
-            model: "qwen2.5:3b",
-            provider: "Local Ollama",
-          })),
           getSecurityStatus().catch(() => ({
             isTwoFactorEnabled: false,
             passwordChangedAt: null,
@@ -178,7 +176,6 @@ function Settings() {
             setFamilyCode(familyData.familyCode || null);
           }
           setCategories(cats);
-          setAiHealth(health);
           if (secStatus) {
             setIsTwoFactorEnabled(secStatus.isTwoFactorEnabled);
             setPasswordChangedAt(secStatus.passwordChangedAt);
@@ -475,24 +472,13 @@ function Settings() {
   // Handle Clear Chat
   function handleClearChat() {
     const confirmed = window.confirm(
-      "Are you sure you want to clear your local AI Assistant chat history?"
+      "Are you sure you want to clear your AI Assistant chat history?"
     );
     if (!confirmed) return;
 
     clearChatSession(user?.id);
     setChatCleared(true);
     setTimeout(() => setChatCleared(false), 3000);
-  }
-
-  // Handle Re-check AI
-  async function handleCheckAI() {
-    try {
-      setIsCheckingAI(true);
-      const health = await getAIHealth();
-      setAiHealth(health);
-    } finally {
-      setIsCheckingAI(false);
-    }
   }
 
   const expenseCategories = categories.filter((c) => c.type === "expense");
@@ -924,6 +910,147 @@ function Settings() {
                   </div>
                 </div>
               </div>
+
+              {/* Appearance & Display Theme Card */}
+              <div className="rounded-2xl border border-[#e8e5ef] bg-white p-6 shadow-sm lg:col-span-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#e8e5ef] pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#2a234f] to-[#1f1a3b] text-[#ffb3c3]">
+                      <SunMoon size={20} />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2.5">
+                        <h2 className="text-base font-bold text-[#2a234f]">
+                          Appearance & Display Theme
+                        </h2>
+                        <span className="rounded-full bg-[#ffb3c3]/20 border border-[#ffb3c3]/40 px-2.5 py-0.5 text-[10px] font-bold text-[#2a234f] uppercase tracking-wider">
+                          Active: {theme === "system" ? `System (${resolvedTheme})` : resolvedTheme}
+                        </span>
+                      </div>
+                      <p className="text-xs text-[#77738a] mt-0.5">
+                        Choose your visual mode across all pages of the application.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3 Theme Choice Cards */}
+                <div className="mt-6 grid gap-4 sm:grid-cols-3">
+                  {/* Option 1: Light Theme */}
+                  <button
+                    type="button"
+                    onClick={() => setTheme("light")}
+                    className={`group relative flex flex-col items-start rounded-2xl border p-4 text-left transition-all duration-200 ${
+                      theme === "light"
+                        ? "border-[#2a234f] bg-[#ffb3c3]/15 ring-2 ring-[#2a234f]/20 shadow-sm"
+                        : "border-[#e8e5ef] bg-white hover:border-[#2a234f]/40 hover:bg-[#f8f7fb]/60"
+                    }`}
+                  >
+                    <div className="mb-3 flex w-full items-center justify-between">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
+                        <Sun size={18} />
+                      </div>
+                      {theme === "light" && (
+                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#2a234f] text-white">
+                          <Check size={12} strokeWidth={3} />
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Mini Visual Preview Mockup */}
+                    <div className="mb-3 h-16 w-full rounded-xl border border-[#e8e5ef] bg-[#f8f7fb] p-2 flex flex-col justify-between">
+                      <div className="flex items-center justify-between">
+                        <div className="h-2 w-12 rounded-full bg-[#2a234f]/80" />
+                        <div className="h-2 w-4 rounded-full bg-[#ffb3c3]" />
+                      </div>
+                      <div className="h-3 w-16 rounded-full bg-[#2a234f]" />
+                      <div className="h-1.5 w-full rounded-full bg-[#e8e5ef]" />
+                    </div>
+
+                    <p className="text-xs font-bold text-[#2a234f]">Light Mode</p>
+                    <p className="mt-1 text-[11px] leading-relaxed text-[#77738a]">
+                      Clean, high-clarity surfaces with warm blush pink accents and deep navy contrast.
+                    </p>
+                  </button>
+
+                  {/* Option 2: Dark Theme */}
+                  <button
+                    type="button"
+                    onClick={() => setTheme("dark")}
+                    className={`group relative flex flex-col items-start rounded-2xl border p-4 text-left transition-all duration-200 ${
+                      theme === "dark"
+                        ? "border-[#ffb3c3] bg-[#ffb3c3]/15 ring-2 ring-[#ffb3c3]/30 shadow-sm"
+                        : "border-[#e8e5ef] bg-white hover:border-[#2a234f]/40 hover:bg-[#f8f7fb]/60"
+                    }`}
+                  >
+                    <div className="mb-3 flex w-full items-center justify-between">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-purple-900/40 text-purple-300">
+                        <Moon size={18} />
+                      </div>
+                      {theme === "dark" && (
+                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#ffb3c3] text-[#2a234f]">
+                          <Check size={12} strokeWidth={3} />
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Mini Visual Preview Mockup */}
+                    <div className="mb-3 h-16 w-full rounded-xl border border-[#2e265c] bg-[#0f0b21] p-2 flex flex-col justify-between">
+                      <div className="flex items-center justify-between">
+                        <div className="h-2 w-12 rounded-full bg-white/70" />
+                        <div className="h-2 w-4 rounded-full bg-[#ffb3c3]" />
+                      </div>
+                      <div className="h-3 w-16 rounded-full bg-white" />
+                      <div className="h-1.5 w-full rounded-full bg-[#2e265c]" />
+                    </div>
+
+                    <p className="text-xs font-bold text-[#2a234f]">Dark Mode</p>
+                    <p className="mt-1 text-[11px] leading-relaxed text-[#77738a]">
+                      Deep midnight navy surfaces with reduced eye strain and luminous highlights.
+                    </p>
+                  </button>
+
+                  {/* Option 3: System Preference */}
+                  <button
+                    type="button"
+                    onClick={() => setTheme("system")}
+                    className={`group relative flex flex-col items-start rounded-2xl border p-4 text-left transition-all duration-200 ${
+                      theme === "system"
+                        ? "border-[#2a234f] bg-[#ffb3c3]/15 ring-2 ring-[#2a234f]/20 shadow-sm"
+                        : "border-[#e8e5ef] bg-white hover:border-[#2a234f]/40 hover:bg-[#f8f7fb]/60"
+                    }`}
+                  >
+                    <div className="mb-3 flex w-full items-center justify-between">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-[#2a234f]">
+                        <Laptop size={18} />
+                      </div>
+                      {theme === "system" && (
+                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#2a234f] text-white">
+                          <Check size={12} strokeWidth={3} />
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Mini Visual Preview Mockup (Split) */}
+                    <div className="mb-3 h-16 w-full rounded-xl border border-[#e8e5ef] bg-gradient-to-r from-[#f8f7fb] from-50% to-[#0f0b21] to-50% p-2 flex flex-col justify-between overflow-hidden">
+                      <div className="flex items-center justify-between">
+                        <div className="h-2 w-10 rounded-full bg-[#2a234f]/80" />
+                        <div className="h-2 w-4 rounded-full bg-[#ffb3c3]" />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="h-3 w-8 rounded-full bg-[#2a234f]" />
+                        <div className="h-3 w-8 rounded-full bg-white" />
+                      </div>
+                      <div className="h-1.5 w-full rounded-full bg-gradient-to-r from-[#e8e5ef] from-50% to-[#2e265c] to-50%" />
+                    </div>
+
+                    <p className="text-xs font-bold text-[#2a234f]">System Default</p>
+                    <p className="mt-1 text-[11px] leading-relaxed text-[#77738a]">
+                      Automatically synchronizes with your device's daylight and night schedules.
+                    </p>
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 
@@ -1252,93 +1379,30 @@ function Settings() {
           {/* TAB 4: AI & DATA PREFERENCES (Visible to all) */}
           {activeTab === "data" && (
             <div className="grid gap-6 lg:grid-cols-2">
-              {/* Local AI Engine Status Card */}
-              <div className="rounded-2xl border border-[#e8e5ef] bg-white p-6 shadow-sm">
-                <div className="flex items-center justify-between border-b border-[#e8e5ef] pb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/15 text-purple-600">
-                      <Sparkles size={20} />
-                    </div>
-                    <div>
-                      <h2 className="text-base font-bold text-[#2a234f]">
-                        Local AI Engine Status
-                      </h2>
-                      <p className="text-xs text-[#77738a]">
-                        Grounding models for financial radar and insights.
-                      </p>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={handleCheckAI}
-                    disabled={isCheckingAI}
-                    className="p-2 text-[#77738a] hover:text-[#2a234f] transition rounded-lg hover:bg-[#f8f7fb]"
-                    title="Check connection"
-                  >
-                    <RefreshCw size={16} className={isCheckingAI ? "animate-spin" : ""} />
-                  </button>
-                </div>
-
-                <div className="mt-5 space-y-4">
-                  <div className="flex items-center justify-between rounded-xl border border-[#e8e5ef] bg-[#f8f7fb] p-4">
-                    <div className="flex items-center gap-3">
-                      <span
-                        className={`h-3 w-3 rounded-full ${
-                          aiHealth?.status === "online" ? "bg-emerald-500 animate-pulse" : "bg-rose-500"
-                        }`}
-                      />
-                      <div>
-                        <p className="text-xs font-bold text-[#2a234f]">
-                          {aiHealth?.status === "online" ? "Ollama Online" : "Ollama Offline"}
-                        </p>
-                        <p className="text-[11px] text-[#77738a]">
-                          Model: {aiHealth?.model || "qwen2.5:3b"} · Localhost (port 11434)
-                        </p>
-                      </div>
-                    </div>
-
-                    <span
-                      className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${
-                        aiHealth?.status === "online"
-                          ? "bg-emerald-100 text-emerald-800"
-                          : "bg-rose-100 text-rose-800"
-                      }`}
-                    >
-                      {aiHealth?.status === "online" ? "Connected" : "Disconnected"}
-                    </span>
-                  </div>
-
-                  <p className="text-xs text-[#77738a] leading-relaxed">
-                    All AI reasoning operates 100% locally on your server. No financial calculations, transaction amounts, or personal balances are ever transmitted to external commercial cloud AI providers.
-                  </p>
-                </div>
-              </div>
-
               {/* AI Conversation & History Card */}
-              <div className="rounded-2xl border border-[#e8e5ef] bg-white p-6 shadow-sm">
-                <div className="flex items-center gap-3 border-b border-[#e8e5ef] pb-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/15 text-blue-600">
+              <div className="rounded-2xl border border-[#e8e5ef] bg-white p-6 shadow-sm dark:border-[#2e265c] dark:bg-[#161130]">
+                <div className="flex items-center gap-3 border-b border-[#e8e5ef] pb-4 dark:border-[#2e265c]">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/15 text-purple-600 dark:bg-purple-950/40 dark:text-purple-400">
                     <RotateCcw size={20} />
                   </div>
                   <div>
-                    <h2 className="text-base font-bold text-[#2a234f]">
+                    <h2 className="text-base font-bold text-[#2a234f] dark:text-[#f5f3fa]">
                       AI Chat History
                     </h2>
-                    <p className="text-xs text-[#77738a]">
+                    <p className="text-xs text-[#77738a] dark:text-[#a5a0ba]">
                       Manage saved chat continuity for the financial assistant.
                     </p>
                   </div>
                 </div>
 
                 <div className="mt-5 space-y-4">
-                  <p className="text-xs text-[#77738a] leading-relaxed">
-                    Your conversation with the AI Financial Assistant is automatically stored locally in your browser for seamless 2-hour continuity. You can purge this session at any time.
+                  <p className="text-xs text-[#77738a] leading-relaxed dark:text-[#a5a0ba]">
+                    Your conversation with the AI Financial Assistant is stored for your active session continuity. You can clear this session history at any time.
                   </p>
 
                   {chatCleared && (
-                    <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs font-medium text-emerald-800">
-                      <CheckCircle2 size={16} className="shrink-0 text-emerald-600" />
+                    <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs font-medium text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-950/30 dark:text-emerald-400">
+                      <CheckCircle2 size={16} className="shrink-0 text-emerald-600 dark:text-emerald-400" />
                       <span>Chat conversation history cleared.</span>
                     </div>
                   )}
@@ -1346,7 +1410,7 @@ function Settings() {
                   <button
                     type="button"
                     onClick={handleClearChat}
-                    className="inline-flex items-center gap-2 rounded-xl border border-[#e8e5ef] bg-white px-4 py-2 text-xs font-bold text-[#2a234f] shadow-xs transition hover:bg-[#f8f7fb] active:scale-95"
+                    className="inline-flex items-center gap-2 rounded-xl border border-[#e8e5ef] bg-white px-4 py-2 text-xs font-bold text-[#2a234f] shadow-xs transition hover:bg-[#f8f7fb] active:scale-95 dark:border-[#2e265c] dark:bg-[#1c1540] dark:text-[#f5f3fa] dark:hover:bg-[#251d54]"
                   >
                     <RotateCcw size={14} />
                     <span>Clear Chat History</span>
@@ -1355,23 +1419,23 @@ function Settings() {
               </div>
 
               {/* Data Export Card */}
-              <div className="rounded-2xl border border-[#e8e5ef] bg-white p-6 shadow-sm">
-                <div className="flex items-center gap-3 border-b border-[#e8e5ef] pb-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-600">
+              <div className="rounded-2xl border border-[#e8e5ef] bg-white p-6 shadow-sm dark:border-[#2e265c] dark:bg-[#161130]">
+                <div className="flex items-center gap-3 border-b border-[#e8e5ef] pb-4 dark:border-[#2e265c]">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400">
                     <Download size={20} />
                   </div>
                   <div>
-                    <h2 className="text-base font-bold text-[#2a234f]">
+                    <h2 className="text-base font-bold text-[#2a234f] dark:text-[#f5f3fa]">
                       Export Family Data
                     </h2>
-                    <p className="text-xs text-[#77738a]">
+                    <p className="text-xs text-[#77738a] dark:text-[#a5a0ba]">
                       Download transaction records for spreadsheets or accounting.
                     </p>
                   </div>
                 </div>
 
                 <div className="mt-5 space-y-4">
-                  <p className="text-xs text-[#77738a] leading-relaxed">
+                  <p className="text-xs text-[#77738a] leading-relaxed dark:text-[#a5a0ba]">
                     Export all non-deleted family transactions including amounts, categories, assigned members, and dates formatted as a standard RFC-4180 CSV file compatible with Excel and Google Sheets.
                   </p>
 
@@ -1379,7 +1443,7 @@ function Settings() {
                     type="button"
                     onClick={handleExportCSV}
                     disabled={isExportingCSV}
-                    className="inline-flex items-center gap-2 rounded-xl bg-[#2a234f] px-5 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-[#1f1a3b] active:scale-95 disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-xl bg-[#2a234f] px-5 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-[#1f1a3b] active:scale-95 disabled:opacity-50 dark:bg-[#352a6a] dark:hover:bg-[#433585]"
                   >
                     {isExportingCSV ? (
                       <>
@@ -1393,46 +1457,6 @@ function Settings() {
                       </>
                     )}
                   </button>
-                </div>
-              </div>
-
-              {/* Security & Multi-Layer Guard Card */}
-              <div className="rounded-2xl border border-[#e8e5ef] bg-white p-6 shadow-sm">
-                <div className="flex items-center gap-3 border-b border-[#e8e5ef] pb-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-600">
-                    <ShieldCheck size={20} />
-                  </div>
-                  <div>
-                    <h2 className="text-base font-bold text-[#2a234f]">
-                      Session & Privacy Guard
-                    </h2>
-                    <p className="text-xs text-[#77738a]">
-                      Real-time protection guarantees across your session.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-5 space-y-3">
-                  <div className="flex items-start gap-2.5 text-xs text-[#77738a]">
-                    <CheckCircle2 size={15} className="text-emerald-500 shrink-0 mt-0.5" />
-                    <span>
-                      <strong className="text-[#2a234f]">Auto-Logout on Expiry:</strong> Proactive JWT verification prevents stale sessions from remaining logged in.
-                    </span>
-                  </div>
-
-                  <div className="flex items-start gap-2.5 text-xs text-[#77738a]">
-                    <CheckCircle2 size={15} className="text-emerald-500 shrink-0 mt-0.5" />
-                    <span>
-                      <strong className="text-[#2a234f]">Zero-Trust Family Isolation:</strong> All database queries are rigidly partitioned by verified household ID.
-                    </span>
-                  </div>
-
-                  <div className="flex items-start gap-2.5 text-xs text-[#77738a]">
-                    <CheckCircle2 size={15} className="text-emerald-500 shrink-0 mt-0.5" />
-                    <span>
-                      <strong className="text-[#2a234f]">Audit Preservation:</strong> Historical transactions are soft-deleted to ensure your financial integrity remains intact.
-                    </span>
-                  </div>
                 </div>
               </div>
             </div>
