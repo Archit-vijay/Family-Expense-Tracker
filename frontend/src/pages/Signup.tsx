@@ -1,4 +1,4 @@
-import { Check, ShieldCheck } from "lucide-react";
+import { ArrowRight, Check, Loader2, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 
@@ -102,6 +102,20 @@ function Signup() {
                 #ffb3c3 100%
               );
 
+            background-size: 200% 200%;
+            animation: signupGradient 20s ease-in-out infinite;
+          }
+
+          html.dark .signup-gradient {
+            background:
+              linear-gradient(
+                135deg,
+                #0b071a 0%,
+                #120d28 32%,
+                #191238 58%,
+                #231742 78%,
+                #321a48 100%
+              );
             background-size: 200% 200%;
             animation: signupGradient 20s ease-in-out infinite;
           }
@@ -305,6 +319,9 @@ function Signup() {
                     shadow-black/30
                     backdrop-blur-xl
                     sm:p-9
+                    dark:border-white/10
+                    dark:bg-[#181236]/90
+                    dark:shadow-black/60
                   "
                 >
                   {/* Card header */}
@@ -321,22 +338,24 @@ function Signup() {
                           uppercase
                           tracking-[0.18em]
                           text-[#2a234f]
+                          dark:bg-[#ffb3c3]/15
+                          dark:text-[#ffb3c3]
                         "
                       >
                         Create account
                       </span>
 
-                      <span className="flex items-center gap-1.5 text-xs text-[#9a96a8]">
+                      <span className="flex items-center gap-1.5 text-xs text-[#9a96a8] dark:text-[#a5a0ba]">
                         <ShieldCheck size={14} className="text-emerald-500" />
                         Private & secure
                       </span>
                     </div>
 
-                    <h2 className="text-2xl font-bold tracking-tight text-[#2a234f] sm:text-3xl">
+                    <h2 className="text-2xl font-bold tracking-tight text-[#2a234f] sm:text-3xl dark:text-[#f5f3fa]">
                       Get started free
                     </h2>
 
-                    <p className="mt-1.5 text-xs leading-5 text-[#77738a] sm:text-sm">
+                    <p className="mt-1.5 text-xs leading-5 text-[#77738a] sm:text-sm dark:text-[#a5a0ba]">
                       Create your global account to establish or join your family finance workspace.
                     </p>
                   </div>
@@ -356,6 +375,7 @@ function Signup() {
                           text-xs
                           font-semibold
                           text-[#77738a]
+                          dark:text-[#c4c1d6]
                         "
                       >
                         Your Full Name
@@ -387,6 +407,10 @@ function Signup() {
                           focus:border-[#ffb3c3]
                           focus:ring-4
                           focus:ring-[#ffb3c3]/20
+                          dark:border-[#2e265c]
+                          dark:bg-[#110c26]
+                          dark:text-[#f5f3fa]
+                          dark:placeholder:text-[#726b8e]
                         "
                       />
                     </div>
@@ -401,6 +425,7 @@ function Signup() {
                           text-xs
                           font-semibold
                           text-[#77738a]
+                          dark:text-[#c4c1d6]
                         "
                       >
                         Email Address
@@ -432,6 +457,10 @@ function Signup() {
                           focus:border-[#ffb3c3]
                           focus:ring-4
                           focus:ring-[#ffb3c3]/20
+                          dark:border-[#2e265c]
+                          dark:bg-[#110c26]
+                          dark:text-[#f5f3fa]
+                          dark:placeholder:text-[#726b8e]
                         "
                       />
                     </div>
@@ -447,6 +476,7 @@ function Signup() {
                             text-xs
                             font-semibold
                             text-[#77738a]
+                            dark:text-[#c4c1d6]
                           "
                         >
                           Password
@@ -478,6 +508,10 @@ function Signup() {
                             focus:border-[#ffb3c3]
                             focus:ring-4
                             focus:ring-[#ffb3c3]/20
+                            dark:border-[#2e265c]
+                            dark:bg-[#110c26]
+                            dark:text-[#f5f3fa]
+                            dark:placeholder:text-[#726b8e]
                           "
                         />
                       </div>
@@ -491,6 +525,7 @@ function Signup() {
                             text-xs
                             font-semibold
                             text-[#77738a]
+                            dark:text-[#c4c1d6]
                           "
                         >
                           Confirm Password
@@ -522,6 +557,10 @@ function Signup() {
                             focus:border-[#ffb3c3]
                             focus:ring-4
                             focus:ring-[#ffb3c3]/20
+                            dark:border-[#2e265c]
+                            dark:bg-[#110c26]
+                            dark:text-[#f5f3fa]
+                            dark:placeholder:text-[#726b8e]
                           "
                         />
                       </div>
@@ -540,6 +579,9 @@ function Signup() {
                           text-xs
                           font-medium
                           text-rose-600
+                          dark:border-rose-500/30
+                          dark:bg-rose-950/40
+                          dark:text-rose-300
                         "
                       >
                         {error}
@@ -551,42 +593,70 @@ function Signup() {
                       type="submit"
                       disabled={isLoading}
                       className="
+                        group
+                        relative
                         mt-2
                         flex
                         h-12
                         w-full
                         items-center
                         justify-center
+                        gap-2
                         rounded-xl
                         bg-[#2a234f]
                         text-sm
                         font-semibold
+                        tracking-wide
                         text-white
-                        shadow-lg
-                        shadow-[#2a234f]/20
+                        shadow-md
+                        shadow-[#2a234f]/25
                         transition-all
                         duration-200
                         hover:-translate-y-0.5
-                        hover:bg-[#ffb3c3]
-                        hover:text-[#2a234f]
-                        hover:shadow-xl
-                        hover:shadow-[#ffb3c3]/20
+                        hover:bg-[#1f1a3b]
+                        hover:shadow-lg
+                        hover:shadow-[#2a234f]/35
                         active:translate-y-0
+                        active:scale-[0.99]
                         disabled:cursor-not-allowed
                         disabled:opacity-60
+                        dark:border
+                        dark:border-[#4d4090]/80
+                        dark:bg-gradient-to-r
+                        dark:from-[#2a234f]
+                        dark:to-[#382e6e]
+                        dark:text-[#f5f3fa]
+                        dark:shadow-md
+                        dark:shadow-black/50
+                        dark:hover:from-[#332b5f]
+                        dark:hover:to-[#433785]
+                        dark:hover:border-[#ffb3c3]/40
                       "
                     >
-                      {isLoading ? "Creating account..." : "Sign up"}
+                      {isLoading ? (
+                        <>
+                          <Loader2 size={16} className="animate-spin text-[#ffb3c3]" />
+                          <span>Creating account...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>Create account</span>
+                          <ArrowRight
+                            size={16}
+                            className="text-[#ffb3c3] transition-transform duration-200 group-hover:translate-x-1"
+                          />
+                        </>
+                      )}
                     </button>
                   </form>
 
                   {/* Switch to Login */}
                   <div className="mt-5 text-center">
-                    <p className="text-xs text-[#77738a]">
+                    <p className="text-xs text-[#77738a] dark:text-[#a5a0ba]">
                       Already have an account?{" "}
                       <Link
                         to="/login"
-                        className="font-semibold text-[#2a234f] underline hover:text-[#1f1a3b]"
+                        className="font-bold text-[#2a234f] underline decoration-[#ffb3c3] decoration-2 underline-offset-4 transition-colors hover:text-[#1f1a3b] dark:text-[#ffb3c3] dark:hover:text-[#ff9fb4]"
                       >
                         Sign in
                       </Link>
@@ -603,11 +673,12 @@ function Signup() {
                       border-t
                       border-[#e8e5ef]
                       pt-4
+                      dark:border-white/10
                     "
                   >
                     <div className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
 
-                    <p className="text-xs text-[#9a96a8]">
+                    <p className="text-xs text-[#9a96a8] dark:text-[#a5a0ba]">
                       By signing up you agree to family data collaboration terms.
                     </p>
                   </div>

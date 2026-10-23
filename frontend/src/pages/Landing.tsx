@@ -204,7 +204,7 @@ export default function Landing() {
             {/* Headline */}
             <h1 className="mt-6 text-4xl font-extrabold tracking-[-0.04em] text-white sm:text-6xl lg:text-[68px] lg:leading-[1.05]">
               Shared wealth <br />
-              <span className="bg-gradient-to-r from-white via-[#f8f7fb] to-[#ffb3c3] bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-white via-[#ffe3ea] to-[#ffb3c3] bg-clip-text text-transparent">
                 intelligence.
               </span>
               <br />

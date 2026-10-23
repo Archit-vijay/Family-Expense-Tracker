@@ -623,14 +623,7 @@ html.dark .bg-\[\#2a234f\]\/10 {
   background-color: rgba(255, 255, 255, 0.08);
 }
 
-/* Gradients with light endpoints in dark mode */
-html.dark .to-white {
-  --tw-gradient-to: #161130 var(--tw-gradient-to-position, to 100%);
-}
 
-html.dark .from-white {
-  --tw-gradient-from: #171135 var(--tw-gradient-from-position, from 0%);
-}
 
 /* Hover transitions in dark mode */
 html.dark .hover\:bg-white:hover {
