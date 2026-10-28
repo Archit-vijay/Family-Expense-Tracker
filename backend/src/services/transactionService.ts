@@ -741,3 +741,63 @@ export async function getMemberIncomeByDateRange(
     endDate,
   };
 }
+
+
+export interface BatchImportTransactionItem {
+  title: string;
+  amount: number;
+  type: "income" | "expense";
+  transactionDate: string;
+  categoryId: number;
+}
+
+export async function createTransactionsBatch(
+  familyId: number,
+  memberId: number,
+  createdBy: number,
+  items: BatchImportTransactionItem[],
+) {
+  if (!items || items.length === 0) return [];
+
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const insertedIds: number[] = [];
+
+    for (const item of items) {
+      const res = await client.query(
+        `INSERT INTO transactions (
+          family_id,
+          member_id,
+          category_id,
+          created_by,
+          title,
+          amount,
+          type,
+          transaction_date
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        RETURNING id`,
+        [
+          familyId,
+          memberId,
+          item.categoryId,
+          createdBy,
+          item.title.trim().slice(0, 200),
+          item.amount,
+          item.type,
+          item.transactionDate,
+        ],
+      );
+      insertedIds.push(res.rows[0].id);
+    }
+
+    await client.query("COMMIT");
+    return insertedIds;
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
+}

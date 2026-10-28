@@ -741,6 +741,35 @@ Recurring Transactions & Subscriptions is fully implemented across the stack to 
   - Add/Edit recurring commitment modal with custom animated dropdowns, category and member selection, and subscription toggles.
   - Desktop sidebar and mobile navigation drawer updated with "Recurring & Bills" link and `CalendarClock` icon.
 
+---
+
+# Bank Statement Ingestion & Smart Auto-Categorization (COMPLETE)
+
+Bank Statement Ingestion provides automated, high-volume transaction extraction and self-learning categorization across CSV, Excel (`.xlsx`, `.xls`), and PDF formats:
+- **Multi-Format Ingestion**:
+  - In-memory parsing via `multer` (no temporary disk files).
+  - Handles CSV, Excel spreadsheets (`.xlsx` and `.xls` via `xlsx`), and official bank statement PDFs (via `pdfjs-dist`).
+- **Smart Encryption & Password-Protection Detection**:
+  - Automatically tests any file for encryption before prompting the user.
+  - If unprotected, parses immediately with zero prompts.
+  - If password-encrypted, cleanly catches `PasswordException` or spreadsheet lock, and prompts the user with an in-app password dialog containing common bank password hints (PAN, DOB, account number).
+- **Extraction & Normalization Engine (`statementParserService.ts`)**:
+  - Cleans raw bank narrations (UPI prefixes, POS terminal codes, NEFT/IMPS tokens, VPA handles) into clean merchant titles.
+  - Normalizes multiple date formats (`DD/MM/YYYY`, `DD-Mon-YYYY`, `YYYY-MM-DD`, Excel date serials).
+  - Robust debit/credit and withdrawal/deposit amount detection.
+- **Deduplication & Auto-Categorization Engine (`statementCategorizerService.ts`)**:
+  - Checks against existing active family transactions in PostgreSQL to detect and flag duplicates with an amber badge (`Duplicate (will skip)`).
+  - 3-tier categorization pipeline:
+    1. **Family Learned History**: Matches against `merchant_category_mappings` table.
+    2. **Built-in Brand Catalog**: Matches 120+ Indian and global merchant signatures (Swiggy, Zomato, Blinkit, Uber, Amazon, Netflix, Apollo, etc.).
+    3. **Deterministic Fallback**: Suggests appropriate family default category with confidence tagging (`learned`, `rule`, `default`).
+  - `merchant_category_mappings` table (Migration `016`) remembers the family's adjustments for future imports.
+- **Interactive Staging Modal (`StatementImportModal.tsx`)**:
+  - File dropzone with format badges and family member selection.
+  - Staging review table with summary badges (Total, Ready to Import, Duplicates Skipped, Total Expenses).
+  - Checkbox selection toggles, clean merchant title editing, and pre-selected category dropdowns.
+  - 1-click batch commit endpoint (`POST /api/transactions/import/commit`).
+
 ## Immediate Next Milestone
 
 With Recurring Transactions & Subscriptions complete, the immediate next milestone is:

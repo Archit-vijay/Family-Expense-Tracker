@@ -6,6 +6,7 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
+  FileSpreadsheet,
   Loader2,
   Search,
   SlidersHorizontal,
@@ -15,6 +16,7 @@ import {
 import AnimatedDropdown from "../components/AnimatedDropdown";
 import ContentState from "../components/ContentState";
 import TransactionItem from "../components/TransactionItem";
+import StatementImportModal from "../components/StatementImportModal";
 import { useAuth } from "../context/AuthContext";
 
 import {
@@ -79,6 +81,9 @@ function Transactions() {
     useState<Category[]>([]);
 
   const [isModalOpen, setIsModalOpen] =
+    useState(false);
+
+  const [isImportModalOpen, setIsImportModalOpen] =
     useState(false);
 
   const [editingTransaction, setEditingTransaction] =
@@ -478,34 +483,71 @@ function Transactions() {
           </div>
 
           {canEdit && (
-            <button
-              type="button"
-              onClick={() => {
-                setEditingTransaction(null);
-                setIsModalOpen(true);
-              }}
-              className="
-                group
-                inline-flex items-center justify-center gap-2
-                rounded-xl
-                bg-[#2a234f]
-                px-4 py-3
-                text-sm font-semibold text-white
-                shadow-lg shadow-[#2a234f]/15
-                transition-all duration-200
-                hover:-translate-y-0.5
-                hover:bg-[#1f1a3b]
-                hover:shadow-xl hover:shadow-[#2a234f]/20
-                active:translate-y-0
-                active:scale-[0.98]
-              "
-            >
-              <span className="text-lg leading-none text-[#ffb3c3]">
-                +
-              </span>
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Import Statement Button */}
+              <button
+                type="button"
+                onClick={() => setIsImportModalOpen(true)}
+                className="
+                  group
+                  inline-flex items-center justify-center gap-2
+                  rounded-xl
+                  border border-[#e8e5ef]
+                  bg-white
+                  px-4 py-3
+                  text-sm font-semibold text-[#2a234f]
+                  shadow-sm
+                  transition-all duration-200
+                  hover:-translate-y-0.5
+                  hover:border-[#ffb3c3]
+                  hover:bg-[#fff7f9]
+                  hover:shadow-md
+                  active:translate-y-0
+                  active:scale-[0.98]
+                  dark:border-[#2e265c]
+                  dark:bg-[#161130]
+                  dark:text-[#f5f3fa]
+                  dark:hover:border-[#ffb3c3]/40
+                  dark:hover:bg-[#201744]
+                "
+              >
+                <FileSpreadsheet size={16} className="text-[#2a234f] dark:text-[#ffb3c3]" />
+                <span>Import Statement</span>
+              </button>
 
-              Add transaction
-            </button>
+              {/* Add transaction button */}
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingTransaction(null);
+                  setIsModalOpen(true);
+                }}
+                className="
+                  group
+                  inline-flex items-center justify-center gap-2
+                  rounded-xl
+                  bg-[#2a234f]
+                  px-4 py-3
+                  text-sm font-semibold text-white
+                  shadow-lg shadow-[#2a234f]/15
+                  transition-all duration-200
+                  hover:-translate-y-0.5
+                  hover:bg-[#1f1a3b]
+                  hover:shadow-xl hover:shadow-[#2a234f]/20
+                  active:translate-y-0
+                  active:scale-[0.98]
+                  dark:bg-gradient-to-r dark:from-[#2a234f] dark:to-[#382e6e]
+                  dark:border dark:border-[#4d4090]/80
+                  dark:text-[#f5f3fa]
+                "
+              >
+                <span className="text-lg leading-none text-[#ffb3c3]">
+                  +
+                </span>
+
+                Add transaction
+              </button>
+            </div>
           )}
         </div>
       </section>
@@ -921,6 +963,20 @@ function Transactions() {
           categories={categories}
           members={members}
           actionError={transactionActionError}
+        />
+      )}
+
+      {/* Bank Statement Import Modal */}
+      {isImportModalOpen && (
+        <StatementImportModal
+          isOpen={isImportModalOpen}
+          onClose={() => setIsImportModalOpen(false)}
+          categories={categories}
+          members={members}
+          onImportComplete={async () => {
+            const updated = await getTransactions();
+            setTransactionList(updated);
+          }}
         />
       )}
 

@@ -161,3 +161,50 @@ export async function bulkDeactivateTransactions(
   const result = await response.json();
   return result.count ?? transactionIds.length;
 }
+
+
+import type { StatementParseResponse, StatementCommitPayload } from "../types/Transaction";
+
+export async function parseStatement(
+  file: File,
+  password?: string,
+): Promise<StatementParseResponse> {
+  const formData = new FormData();
+  formData.append("file", file);
+  if (password && password.trim()) {
+    formData.append("password", password.trim());
+  }
+
+  const response = await fetch(`${API_URL}/transactions/import/parse`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const errorJson = await response.json().catch(() => null);
+    throw new Error(errorJson?.message || "Failed to parse statement file.");
+  }
+
+  return response.json();
+}
+
+export async function commitStatementImport(
+  payload: StatementCommitPayload,
+): Promise<{ success: boolean; count: number; message: string }> {
+  const response = await fetch(`${API_URL}/transactions/import/commit`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeaders(),
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const errorJson = await response.json().catch(() => null);
+    throw new Error(errorJson?.message || "Failed to commit statement transactions.");
+  }
+
+  return response.json();
+}

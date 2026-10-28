@@ -62,7 +62,7 @@ Status: COMPLETE
 
 ---
 
-# Phase 4 — Transactions
+# Phase 4 — Transactions & Bank Statement Ingestion
 
 - [x] Transaction database schema
 - [x] Transaction categories
@@ -81,6 +81,15 @@ Status: COMPLETE
 - [x] Type filter
 - [x] Summary totals
 - [x] Custom animated dropdowns
+- [x] Multi-format bank statement import (CSV, Excel `.xlsx`/`.xls`, and PDF `.pdf`)
+- [x] Automatic encryption / password-protection detection across all statement file types
+- [x] In-app bank password unlock modal with common bank password hints
+- [x] Narration cleanup engine (UPI, POS, NEFT, IMPS, ATM)
+- [x] Date, amount, and debit/credit normalization
+- [x] Database deduplication against existing family records
+- [x] 3-tier categorization engine (family learned history, 120+ Indian & global brand keywords, fallback)
+- [x] Self-learning `merchant_category_mappings` table
+- [x] Interactive 2-step staging table modal with editable categories and bulk import
 
 Status: COMPLETE
 
