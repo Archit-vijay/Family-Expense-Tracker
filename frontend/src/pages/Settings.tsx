@@ -52,6 +52,8 @@ import {
   type Category,
 } from "../services/categoryService";
 import { clearChatSession } from "../services/chatStorageService";
+import { getFamilyMembers, type FamilyMember } from "../services/familyMemberService";
+import ExportModal from "../components/ExportModal";
 
 type SettingsTab = "profile" | "family" | "categories" | "data";
 
@@ -144,6 +146,8 @@ function Settings() {
 
   // Tab 4: AI & Data State
   const [isExportingCSV, setIsExportingCSV] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [members, setMembers] = useState<FamilyMember[]>([]);
   const [chatCleared, setChatCleared] = useState(false);
 
   // Enforce role-based tab visibility: fallback if unauthorized tab is active
@@ -161,13 +165,14 @@ function Settings() {
 
     async function loadData() {
       try {
-        const [familyData, cats, secStatus] = await Promise.all([
+        const [familyData, cats, secStatus, mems] = await Promise.all([
           getMyFamily().catch(() => null),
           getCategories().catch(() => []),
           getSecurityStatus().catch(() => ({
             isTwoFactorEnabled: false,
             passwordChangedAt: null,
           })),
+          getFamilyMembers().catch(() => []),
         ]);
 
         if (isCurrent) {
@@ -176,6 +181,7 @@ function Settings() {
             setFamilyCode(familyData.familyCode || null);
           }
           setCategories(cats);
+          setMembers(mems);
           if (secStatus) {
             setIsTwoFactorEnabled(secStatus.isTwoFactorEnabled);
             setPasswordChangedAt(secStatus.passwordChangedAt);
@@ -1439,24 +1445,32 @@ function Settings() {
                     Export all non-deleted family transactions including amounts, categories, assigned members, and dates formatted as a standard RFC-4180 CSV file compatible with Excel and Google Sheets.
                   </p>
 
-                  <button
-                    type="button"
-                    onClick={handleExportCSV}
-                    disabled={isExportingCSV}
-                    className="inline-flex items-center gap-2 rounded-xl bg-[#2a234f] px-5 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-[#1f1a3b] active:scale-95 disabled:opacity-50 dark:bg-[#352a6a] dark:hover:bg-[#433585]"
-                  >
-                    {isExportingCSV ? (
-                      <>
-                        <Loader2 size={14} className="animate-spin text-[#ffb3c3]" />
-                        <span>Exporting CSV...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Download size={14} />
-                        <span>Download Transactions (CSV)</span>
-                      </>
-                    )}
-                  </button>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setIsExportModalOpen(true)}
+                      className="inline-flex items-center gap-2 rounded-xl bg-[#2a234f] px-5 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-[#1f1a3b] active:scale-95 dark:bg-[#352a6a] dark:hover:bg-[#433585]"
+                    >
+                      <Download size={14} className="text-[#ffb3c3]" />
+                      <span>Custom Report & Statement (PDF / Excel / CSV)</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleExportCSV}
+                      disabled={isExportingCSV}
+                      className="inline-flex items-center gap-2 rounded-xl border border-[#e8e5ef] bg-white px-4 py-2.5 text-xs font-bold text-[#2a234f] shadow-xs transition hover:bg-[#f8f7fb] active:scale-95 disabled:opacity-50 dark:border-[#2e265c] dark:bg-[#1c1540] dark:text-[#f5f3fa] dark:hover:bg-[#251d54]"
+                    >
+                      {isExportingCSV ? (
+                        <>
+                          <Loader2 size={14} className="animate-spin text-[#ffb3c3]" />
+                          <span>Exporting CSV...</span>
+                        </>
+                      ) : (
+                        <span>Quick CSV Dump</span>
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1803,6 +1817,13 @@ function Settings() {
           </div>
         </div>
       )}
+      {/* Export Reports Modal */}
+      <ExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        categories={categories}
+        members={members}
+      />
     </div>
   );
 }

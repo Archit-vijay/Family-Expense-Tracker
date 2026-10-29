@@ -803,10 +803,37 @@ The application features a proactive, automated financial alert engine and an in
 
 ---
 
+# Phase 13 — Advanced Data Export & Reports (COMPLETE)
+
+Advanced reporting, multi-format financial export, and official household statements are fully implemented:
+- **Multi-Format Export Engine (`reportService.ts`)**:
+  - **Formatted PDF Statement (`format=pdf`)**: Generates an official, executive household financial statement in vector PDF using `pdfkit`. Includes branded `#2A234F` banner, family metadata, 3-column KPI overview (Total Income, Total Expenses, Net Savings + Savings Rate in ₹ INR), category spending distribution table, and detailed transaction ledger with auto-pagination and confidential footer.
+  - **Multi-Sheet Excel Workbook (`format=xlsx`)**: Generates a formatted spreadsheet using `xlsx` with two dedicated sheets:
+    1. *Executive Summary*: Family header, date scope, metric KPIs, Category Breakdown table, and Member Contribution table.
+    2. *All Transactions*: Comprehensive tabular data with auto-fitted column widths and numeric amounts.
+  - **RFC-4180 CSV Export (`format=csv`)**: Clean tabular CSV export prefixed with UTF-8 BOM (`\uFEFF`) to preserve special characters and currency symbols across Microsoft Excel and Google Sheets.
+- **Granular Filter Support**:
+  - Flexible date scoping: Presets (*This Month*, *Last Month*, *Last 3 Months*, *This Year*, *All Time*) or custom start/end date ranges.
+  - Transaction type scoping: *All*, *Expenses Only*, or *Income Only*.
+  - Category scoping: multi-category array filtering.
+  - Family member scoping: multi-member array filtering.
+- **REST Endpoints (`/api/reports`)**:
+  - `GET /api/reports/preview`: Real-time reactive preview endpoint returning matching count, total income, total expenses, net savings, and category/member distributions.
+  - `GET /api/reports/export`: Streams formatted `.pdf`, `.xlsx`, or `.csv` files with explicit MIME headers and filename attachments.
+  - Accessible to all authenticated family roles (`admin`, `member`, `viewer`).
+- **Interactive UI Modal (`ExportModal.tsx`)**:
+  - Format selection cards with descriptive labels and icons (`FileText`, `FileSpreadsheet`, `Table`).
+  - Quick-preset pills and date pickers.
+  - Collapsible checklist selectors for categories and family members.
+  - Live preview summary box updating dynamically as filters change.
+  - Integrated into `/transactions` page header and `/settings` Data tab.
+
+---
+
 ## Immediate Next Milestone
 
-With Notifications & Financial Alerts complete, the immediate next milestone is:
-- **Phase 13 — Advanced Data Export & Reports**: Date-range filtered export, category & member filtered export, and formatted PDF financial summary statement export.
+With all core application features and reporting milestones complete, the immediate next milestone is:
+- **Phase 14 — DevOps & Production Deployment**: Containerization with Docker & Docker Compose, CI/CD with GitHub Actions, production PostgreSQL configuration, and repeatable production deployment.
 
 ---
 

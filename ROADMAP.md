@@ -390,12 +390,17 @@ Status: COMPLETE
 
 # Phase 13 — Advanced Data Export & Reports
 
-- [x] Basic RFC-4180 CSV transaction export (Implemented in Phase 10 Settings)
-- [ ] Date-range filtered export
-- [ ] Category & member filtered export
-- [ ] Formatted PDF financial summary statement export
+Comprehensive multi-format data export engine with granular filters and official PDF statement generation:
 
-Status: FUTURE
+- [x] Basic RFC-4180 CSV transaction export with UTF-8 BOM encoding
+- [x] Date-range filtered export (presets for This Month, Last Month, Last 3 Months, This Year, All Time, and custom date pickers)
+- [x] Category, member, and transaction type (`income` vs `expense`) filtered exports
+- [x] Multi-sheet Excel workbook export (`.xlsx` via `xlsx` with Executive Summary KPI tab and All Transactions tab)
+- [x] Formatted PDF financial summary statement export (`.pdf` via `pdfkit` with branded header, 3-card KPI overview, category spending breakdown table, and transaction history)
+- [x] Live scope preview endpoint (`GET /api/reports/preview`)
+- [x] Interactive Export Modal (`ExportModal.tsx`) integrated in Transactions (`/transactions`) and Settings (`/settings`)
+
+Status: COMPLETE
 
 ---
 
