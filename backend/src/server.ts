@@ -12,6 +12,7 @@ import invitationRoutes from "./routes/invitationRoutes.js";
 import aiRoutes from "./routes/aiRoutes.js";
 import budgetRoutes from "./routes/budgetRoutes.js";
 import recurringRoutes from "./routes/recurringRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
 
 const app = express();
 
@@ -44,6 +45,8 @@ app.use("/api/ai", aiRoutes);
 app.use("/api/budgets", budgetRoutes);
 
 app.use("/api/recurring", recurringRoutes);
+
+app.use("/api/notifications", notificationRoutes);
 
 app.get("/api/health", (_req, res) => {
     res.json({

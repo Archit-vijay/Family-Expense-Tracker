@@ -1,4 +1,5 @@
 import {
+  Bell,
   ChevronDown,
   ChevronUp,
   LogOut,
@@ -11,10 +12,13 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
+import { useNotifications } from "../context/NotificationContext";
+import NotificationBell from "./NotificationBell";
 
 function MobileHeader() {
   const { user, familyRole, logout } = useAuth();
   const { theme, resolvedTheme, setTheme } = useTheme();
+  const { unreadCount, openDrawer } = useNotifications();
   const navigate = useNavigate();
 
   const [isNavigationOpen, setIsNavigationOpen] = useState(false);
@@ -91,7 +95,7 @@ function MobileHeader() {
           </span>
         </div>
 
-        <div className="h-10 w-10" aria-hidden="true" />
+        <NotificationBell variant="icon" />
       </header>
 
       {isNavigationOpen && (
@@ -168,7 +172,7 @@ function MobileHeader() {
               ))}
             </div>
 
-            {/* User Profile & Sign Out section (mirrors PC sidebar) */}
+            {/* User Profile & Sign Out section */}
             <div className="border-t border-white/10 p-4">
               <div className="relative">
                 {/* User button */}
@@ -178,8 +182,13 @@ function MobileHeader() {
                   className="flex w-full items-center gap-3 rounded-xl bg-white/5 p-3 text-left transition-all duration-200 hover:bg-white/10 active:scale-[0.99]"
                 >
                   {/* Avatar */}
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#ffb3c3] text-sm font-bold text-[#2a234f]">
-                    {user?.name?.charAt(0).toUpperCase() ?? "U"}
+                  <div className="relative">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#ffb3c3] text-sm font-bold text-[#2a234f]">
+                      {user?.name?.charAt(0).toUpperCase() ?? "U"}
+                    </div>
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[#ff859d] ring-2 ring-[#2a234f]" />
+                    )}
                   </div>
 
                   {/* User info */}
@@ -192,12 +201,19 @@ function MobileHeader() {
                     </p>
                   </div>
 
-                  {/* Arrow indicator */}
-                  {isUserMenuOpen ? (
-                    <ChevronUp size={18} className="shrink-0 text-[#ffb3c3]" />
-                  ) : (
-                    <ChevronDown size={18} className="shrink-0 text-white/50" />
-                  )}
+                  {/* Unread count & arrow */}
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {unreadCount > 0 && (
+                      <span className="rounded-full bg-[#ff859d] px-1.5 py-0.5 text-[10px] font-bold text-white shadow-xs">
+                        {unreadCount > 99 ? "99+" : unreadCount}
+                      </span>
+                    )}
+                    {isUserMenuOpen ? (
+                      <ChevronUp size={18} className="shrink-0 text-[#ffb3c3]" />
+                    ) : (
+                      <ChevronDown size={18} className="shrink-0 text-white/50" />
+                    )}
+                  </div>
                 </button>
 
                 {/* Dropdown Menu */}
@@ -209,6 +225,29 @@ function MobileHeader() {
                   }`}
                   aria-hidden={!isUserMenuOpen}
                 >
+                  {/* Notifications Button */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsUserMenuOpen(false);
+                      setIsNavigationOpen(false);
+                      openDrawer();
+                    }}
+                    className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-xs font-medium text-white/80 transition-colors duration-150 hover:bg-white/10 hover:text-white"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Bell size={15} className="text-[#ffb3c3]" />
+                      <span>Notifications</span>
+                    </span>
+                    {unreadCount > 0 ? (
+                      <span className="rounded-full bg-[#ff859d] px-1.5 py-0.5 text-[10px] font-bold text-white">
+                        {unreadCount > 99 ? "99+" : unreadCount}
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-white/40">All clear</span>
+                    )}
+                  </button>
+
                   {/* Theme Toggle Button */}
                   <button
                     type="button"
@@ -230,6 +269,7 @@ function MobileHeader() {
 
                   <div className="my-1 h-px bg-white/10" />
 
+                  {/* Sign Out Button */}
                   <button
                     type="button"
                     onClick={handleLogout}

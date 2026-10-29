@@ -1,9 +1,11 @@
 import {
   BarChart3,
+  Bell,
   CalendarClock,
   ChevronDown,
   ChevronUp,
   LayoutDashboard,
+  LogOut,
   Moon,
   PanelLeftClose,
   Sun,
@@ -15,22 +17,19 @@ import {
 } from "lucide-react";
 
 import { NavLink, useNavigate } from "react-router-dom";
-
 import { useState } from "react";
-
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
+import { useNotifications } from "../context/NotificationContext";
 
 function Sidebar() {
   const { user, familyRole, logout } = useAuth();
   const { theme, resolvedTheme, setTheme } = useTheme();
+  const { unreadCount, openDrawer } = useNotifications();
   const navigate = useNavigate();
 
-  const [isUserMenuOpen, setIsUserMenuOpen] =
-    useState(false);
-
-  const [isCollapsed, setIsCollapsed] =
-    useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   function handleLogout() {
     logout();
@@ -357,20 +356,25 @@ function Sidebar() {
                 : "gap-3"
             }`}
           >
-            {/* Avatar */}
-            <div
-              className="
-                flex h-10 w-10 shrink-0
-                items-center justify-center
-                rounded-full
-                bg-[#ffb3c3]
-                text-sm font-bold
-                text-[#2a234f]
-              "
-            >
-              {user?.name
-                ?.charAt(0)
-                .toUpperCase() ?? "U"}
+            {/* Avatar with optional unread indicator */}
+            <div className="relative">
+              <div
+                className="
+                  flex h-10 w-10 shrink-0
+                  items-center justify-center
+                  rounded-full
+                  bg-[#ffb3c3]
+                  text-sm font-bold
+                  text-[#2a234f]
+                "
+              >
+                {user?.name
+                  ?.charAt(0)
+                  .toUpperCase() ?? "U"}
+              </div>
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[#ff859d] ring-2 ring-[#2a234f]" />
+              )}
             </div>
 
             {/* User information */}
@@ -386,29 +390,37 @@ function Sidebar() {
               </div>
             )}
 
-            {/* Arrow */}
-            {!isCollapsed &&
-              (isUserMenuOpen ? (
-                <ChevronUp
-                  size={18}
-                  className="shrink-0 text-[#ffb3c3]"
-                />
-              ) : (
-                <ChevronDown
-                  size={18}
-                  className="shrink-0 text-white/50"
-                />
-              ))}
+            {/* Unread badge & Arrow */}
+            {!isCollapsed && (
+              <div className="flex items-center gap-1.5 shrink-0">
+                {unreadCount > 0 && (
+                  <span className="rounded-full bg-[#ff859d] px-1.5 py-0.5 text-[10px] font-bold text-white shadow-xs">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
+                {isUserMenuOpen ? (
+                  <ChevronUp
+                    size={18}
+                    className="shrink-0 text-[#ffb3c3]"
+                  />
+                ) : (
+                  <ChevronDown
+                    size={18}
+                    className="shrink-0 text-white/50"
+                  />
+                )}
+              </div>
+            )}
           </button>
 
-          {/* Dropdown */}
+          {/* Dropdown Menu */}
           <div
             className={`
               absolute
               z-50
               ${
                 isCollapsed
-                  ? "bottom-0 left-full ml-3 w-44"
+                  ? "bottom-0 left-full ml-3 w-48"
                   : "bottom-full left-0 right-0 mb-2"
               }
               overflow-hidden
@@ -425,12 +437,34 @@ function Sidebar() {
 
               ${
                 isUserMenuOpen
-                  ? "translate-y-0 scale-100 opacity-100"
+                  ? "translate-y-0 scale-100 opacity-100 pointer-events-auto"
                   : "pointer-events-none translate-y-2 scale-[0.98] opacity-0"
               }
             `}
             aria-hidden={!isUserMenuOpen}
           >
+            {/* Notifications Button */}
+            <button
+              type="button"
+              onClick={() => {
+                setIsUserMenuOpen(false);
+                openDrawer();
+              }}
+              className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-xs font-medium text-white/80 transition-colors duration-150 hover:bg-white/10 hover:text-white"
+            >
+              <span className="flex items-center gap-2">
+                <Bell size={15} className="text-[#ffb3c3]" />
+                <span>Notifications</span>
+              </span>
+              {unreadCount > 0 ? (
+                <span className="rounded-full bg-[#ff859d] px-1.5 py-0.5 text-[10px] font-bold text-white">
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </span>
+              ) : (
+                <span className="text-[10px] text-white/40">All clear</span>
+              )}
+            </button>
+
             {/* Theme Toggle Button */}
             <button
               type="button"
@@ -452,12 +486,14 @@ function Sidebar() {
 
             <div className="my-1 h-px bg-white/10" />
 
+            {/* Sign Out Button */}
             <button
               type="button"
               onClick={handleLogout}
               className="
                 flex w-full
                 items-center
+                gap-2.5
                 rounded-lg
                 px-3 py-2.5
                 text-sm
@@ -472,7 +508,8 @@ function Sidebar() {
                 focus-visible:outline-none
               "
             >
-              Sign out
+              <LogOut size={16} className="shrink-0" />
+              <span>Sign out</span>
             </button>
           </div>
         </div>

@@ -2,12 +2,13 @@ import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import MobileHeader from "../components/MobileHeader";
 import ErrorBoundary from "../components/ErrorBoundary";
+import NotificationDrawer from "../components/NotificationDrawer";
 
 function DashboardLayout() {
   const location = useLocation();
 
   return (
-    <div className="h-screen overflow-hidden bg-[#f8f7fb]">
+    <div className="h-screen overflow-hidden bg-[#f8f7fb] dark:bg-[#120d2b]">
       <div className="flex h-full">
         <Sidebar />
 
@@ -25,6 +26,8 @@ function DashboardLayout() {
           </main>
         </div>
       </div>
+
+      <NotificationDrawer />
     </div>
   );
 }

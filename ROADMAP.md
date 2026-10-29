@@ -370,16 +370,21 @@ Status: COMPLETE
 
 # Phase 12 — Notifications & Financial Alerts
 
-Potential alerts:
+Comprehensive in-app notification center and automated financial alert trigger engine:
 
-- [ ] Budget nearing limit
-- [ ] Budget exceeded
-- [ ] Recurring bill due soon alerts
-- [ ] Notification model & in-app bell center
-- [ ] Notification UI drawer / dropdown
-- [ ] Read/unread state & clear all
+- [x] Budget nearing limit (amber warning when category spending reaches ≥ 80% of limit)
+- [x] Budget exceeded (critical rose alert when category spending exceeds 100% of limit)
+- [x] Recurring bill due soon alerts (warning for commitments due today or within 1–3 days)
+- [x] Recurring bill overdue alerts (critical alert for past due unpaid bills)
+- [x] Notification model (`notifications` table with metadata, severity, and family scoping)
+- [x] Automated alert sync engine with smart cycle deduplication guard
+- [x] Notification REST API endpoints with unread counting and role authorization
+- [x] In-app notification bell with live badge counter in desktop sidebar and mobile header
+- [x] Slide-over Notification Center drawer with filter tabs (All, Unread, Budgets, Bills)
+- [x] Optimistic read/unread toggling, individual dismissal, clear read, and clear all
+- [x] Deep links navigating straight to `/budgets` and `/recurring`
 
-Status: FUTURE
+Status: COMPLETE
 
 ---
 

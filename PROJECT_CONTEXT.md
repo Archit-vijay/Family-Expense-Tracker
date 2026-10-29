@@ -770,10 +770,43 @@ Bank Statement Ingestion provides automated, high-volume transaction extraction 
   - Checkbox selection toggles, clean merchant title editing, and pre-selected category dropdowns.
   - 1-click batch commit endpoint (`POST /api/transactions/import/commit`).
 
+# Phase 12 — Notifications & Financial Alerts (COMPLETE)
+
+The application features a proactive, automated financial alert engine and an in-app Notification Center:
+- **Database Architecture**:
+  - Migration `017_create_notifications.sql` created the `notifications` table scoped by `family_id` with foreign key cascades, `type` (`budget_warning`, `budget_exceeded`, `bill_due_soon`, `bill_overdue`, `anomaly`, `system`), `severity` (`info`, `warning`, `critical`), `title`, `message`, `link`, `metadata` (JSONB), `is_read`, `read_at`, and `created_at`.
+  - Composite indexes on `(family_id, is_read)`, `(family_id, created_at DESC)`, and `(type, family_id)`.
+- **Automated Financial Alert Engine (`notificationService.ts`)**:
+  - `syncFinancialAlerts(familyId)`: Evaluates live family finances and generates proactive alerts:
+    - **Budget Warnings**: Triggers warning notification when category expenses reach ≥ 80% of limit with remaining balance.
+    - **Budget Exceeded**: Triggers critical notification when category expenses exceed 100% of planned limit with exact percentage and overspend figures.
+    - **Upcoming Bills**: Triggers warning reminder for recurring commitments due today or within 1–3 days.
+    - **Overdue Bills**: Triggers critical overdue alert for past due unpaid bills with days overdue.
+  - **Smart Cycle Deduplication Guard**: Uses metadata queries (`budgetId`, `month`, `year` or `recurringId`, `dueDate`) to prevent duplicate unread notifications from being generated across consecutive sync runs. Supersedes earlier warnings when budgets become exceeded or bills become overdue.
+- **REST Endpoints (`/api/notifications`)**:
+  - `GET /api/notifications`: Triggers alert evaluation and returns notifications with live `unreadCount` and query filters (`unreadOnly`, `type: 'budget' | 'bill' | 'all'`).
+  - `PUT /api/notifications/:id/read`: Marks an individual alert as read.
+  - `POST /api/notifications/read-all`: Marks all unread alerts for the family as read.
+  - `DELETE /api/notifications/:id`: Dismisses a single notification.
+  - `DELETE /api/notifications`: Clears notifications (supports `onlyRead=true`).
+  - Protected by `authMiddleware` and `requireRole("admin", "member", "viewer")`.
+- **Global Reactive State (`NotificationContext.tsx`)**:
+  - Supplies `unreadCount`, `notifications`, `isLoading`, and `isOpen` to the application.
+  - Periodic background polling (every 90s) and automatic refresh when the browser tab regains focus.
+  - Optimistic updates for immediate UI responsiveness without waiting for network round-trips.
+- **Frontend UI & Notification Center Drawer**:
+  - `NotificationBell`: Dynamic bell icon with blush-pink/rose unread badge counter and pulsing glow ring. Integrated into both the collapsible desktop sidebar and sticky `MobileHeader`.
+  - `NotificationDrawer`: Slide-over panel with smooth right-entry animation, backdrop blur, and ESC key listener.
+  - Filter tabs: `All`, `Unread`, `Budgets`, `Bills` with dynamic count badges.
+  - Action controls: "Mark all read", "Clear read alerts", and individual check/trash actions on card hover.
+  - Direct deep linking: Clicking a budget or bill alert automatically marks it as read, closes the drawer, and navigates to `/budgets` or `/recurring`.
+
+---
+
 ## Immediate Next Milestone
 
-With Recurring Transactions & Subscriptions complete, the immediate next milestone is:
-- **Phase 12 — Notifications & Financial Alerts**: Proactive alerts for budgets nearing/exceeding limits, upcoming recurring bills due within 3 days, in-app notification center drawer/bell, and read/unread status management.
+With Notifications & Financial Alerts complete, the immediate next milestone is:
+- **Phase 13 — Advanced Data Export & Reports**: Date-range filtered export, category & member filtered export, and formatted PDF financial summary statement export.
 
 ---
 
