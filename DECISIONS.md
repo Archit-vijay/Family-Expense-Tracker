@@ -804,14 +804,31 @@ To provide modern account defense without introducing external third-party authe
 
 ---
 
-# DevOps & Deployment — Planned Direction
+# DevOps & Deployment Decisions
 
-DevOps is a deliberate future phase of the project because the project is also intended to teach practical deployment and DevOps skills. It should not be started immediately alongside the current AI work. The intended point is after the major application features are sufficiently complete and the application has enough functionality to make production deployment meaningful.
+## Multi-Stage Containerization Architecture
+- **Alpine Base Images**: `node:22-alpine` for backend and frontend builder stages, `nginx:alpine` for the frontend production server.
+- **Backend Build Hygiene**: TypeScript is compiled in a dedicated build stage, development dependencies are stripped using `npm prune --omit=dev`, and the container executes under an unprivileged `node` user (`USER node`). Pre-compiled `linux-musl` binaries for `bcrypt@6.0.0` eliminate the need for OS build toolchains (`python3`, `make`, `g++`). Final image: **169 MB**.
+- **Frontend Serving**: The React Vite application is served as static assets by Nginx with gzip compression, secure headers (`SAMEORIGIN`, `nosniff`), 1-year cache headers on immutable hashed assets, and client-side SPA fallback routing (`try_files $uri $uri/ /index.html;`). Final image: **27.1 MB**.
 
-The deployment approach should favor learning core concepts over hiding them behind a one-click platform. The planned learning sequence includes Docker, Docker Compose, production configuration, environment variables and secrets, PostgreSQL deployment and migrations, frontend/backend deployment, production CORS and communication, domain/DNS, HTTPS/TLS, GitHub Actions CI/CD, Docker image workflows, health checks, logging, monitoring, backups, rollback, and production troubleshooting.
+## Image Registry and Automated Versioning via GHCR
+- **Registry Choice**: GitHub Container Registry (`ghcr.io`) was chosen over Docker Hub for seamless native integration with GitHub Actions, elimination of third-party Docker Hub rate limits, and repository-scoped access control.
+- **Dual Tagging Strategy**: Every push to `main` produces both a `:latest` tag and an immutable commit SHA tag (`:sha-<short-hash>`).
+- **Zero-Downtime Rollback Strategy**: Rollbacks in production are performed without rebuilding: changing the image tag in `docker-compose.prod.yml` to a known previous `:sha-<short-hash>` immediately deploys the tested historical artifact.
 
-The exact hosting provider is intentionally not fixed yet. That decision should be made when the DevOps phase begins after the application's feature roadmap has progressed.
+## Production Isolation and Resource Protection
+- **Database Port Security**: In production (`docker-compose.prod.yml`), PostgreSQL does not expose port 5432 to the host network; it communicates exclusively over Docker's internal private bridge network.
+- **Log Rotation Enforcement**: Docker's default `json-file` logging driver can grow unboundedly and exhaust server storage. Production containers are capped at 10 MB maximum log file size with a maximum of 3 rotated files (`max-size: "10m"`, `max-file: "3"`).
 
-Production architecture must preserve the project's existing separation of responsibilities: frontend presentation, backend business logic/authorization, and PostgreSQL data storage. Deployment infrastructure must not move business rules into the frontend or bypass backend authorization.
+## Multi-Provider AI Resilience Architecture
+- **Primary AI Provider**: Google Gemini Pro (`gemini-3.5-flash-lite`) via Google AI Studio API key, providing rapid cloud-based structured analysis and tool calling.
+- **Fallback Safety Net**: Local Ollama (`qwen2.5:3b` / `llama3.2:3b`) running on `localhost:11434`.
+- **Automatic Degradation**: If Google Gemini returns HTTP 429 (quota exhaustion) or network timeouts, the backend automatically and transparently falls back to local Ollama, ensuring zero disruption to end-user financial insights, chat assistant, and budget risk synthesis.
 
-No deployment environment, cloud architecture, CI/CD pipeline, or production database should be considered implemented merely because it is documented here.
+## Database Backup and Disaster Recovery
+- **Backup Strategy**: Daily automated exports via `pg_dump` compressed with gzip. Retains a rolling 7-day history, automatically pruning archives older than 7 days to preserve disk space.
+- **Deterministic Sync**: Host-to-container and disaster recovery migrations leverage PostgreSQL replica mode (`SET session_replication_role = 'replica'`) to preserve relational integrity across foreign keys without dropping schemas.
+
+## Bare-Metal Home Server Deployment Plan
+- **Target Hardware**: HP laptop (10th Gen Intel i3, 8 GB DDR4 RAM, 512 GB SSD, headless Ubuntu Server 24.04 LTS).
+- **Network Ingress**: Cloudflare Tunnel (`cloudflared`) to expose the application to the internet securely over HTTPS with Zero Trust authentication and zero router port-forwarding requirements. Implementation deferred until physical access to the home server is available.

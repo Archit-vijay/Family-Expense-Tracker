@@ -832,32 +832,51 @@ Advanced reporting, multi-format financial export, and official household statem
 
 ## Immediate Next Milestone
 
-With all core application features and reporting milestones complete, the immediate next milestone is:
-- **Phase 14 — DevOps & Production Deployment**: Containerization with Docker & Docker Compose, CI/CD with GitHub Actions, production PostgreSQL configuration, and repeatable production deployment.
+With the core application, all AI capabilities, Docker containerization, Compose orchestration, GitHub Actions CI/CD with GHCR, multi-provider AI resilience, and database backup/rollback scripts complete, the immediate next milestone is:
+- **Phase 14 — Bare-Metal Home Server Deployment (Ubuntu Server + Cloudflare Tunnel)**: Setting up the headless HP home server when physical access is available, deploying the production stack via pre-built GHCR images, configuring Zero-Trust Cloudflare Tunnel for secure HTTPS, and scheduling automated backups.
 
 ---
 
-# DevOps & Deployment — Future Phase
+# DevOps & Production Deployment — Implementation Details
 
-Deployment and DevOps are part of the project's learning goals, but they are not current implementation work. The application is still being developed locally and the DevOps phase should begin later, after the planned major application functionality is sufficiently complete.
+DevOps was implemented as a hands-on learning progression to transition the application from a local development environment into a production-grade, observable, containerized stack.
 
-The future DevOps phase is expected to cover:
-- Docker and containerization of the frontend and backend;
-- Docker Compose for local multi-service development;
-- development versus production configuration;
-- production environment variables and secrets;
-- production PostgreSQL and migration execution;
-- backend and frontend deployment;
-- production frontend/backend communication and CORS;
-- domain/DNS and HTTPS/TLS;
-- GitHub Actions CI/CD;
-- Docker image build/deployment workflow;
-- health checks;
-- logging and monitoring;
-- database backups;
-- rollback procedures;
-- production troubleshooting and deployment documentation.
+## Architecture Overview
 
-The cloud provider and final production architecture have not yet been selected. No production deployment should be described as completed until it is actually implemented and validated.
+1. **Multi-Stage Containerization**:
+   - **Backend**: Built on `node:22-alpine`. The build stage compiles TypeScript (`npm run build`), strips development dependencies (`npm prune --omit=dev`), and packages production assets. The runner stage executes as an unprivileged user (`USER node`) on port 5000 with a minimal image footprint (**169 MB**).
+   - **Frontend**: Built on `node:22-alpine` (Vite production build) and served via `nginx:alpine`. Includes gzip compression, strict security headers (`X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: nosniff`), 1-year cache headers for immutable static assets (`/assets/`), and SPA fallback routing (`try_files $uri $uri/ /index.html;`) (**27.1 MB**).
 
-The intended project progression is to finish the feature roadmap, then use this application as the practical environment for learning containerization, CI/CD, deployment, and production operations.
+2. **Local Multi-Service Orchestration (`docker-compose.yml`)**:
+   - `db`: Containerized `postgres:16-alpine` with healthcheck (`pg_isready`), persistent volume `postgres_data`, mapped to host port `5433` (to prevent conflicts with Windows host PostgreSQL on 5432).
+   - `backend`: Depends on `db` being healthy. Executes automated SQL migrations (`001` through `017`) before launching the Express HTTP server on port 5000.
+   - `frontend`: Exposes the Nginx React application on host port `3000`.
+
+3. **Continuous Integration Pipeline (`.github/workflows/ci.yml`)**:
+   - Automated triggers on pull requests and pushes to `main`.
+   - **Backend Job**: Clean dependency install (`npm ci`), TypeScript compilation check (`npm run build`).
+   - **Frontend Job**: Dependency install (`npm ci`), Oxlint static analysis (`npm run lint`), and Vite build verification (`npm run build`).
+   - **Docker Build Job**: Docker Buildx verification for both backend and frontend images with concurrency group cancellation.
+
+4. **Continuous Deployment Pipeline (`.github/workflows/cd.yml`)**:
+   - Triggers automatically upon merging/pushing to `main`.
+   - Authenticates to GitHub Container Registry (`ghcr.io`) using `GITHUB_TOKEN`.
+   - Compiles and publishes versioned, immutable Docker images tagged with both `:latest` and the specific commit hash (`:sha-<short-hash>`).
+   - Packages:
+     - `ghcr.io/archit-vijay/family-expense-tracker-backend`
+     - `ghcr.io/archit-vijay/family-expense-tracker-frontend`
+
+5. **Production Compose Stack (`docker-compose.prod.yml`)**:
+   - Pulls pre-built images directly from GHCR with zero in-place compilation overhead on the production host.
+   - Fully isolates PostgreSQL (no exposed host database port; communicates exclusively within the private Docker bridge network).
+   - Enforces Docker `json-file` log rotation (10 MB maximum per file, 3 rotated files maximum per container) to guard against host disk exhaustion.
+
+6. **Automated Database Backup & Restore Suite**:
+   - `scripts/backup-database.sh`: Shell script using `pg_dump` with gzip compression and 7-day automated backup retention pruning.
+   - `scripts/restore-database.sh`: Shell script terminating active connections and restoring from compressed archives.
+   - `scripts/backup-database.ps1`: Windows PowerShell equivalent tested live against the running Docker database container.
+
+7. **Multi-Provider AI Resilience**:
+   - Primary AI Engine: Google Gemini (`gemini-3.5-flash-lite`) via Google AI Pro API.
+   - Fallback AI Engine: Local Ollama (`qwen2.5:3b` / `llama3.2:3b`).
+   - Automatic High Availability: If Gemini encounters rate limits (HTTP 429) or network interruptions, all AI capabilities (Financial Assistant Chat, Financial Insights, Budget Recommendations, Budget Risk Radar) automatically fall back to local Ollama.

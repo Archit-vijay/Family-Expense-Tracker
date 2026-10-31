@@ -406,42 +406,38 @@ Status: COMPLETE
 
 # Phase 14 — DevOps & Production Deployment
 
-DevOps is a dedicated future learning phase. It should begin after the major application functionality is sufficiently complete, rather than being started alongside the current AI work. The purpose is to learn how to take the application from a working local project to a repeatable, observable production deployment.
+DevOps is a dedicated learning phase taking the application from a local project to a repeatable, observable production deployment.
 
-This phase should be implemented as hands-on project work rather than simply using a one-click hosting service.
+This phase is implemented as hands-on project work rather than simply using a one-click hosting service.
 
 Planned functionality and learning goals:
 
-- [ ] Learn Docker fundamentals
-- [ ] Dockerize the backend
-- [ ] Dockerize the frontend
-- [ ] Create Docker Compose configuration for local multi-service development
-- [ ] Separate development and production configuration
-- [ ] Manage production environment variables
-- [ ] Set up production PostgreSQL
-- [ ] Run database migrations safely during deployment
-- [ ] Deploy the backend
-- [ ] Deploy the frontend
-- [ ] Configure frontend-to-backend communication in production
-- [ ] Configure production CORS
-- [ ] Configure domain/DNS
-- [ ] Configure HTTPS/TLS
-- [ ] Learn GitHub Actions fundamentals
-- [ ] Build a CI pipeline for install/build/type-check/lint/tests as applicable
-- [ ] Build a CD pipeline for deployment
-- [ ] Build and use Docker images in the deployment workflow
-- [ ] Manage production secrets securely
-- [ ] Add backend health-check endpoint(s)
-- [ ] Establish production logging
-- [ ] Add basic application/infrastructure monitoring
-- [ ] Define database backup strategy
-- [ ] Define rollback strategy
-- [ ] Practice production troubleshooting
-- [ ] Document the deployment architecture and operational workflow
+- [x] Learn Docker fundamentals (containers vs VMs, images, registries, layer caching)
+- [x] Dockerize the backend (lean multi-stage Alpine Linux Node.js 22 build, 169 MB, unprivileged node user)
+- [x] Dockerize the frontend (lean multi-stage Vite + Nginx build with SPA client-side fallback routing and gzip, 27.1 MB)
+- [x] Create Docker Compose configuration for local multi-service development (`docker-compose.yml`)
+- [x] Separate development and production configuration (`docker-compose.yml` vs `docker-compose.prod.yml`)
+- [x] Manage production environment variables (mounted `.env` + template `.env.production.example`)
+- [x] Set up production PostgreSQL (containerized PostgreSQL 16 with persistent named volume `postgres_data` and healthcheck)
+- [x] Run database migrations safely during deployment (automated execution of all 17 SQL migrations before Express boot)
+- [x] Configure frontend-to-backend communication in production (configurable `VITE_API_URL` injected at build/runtime)
+- [x] Configure production CORS (dynamic `CORS_ORIGIN` supporting localhost defaults and production domains)
+- [x] Learn GitHub Actions fundamentals
+- [x] Build a CI pipeline for install/build/type-check/lint/tests (`.github/workflows/ci.yml`)
+- [x] Build a CD pipeline for deployment (`.github/workflows/cd.yml` with GitHub Container Registry)
+- [x] Build and use Docker images in the deployment workflow (`ghcr.io` automated versioned tagging with commit SHA and latest)
+- [x] Manage production secrets securely
+- [x] Add backend health-check endpoint(s) (`GET /api/health` and `GET /api/health/db`)
+- [x] Establish production logging (Docker `json-file` log rotation with 10 MB caps per container)
+- [x] Define database backup strategy (automated `pg_dump` with gzip compression and 7-day retention)
+- [x] Define rollback strategy (instant tag-based rollback via commit SHA tags)
+- [x] Practice production troubleshooting (resolved host-to-container database migration, React hook ordering bug, and AI synthesis wrapper)
+- [x] Implement Multi-Provider AI (Google Gemini via Google AI Pro key with automatic local Ollama safety net)
+- [ ] Configure domain/DNS (planned for HP server / cloud live deployment)
+- [ ] Configure HTTPS/TLS (planned for HP server / cloud live deployment via Cloudflare Tunnel / Let's Encrypt)
+- [ ] Deploy live on hardware (Ubuntu Server bare-metal setup on HP laptop when home)
 
-The exact cloud provider and hosting architecture should be chosen when this phase begins, based on the learning goals and the project's actual requirements.
-
-Status: FUTURE
+Status: IN PROGRESS
 
 ---
 

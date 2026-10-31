@@ -1,0 +1,103 @@
+# ==========================================
+# Family Finance — Production Docker Compose
+# ==========================================
+# Usage:
+#   docker compose -f docker-compose.prod.yml up -d
+#
+# Pulls pre-compiled, optimized images from GitHub Container Registry (GHCR)
+# with isolated private database networking and log rotation guards.
+# ==========================================
+
+services:
+  # ==========================================
+  # Service 1: PostgreSQL Database (Isolated)
+  # ==========================================
+  db:
+    image: postgres:16-alpine
+    container_name: family-finance-prod-db
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-family_expense_tracker}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Error: POSTGRES_PASSWORD must be set in production}
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+    # SECURITY: Database port is NOT mapped to the host in production.
+    # It is strictly reachable only by the backend container inside the internal network.
+    networks:
+      - family-finance-prod-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-family_expense_tracker}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ==========================================
+  # Service 2: Express Backend API
+  # ==========================================
+  backend:
+    image: ghcr.io/${REPO_OWNER:-archit-vijay}/family-expense-tracker-backend:${IMAGE_TAG:-latest}
+    container_name: family-finance-prod-backend
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      DATABASE_HOST: db
+      DATABASE_PORT: 5432
+      DATABASE_NAME: ${POSTGRES_DB:-family_expense_tracker}
+      DATABASE_USER: ${POSTGRES_USER:-postgres}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:?Error: POSTGRES_PASSWORD must be set in production}
+      JWT_SECRET: ${JWT_SECRET:?Error: JWT_SECRET must be set in production}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost}
+    ports:
+      - "5000:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - family-finance-prod-network
+    command: sh -c "node dist/scripts/migrate.js && node dist/server.js"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ==========================================
+  # Service 3: React / Vite / Nginx Frontend
+  # ==========================================
+  frontend:
+    image: ghcr.io/${REPO_OWNER:-archit-vijay}/family-expense-tracker-frontend:${IMAGE_TAG:-latest}
+    container_name: family-finance-prod-frontend
+    restart: always
+    ports:
+      - "${PROD_PORT:-80}:80"
+    depends_on:
+      - backend
+    networks:
+      - family-finance-prod-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+# ==========================================
+# Named Volumes (Production Persistence)
+# ==========================================
+volumes:
+  postgres_prod_data:
+    driver: local
+
+# ==========================================
+# Virtual Network (Internal DNS & Isolation)
+# ==========================================
+networks:
+  family-finance-prod-network:
+    driver: bridge
