@@ -1,6 +1,6 @@
 import type { DashboardData } from "../types/dashboard";
 
-const API_URL = "http://localhost:5000/api";
+import { API_URL } from "./apiClient";
 
 export async function getDashboard(
   period: string,

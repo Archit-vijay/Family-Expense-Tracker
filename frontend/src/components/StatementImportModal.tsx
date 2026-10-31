@@ -98,6 +98,17 @@ export default function StatementImportModal({
     }
   }, [isOpen]);
 
+  // Filtered list based on current tab (unconditional hook call)
+  const displayedTransactions = useMemo(() => {
+    if (filterTab === "ready") {
+      return parsedTransactions.filter((t) => !t.isDuplicate);
+    }
+    if (filterTab === "duplicates") {
+      return parsedTransactions.filter((t) => t.isDuplicate);
+    }
+    return parsedTransactions;
+  }, [parsedTransactions, filterTab]);
+
   if (!isOpen) return null;
 
   // Handle Drag & Drop
@@ -214,16 +225,6 @@ export default function StatementImportModal({
     );
   }
 
-  // Filtered list based on current tab
-  const displayedTransactions = useMemo(() => {
-    if (filterTab === "ready") {
-      return parsedTransactions.filter((t) => !t.isDuplicate);
-    }
-    if (filterTab === "duplicates") {
-      return parsedTransactions.filter((t) => t.isDuplicate);
-    }
-    return parsedTransactions;
-  }, [parsedTransactions, filterTab]);
 
   const selectedCount = parsedTransactions.filter((t) => t.selected).length;
 

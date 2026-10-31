@@ -1,6 +1,6 @@
 import type { Transaction } from "../types/Transaction";
 
-const API_URL = "http://localhost:5000/api";
+import { API_URL } from "./apiClient";
 
 function getAuthHeaders() {
   const token = localStorage.getItem("token");

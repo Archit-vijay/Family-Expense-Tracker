@@ -5,6 +5,7 @@ import {
   OLLAMA_MODEL,
 } from "../config/ollama.js";
 
+import { generateGeminiChatResponse, generateGeminiJson } from "./ai/geminiProvider.js";
 import { financialTools } from "./ai/tools.js";
 import { executeFinancialTool } from "./ai/toolExecutor.js";
 
@@ -54,6 +55,16 @@ export async function generateAIResponse(
   conversationMessages: OllamaMessage[],
   familyId: number,
 ): Promise<string> {
+  if (process.env.GEMINI_API_KEY) {
+    try {
+      return await generateGeminiChatResponse(conversationMessages, familyId);
+    } catch (err: any) {
+      console.warn(
+        `[AI Resilience] Gemini chat failed (${err?.message || err}). Falling back to local Ollama...`,
+      );
+    }
+  }
+
   const now = new Date();
   const today = now.toISOString().slice(0, 10);
   const curYear = now.getUTCFullYear();
@@ -413,6 +424,17 @@ export async function generateFinancialInsights(
     "}\n" +
     "Do NOT include any markdown code blocks, explanation text, or <think> tags. Return the raw JSON only.";
 
+  if (process.env.GEMINI_API_KEY) {
+    try {
+      const userPrompt = `Please interpret these verified family metrics and anomalies:\n\n${metricsPrompt}`;
+      return await generateGeminiJson<AIInsightsResult>(systemPrompt, userPrompt);
+    } catch (err: any) {
+      console.warn(
+        `[AI Resilience] Gemini insights failed (${err?.message || err}). Falling back to local Ollama...`,
+      );
+    }
+  }
+
   try {
     const response = await fetch(`${OLLAMA_BASE_URL}/api/chat`, {
       method: "POST",
@@ -588,6 +610,61 @@ export async function generateAIBudgetRecommendations(
     "}\n" +
     "Do NOT output markdown, backticks, or conversational text. Return the raw JSON only.";
 
+  if (process.env.GEMINI_API_KEY) {
+    try {
+      const userPrompt =
+        `Planning Period: Month ${baselines.targetMonth}/${baselines.targetYear}\n` +
+        `Total Historical Monthly Average: ₹${baselines.totalHistoricalAverage.toLocaleString("en-IN")}\n` +
+        `Categories:\n${promptCategories}\n\n` +
+        "Provide your budget recommendations JSON.";
+      const parsed = await generateGeminiJson<{
+        strategySummary?: string;
+        recommendations?: Array<{ categoryId: number; recommendedAmount: number; reasoning: string }>;
+      }>(systemPrompt, userPrompt);
+
+      if (parsed && Array.isArray(parsed.recommendations)) {
+        const recMap = new Map<number, { amount: number; reasoning: string }>();
+        for (const r of parsed.recommendations) {
+          if (typeof r.categoryId === "number" && typeof r.recommendedAmount === "number" && r.recommendedAmount > 0) {
+            recMap.set(r.categoryId, {
+              amount: Math.round(r.recommendedAmount),
+              reasoning: typeof r.reasoning === "string" && r.reasoning.trim().length > 0 ? r.reasoning.trim() : "",
+            });
+          }
+        }
+        const mergedRecommendations: AIBudgetRecommendationItem[] = baselines.categories.map((c) => {
+          const aiRec = recMap.get(c.categoryId);
+          return {
+            categoryId: c.categoryId,
+            categoryName: c.categoryName,
+            categoryType: c.categoryType,
+            averageMonthlySpend: c.averageMonthlySpend,
+            lastMonthSpend: c.lastMonthSpend,
+            currentBudget: c.currentBudget,
+            recommendedAmount: aiRec?.amount ?? c.recommendedAmount,
+            reasoning: aiRec?.reasoning || c.reasoning,
+          };
+        });
+        const totalRecommended = mergedRecommendations.reduce((sum, r) => sum + r.recommendedAmount, 0);
+        return {
+          targetMonth: baselines.targetMonth,
+          targetYear: baselines.targetYear,
+          strategySummary:
+            typeof parsed.strategySummary === "string" && parsed.strategySummary.trim().length > 0
+              ? parsed.strategySummary.trim()
+              : defaultStrategy,
+          recommendations: mergedRecommendations,
+          totalRecommended,
+          totalHistoricalAverage: baselines.totalHistoricalAverage,
+        };
+      }
+    } catch (err: any) {
+      console.warn(
+        `[AI Resilience] Gemini budget recommendations failed (${err?.message || err}). Falling back to local Ollama...`,
+      );
+    }
+  }
+
   try {
     const response = await fetch(`${OLLAMA_BASE_URL}/api/chat`, {
       method: "POST",
@@ -760,6 +837,62 @@ export async function generateAIBudgetRiskSynthesis(
     "  ]\n" +
     "}\n" +
     "Do NOT output markdown, backticks, or other text. Raw JSON only.";
+
+  if (process.env.GEMINI_API_KEY) {
+    try {
+      const userPrompt =
+        `Risk Analysis Period: Month ${report.month}/${report.year} (Day ${report.daysElapsed} of ${report.totalDaysInMonth}, ${report.daysRemaining} days left)\n` +
+        `Total Budget: ₹${report.totalBudgeted.toLocaleString("en-IN")}, Actual Spent: ₹${report.totalSpent.toLocaleString("en-IN")}, Projected: ₹${report.totalProjectedSpend.toLocaleString("en-IN")}\n` +
+        `Categories with Elevated Spending Pace:\n${promptCategories}\n\n` +
+        "Provide your budget risk synthesis JSON.";
+
+      const parsed = await generateGeminiJson<{
+        executiveSummary?: string;
+        overallActionPlan?: string;
+        categoryExplanations?: Array<{ categoryId: number; explanation: string; actionableTip: string }>;
+      }>(systemPrompt, userPrompt);
+
+      if (parsed && Array.isArray(parsed.categoryExplanations)) {
+        const expMap = new Map<number, { explanation: string; actionableTip: string }>();
+        for (const item of parsed.categoryExplanations) {
+          if (typeof item.categoryId === "number") {
+            expMap.set(item.categoryId, {
+              explanation: typeof item.explanation === "string" ? item.explanation.trim() : "",
+              actionableTip: typeof item.actionableTip === "string" ? item.actionableTip.trim() : "",
+            });
+          }
+        }
+
+        for (const cat of report.categories) {
+          const aiExp = expMap.get(cat.categoryId);
+          if (aiExp?.explanation) {
+            cat.explanation = aiExp.explanation;
+          }
+          if (aiExp?.actionableTip) {
+            cat.actionableTip = aiExp.actionableTip;
+          }
+        }
+      }
+
+      return {
+        month: report.month,
+        year: report.year,
+        executiveSummary:
+          typeof parsed.executiveSummary === "string" && parsed.executiveSummary.trim().length > 0
+            ? parsed.executiveSummary.trim()
+            : defaultSummary,
+        overallActionPlan:
+          typeof parsed.overallActionPlan === "string" && parsed.overallActionPlan.trim().length > 0
+            ? parsed.overallActionPlan.trim()
+            : defaultActionPlan,
+        report,
+      };
+    } catch (err: any) {
+      console.warn(
+        `[AI Resilience] Gemini budget risk synthesis failed (${err?.message || err}). Falling back to local Ollama...`,
+      );
+    }
+  }
 
   try {
     const response = await fetch(`${OLLAMA_BASE_URL}/api/chat`, {

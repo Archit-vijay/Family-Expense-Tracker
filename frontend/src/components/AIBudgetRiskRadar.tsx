@@ -99,7 +99,7 @@ export default function AIBudgetRiskRadar({ month, year }: AIBudgetRiskRadarProp
     );
   }
 
-  if (!data || !data.report.hasBudgets) {
+  if (!data || !data.report?.hasBudgets) {
     return null;
   }
 
