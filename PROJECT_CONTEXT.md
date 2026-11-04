@@ -700,6 +700,12 @@ Settings is fully implemented as a centralized administration, personalization, 
   - Works with Google Authenticator, Microsoft Authenticator, Authy, Apple Passwords, and 1Password.
   - Settings allows 2FA activation with a scannable branded QR code (matching the `#2A234F` palette), copyable Base32 secret key, 6-digit confirmation activation, and password-confirmed 2FA disabling.
   - Dedicated full-screen luxury login verification page at `/login/2fa` for accounts with 2FA enabled, issuing short-lived `2fa_pending` tokens before granting the full 7-day session.
+- **Cryptographic Password Reset**:
+  - Migration `018_create_password_reset_tokens.sql` stores SHA-256 hashed one-time tokens with 60-minute expiration windows.
+  - "Forgot password?" modal on `/login` allows users to request a recovery link.
+  - Dual-mode delivery: transactional email dispatch via Resend REST API (`backend/src/services/emailService.ts`) with custom branded responsive HTML template (`#2A234F` & `#FFB3C3`), with automatic graceful fallback to on-screen/terminal development links when unverified test emails or local environments without SMTP are used.
+  - Dedicated `/reset-password?token=...` page with real-time password strength meter, confirmation validation, and mandatory 6-digit TOTP verification if 2FA is active on the account.
+  - Replay prevention: tokens are atomically marked `used = true` and rejected on subsequent attempts.
 - **Custom Household Categories**:
   - Support for creating custom expense and income categories with duplicate prevention per family.
   - Category deletion is protected by an active dependency guard: categories referenced by active transactions (`is_deleted = FALSE`) or active monthly budgets cannot be deleted, preserving relational integrity.

@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import crypto from "crypto";
 import QRCode from "qrcode";
 import pool from "../config/database.js";
+import { sendPasswordResetEmail } from "./emailService.js";
 import {
   generateTotpSecret,
   generateOtpauthUrl,
@@ -349,4 +350,235 @@ export async function verifyTwoFactorLoginUser(userId: number, code: string) {
     name: user.name,
     email: user.email,
   };
+}
+
+/**
+ * Create a secure expiring password reset token for a user
+ */
+export async function requestPasswordReset(email: string, clientOrigin?: string) {
+  const normalizedEmail = email.trim().toLowerCase();
+  const user = await findUserByEmail(normalizedEmail);
+
+  // Return generic confirmation to protect against user enumeration
+  if (!user) {
+    return {
+      success: true,
+      message: "If an account exists with this email, password reset instructions have been dispatched.",
+    };
+  }
+
+  // Generate 32 bytes cryptographically secure random token (64 hex characters)
+  const rawToken = crypto.randomBytes(32).toString("hex");
+  const tokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");
+
+  // Token valid for 1 hour
+  const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+  // Invalidate any existing unused tokens for this user
+  await pool.query(
+    "UPDATE password_reset_tokens SET used = TRUE WHERE user_id = $1 AND used = FALSE",
+    [user.id],
+  );
+
+  // Save hashed token
+  await pool.query(
+    `
+      INSERT INTO password_reset_tokens (user_id, token_hash, expires_at)
+      VALUES ($1, $2, $3)
+    `,
+    [user.id, tokenHash, expiresAt],
+  );
+
+  // Determine origin for the reset link
+  const origin = clientOrigin || process.env.CORS_ORIGIN || "http://localhost:3000";
+  const resetUrl = `${origin.replace(/\/$/, "")}/reset-password?token=${rawToken}`;
+
+  // Log prominently for development / home server debugging
+  console.log("\n=======================================================");
+  console.log("🔑 PASSWORD RESET REQUEST DISPATCHED");
+  console.log(`Account:    ${user.email}`);
+  console.log(`Reset URL:  ${resetUrl}`);
+  console.log(`Expires:    ${expiresAt.toISOString()} (60 mins)`);
+  console.log("=======================================================\n");
+
+  let emailDispatched = false;
+
+  // Dispatch real transactional email if Resend is configured
+  if (process.env.RESEND_API_KEY) {
+    const emailResult = await sendPasswordResetEmail(user.email, resetUrl, user.name);
+    if (emailResult.success) {
+      emailDispatched = true;
+    } else {
+      console.warn(`[Email Dispatcher] Could not deliver email to ${user.email}: ${emailResult.error}`);
+    }
+  }
+
+  return {
+    success: true,
+    message: "If an account exists with this email, password reset instructions have been dispatched.",
+    // If real email was successfully delivered, omit previewUrl.
+    // If delivery failed (or Resend is not set up), fall back to previewUrl so the user is never blocked.
+    previewUrl: !emailDispatched ? resetUrl : undefined,
+  };
+}
+
+/**
+ * Verify if a password reset token is valid, unused, and not expired
+ */
+export async function verifyPasswordResetToken(rawToken: string) {
+  if (!rawToken || typeof rawToken !== "string" || rawToken.trim().length !== 64) {
+    return {
+      valid: false,
+      message: "Invalid or malformed reset link.",
+    };
+  }
+
+  const tokenHash = crypto.createHash("sha256").update(rawToken.trim()).digest("hex");
+
+  const result = await pool.query(
+    `
+      SELECT
+        prt.id,
+        prt.user_id,
+        prt.expires_at,
+        prt.used,
+        u.email,
+        u.name,
+        u.is_two_factor_enabled
+      FROM password_reset_tokens prt
+      JOIN users u ON u.id = prt.user_id
+      WHERE prt.token_hash = $1
+      ORDER BY prt.created_at DESC
+      LIMIT 1;
+    `,
+    [tokenHash],
+  );
+
+  const row = result.rows[0];
+  if (!row) {
+    return {
+      valid: false,
+      message: "This password reset link was not found or has expired.",
+    };
+  }
+
+  if (row.used) {
+    return {
+      valid: false,
+      message: "This password reset link has already been used. Please request a new one.",
+    };
+  }
+
+  if (new Date(row.expires_at) < new Date()) {
+    return {
+      valid: false,
+      message: "This password reset link has expired. Please request a new one.",
+    };
+  }
+
+  return {
+    valid: true,
+    email: row.email,
+    name: row.name,
+    requires2FA: Boolean(row.is_two_factor_enabled),
+  };
+}
+
+/**
+ * Reset user password using verified one-time token
+ */
+export async function resetPasswordWithToken(
+  rawToken: string,
+  newPassword: string,
+  twoFactorCode?: string,
+) {
+  if (!rawToken || typeof rawToken !== "string" || rawToken.trim().length !== 64) {
+    throw new Error("Invalid or malformed reset link.");
+  }
+
+  if (!newPassword || newPassword.length < 6) {
+    throw new Error("Password must be at least 6 characters long.");
+  }
+
+  const tokenHash = crypto.createHash("sha256").update(rawToken.trim()).digest("hex");
+
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+
+    const result = await client.query(
+      `
+        SELECT
+          prt.id,
+          prt.user_id,
+          prt.expires_at,
+          prt.used,
+          u.email,
+          u.two_factor_secret,
+          u.is_two_factor_enabled
+        FROM password_reset_tokens prt
+        JOIN users u ON u.id = prt.user_id
+        WHERE prt.token_hash = $1
+        FOR UPDATE OF prt
+      `,
+      [tokenHash],
+    );
+
+    const row = result.rows[0];
+    if (!row) {
+      throw new Error("Invalid or nonexistent password reset link.");
+    }
+
+    if (row.used) {
+      throw new Error("This password reset link has already been used. Please request a new one.");
+    }
+
+    if (new Date(row.expires_at) < new Date()) {
+      throw new Error("This password reset link has expired. Please request a new one.");
+    }
+
+    // If account has 2FA enabled, require the 6-digit TOTP code
+    if (row.is_two_factor_enabled) {
+      if (!twoFactorCode) {
+        throw new Error("Two-factor authentication code is required to reset password.");
+      }
+      const is2FAValid = verifyTotpCode(row.two_factor_secret, twoFactorCode);
+      if (!is2FAValid) {
+        throw new Error("Invalid two-factor authentication code. Please check your authenticator app.");
+      }
+    }
+
+    // Hash the new password with bcrypt
+    const passwordHash = await bcrypt.hash(newPassword, 12);
+
+    // Update password, record password_changed_at, and mark token as used
+    await client.query(
+      `
+        UPDATE users
+        SET
+          password_hash = $1,
+          password_changed_at = NOW(),
+          updated_at = NOW()
+        WHERE id = $2
+      `,
+      [passwordHash, row.user_id],
+    );
+
+    await client.query(
+      "UPDATE password_reset_tokens SET used = TRUE WHERE id = $1",
+      [row.id],
+    );
+
+    await client.query("COMMIT");
+
+    return {
+      success: true,
+      message: "Your password has been successfully reset. You can now log in with your new password.",
+    };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
 }

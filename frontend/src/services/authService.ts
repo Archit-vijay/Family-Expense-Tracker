@@ -255,3 +255,64 @@ export async function disableTwoFactor(password: string): Promise<string> {
 
   return result.message;
 }
+
+export async function requestPasswordReset(email: string): Promise<{
+  success: boolean;
+  message: string;
+  previewUrl?: string;
+}> {
+  const response = await fetch(`${API_URL}/auth/forgot-password`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email }),
+  });
+
+  const result = await response.json();
+  if (!response.ok) {
+    throw new Error(result.message || "Failed to request password reset.");
+  }
+
+  return result;
+}
+
+export async function verifyResetToken(token: string): Promise<{
+  valid: boolean;
+  email?: string;
+  name?: string;
+  requires2FA?: boolean;
+  message?: string;
+}> {
+  const response = await fetch(`${API_URL}/auth/verify-reset-token?token=${encodeURIComponent(token)}`);
+  const result = await response.json();
+  if (!response.ok || !result.valid) {
+    return {
+      valid: false,
+      message: result.message || "Invalid or expired reset link.",
+    };
+  }
+
+  return result;
+}
+
+export async function resetPassword(payload: {
+  token: string;
+  newPassword: string;
+  twoFactorCode?: string;
+}): Promise<string> {
+  const response = await fetch(`${API_URL}/auth/reset-password`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const result = await response.json();
+  if (!response.ok) {
+    throw new Error(result.message || "Failed to reset password.");
+  }
+
+  return result.message || "Password successfully reset.";
+}

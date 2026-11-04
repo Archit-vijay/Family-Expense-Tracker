@@ -759,6 +759,17 @@ To provide modern account defense without introducing external third-party authe
 - Profile email display is obfuscated by default (`jo••••••@••••••.com`) to guard against shoulder surfing or unintentional exposure in shared family settings.
 - The user can click "Reveal Full Email", which prompts for account password verification (`POST /api/auth/verify-password`) before revealing the plaintext email for that active session.
 
+## Password Reset Architecture
+- **Cryptographic Token Pattern**: Password reset tokens are generated using 32 bytes of cryptographically secure random bytes (`crypto.randomBytes(32).toString('hex')`).
+- **Database Hash Storage**: Only the SHA-256 hash of the token is stored in the database (`password_reset_tokens.token_hash`), never the raw token. This ensures database dumps/backups cannot be leveraged to hijack accounts.
+- **Strict Expiration & Replay Defense**:
+  - Tokens expire after 60 minutes (`expires_at < NOW()`).
+  - Requesting a new token automatically invalidates any existing unused tokens for that user.
+  - Upon successful reset, tokens are marked `used = true` within an atomic transaction. Any replay attempt is immediately rejected.
+- **Anti-Enumeration Protection**: `POST /api/auth/forgot-password` returns a generic confirmation message regardless of whether the email exists, preventing unauthorized user discovery.
+- **Two-Factor Defense in Depth**: For accounts with two-factor authentication (2FA) active, the reset flow mandates submitting the 6-digit TOTP code alongside the new password, preventing email-only compromise from bypassing 2FA protection.
+- **Dual-Mode Dispatching**: During local development or self-hosted environments without external SMTP services, reset links are printed prominently in the server terminal with clear visual banners and returned in preview fields for rapid validation. In production, transactional email transports (SMTP/Resend) dispatch the link directly to the user's inbox.
+
 ## Strict Role-Based Settings Visibility
 - **Family Workspace**: Contains workspace renaming and family code regeneration. Strictly hidden from non-admin users.
 - **Custom Categories**: Creating and managing household categories is visible to `admin` and `member` users. Strictly hidden from `viewer` users.

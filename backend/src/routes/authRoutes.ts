@@ -12,6 +12,9 @@ import {
   setupTwoFactorController,
   enableTwoFactorController,
   disableTwoFactorController,
+  forgotPasswordController,
+  verifyResetTokenController,
+  resetPasswordController,
 } from "../controllers/authController.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
 
@@ -21,6 +24,11 @@ router.post("/login", loginController);
 router.post("/login/2fa", verify2FALoginController);
 router.post("/signup", signupController);
 router.post("/google", googleAuthController);
+
+// Password Reset
+router.post("/forgot-password", forgotPasswordController);
+router.get("/verify-reset-token", verifyResetTokenController);
+router.post("/reset-password", resetPasswordController);
 
 // Profile and security
 router.patch("/profile", authMiddleware, updateProfileController);

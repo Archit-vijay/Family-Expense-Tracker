@@ -15,6 +15,9 @@ import {
   enableTwoFactor,
   disableTwoFactor,
   verifyTwoFactorLoginUser,
+  requestPasswordReset,
+  verifyPasswordResetToken,
+  resetPasswordWithToken,
 } from "../services/authService.js";
 import { getFamilyForUser } from "../services/familyService.js";
 
@@ -583,6 +586,112 @@ export async function disableTwoFactorController(
     res.status(400).json({
       success: false,
       message: error.message || "Failed to disable two-factor authentication.",
+    });
+  }
+}
+
+/**
+ * Request a password reset link
+ */
+export async function forgotPasswordController(req: Request, res: Response) {
+  try {
+    const { email } = req.body;
+    if (!email || typeof email !== "string" || !email.trim()) {
+      res.status(400).json({
+        success: false,
+        message: "A valid email address is required.",
+      });
+      return;
+    }
+
+    const origin = req.headers.origin || (req.headers.referer ? new URL(req.headers.referer).origin : undefined);
+    const result = await requestPasswordReset(email, origin);
+
+    res.json({
+      success: true,
+      message: result.message,
+      previewUrl: result.previewUrl,
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Failed to process password reset request.",
+    });
+  }
+}
+
+/**
+ * Verify validity of a password reset token
+ */
+export async function verifyResetTokenController(req: Request, res: Response) {
+  try {
+    const token = req.query.token as string;
+    if (!token) {
+      res.status(400).json({
+        success: false,
+        valid: false,
+        message: "Password reset token is required.",
+      });
+      return;
+    }
+
+    const verification = await verifyPasswordResetToken(token);
+    if (!verification.valid) {
+      res.status(400).json({
+        success: false,
+        valid: false,
+        message: verification.message,
+      });
+      return;
+    }
+
+    res.json({
+      success: true,
+      valid: true,
+      email: verification.email,
+      name: verification.name,
+      requires2FA: verification.requires2FA,
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      valid: false,
+      message: error.message || "Failed to verify reset token.",
+    });
+  }
+}
+
+/**
+ * Complete password reset using verified token
+ */
+export async function resetPasswordController(req: Request, res: Response) {
+  try {
+    const { token, newPassword, twoFactorCode } = req.body;
+    if (!token) {
+      res.status(400).json({
+        success: false,
+        message: "Reset token is required.",
+      });
+      return;
+    }
+
+    if (!newPassword || newPassword.length < 6) {
+      res.status(400).json({
+        success: false,
+        message: "New password must be at least 6 characters long.",
+      });
+      return;
+    }
+
+    const result = await resetPasswordWithToken(token, newPassword, twoFactorCode);
+    res.json({
+      success: true,
+      message: result.message,
+    });
+  } catch (error: any) {
+    res.status(400).json({
+      success: false,
+      message: error.message || "Failed to reset password.",
     });
   }
 }

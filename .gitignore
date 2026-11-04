@@ -18,3 +18,4 @@ Thumbs.db
 backups/
 *.sql
 *.sql.gz
+!backend/migrations/*.sql

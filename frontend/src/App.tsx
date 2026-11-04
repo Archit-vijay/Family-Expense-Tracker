@@ -11,6 +11,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Login2FA from "./pages/Login2FA";
+import ResetPassword from "./pages/ResetPassword";
 import Signup from "./pages/Signup";
 import Onboarding from "./pages/Onboarding";
 import AcceptInvitation from "./pages/AcceptInvitation";
@@ -52,6 +53,11 @@ function App() {
         <Route
           path="/login-2fa"
           element={<Navigate to="/login/2fa" replace />}
+        />
+
+        <Route
+          path="/reset-password"
+          element={<ResetPassword />}
         />
 
         <Route
