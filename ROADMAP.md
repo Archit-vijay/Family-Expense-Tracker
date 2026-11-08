@@ -433,11 +433,11 @@ Planned functionality and learning goals:
 - [x] Define rollback strategy (instant tag-based rollback via commit SHA tags)
 - [x] Practice production troubleshooting (resolved host-to-container database migration, React hook ordering bug, and AI synthesis wrapper)
 - [x] Implement Multi-Provider AI (Google Gemini via Google AI Pro key with automatic local Ollama safety net)
-- [ ] Configure domain/DNS (planned for HP server / cloud live deployment)
-- [ ] Configure HTTPS/TLS (planned for HP server / cloud live deployment via Cloudflare Tunnel / Let's Encrypt)
-- [ ] Deploy live on hardware (Ubuntu Server bare-metal setup on HP laptop when home)
+- [x] Configure domain/DNS (Cloudflare Tunnel public HTTPS routing)
+- [x] Configure HTTPS/TLS (Zero-Trust Cloudflare Tunnel with automatic edge SSL/TLS certificates and CGNAT bypass)
+- [x] Deploy live on hardware (Ubuntu Server 24.04 LTS dedicated bare-metal HP laptop with headless systemd-logind and Docker Compose orchestration)
 
-Status: IN PROGRESS
+Status: COMPLETE
 
 ---
 
