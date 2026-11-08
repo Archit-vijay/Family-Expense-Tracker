@@ -30,7 +30,14 @@ const allowedOrigins = [
 app.use(
     cors({
         origin: (origin, callback) => {
-            if (!origin || allowedOrigins.includes(origin)) {
+            if (
+                !origin ||
+                process.env.CORS_ORIGIN === "*" ||
+                allowedOrigins.includes(origin) ||
+                origin.startsWith("http://192.168.") ||
+                origin.startsWith("http://10.") ||
+                origin.endsWith(".trycloudflare.com")
+            ) {
                 return callback(null, true);
             }
             return callback(new Error(`CORS origin not allowed: ${origin}`));

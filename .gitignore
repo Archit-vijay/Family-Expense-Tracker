@@ -42,6 +42,7 @@ lerna-debug.log*
 ehthumbs.db
 Thumbs.db
 desktop.ini
+commands.txt
 
 # Database backups & local dumps
 backups/
