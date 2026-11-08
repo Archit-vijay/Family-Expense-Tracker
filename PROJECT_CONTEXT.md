@@ -842,17 +842,17 @@ Family Finance has been deployed live on dedicated bare-metal hardware:
 - **Host Machine**: HP Laptop running **Ubuntu Server 24.04 LTS** (headless configuration with `HandleLidSwitch=ignore` in `/etc/systemd/logind.conf` for 24/7 continuous operation with closed lid).
 - **Container Orchestration**: Docker Engine + Docker Compose running three interconnected services (`family-finance-db`, `family-finance-backend`, `family-finance-frontend`).
 - **Nginx Unified Reverse Proxy**: Configured `frontend/nginx.conf` with `location /api/ { proxy_pass http://backend:5000/api/; }`, unifying the frontend SPA and backend API under a single origin (`port 3000`), completely resolving mobile browser localhost resolution failures.
-- **Zero-Trust Cloudflare Tunnel (`cloudflared`)**: Outbound-only tunnel directly to Cloudflare's edge network, bypassing residential ISP CGNAT and router port-forwarding with automatic, free edge SSL/TLS encryption.
+- **Zero-Trust Cloudflare Tunnel (`cloudflared`)**: Outbound-only tunnel directly to Cloudflare's edge network, bypassing residential ISP CGNAT and router port-forwarding with automatic, free edge SSL/TLS encryption. Registered as a background `systemd` service (`cloudflared-quick.service`) that automatically starts on server boot.
 - **Google OAuth 2.0 Hardening**: Updated backend token verification in `authController.ts` to support standard OpenID `aud` and `azp` (authorized party) claims, resolving token verification on public tunnel domains.
-- **Production Verification**: Fully verified from cellular mobile devices (4G/5G off local Wi-Fi) across user onboarding, family creation, Google Sign-In, and transaction management.
+- **Automated Host Cron Database Backups**: Scheduled `scripts/backup-database.sh` via Linux cron (`0 2 * * *`) on the HP server for automated nightly PostgreSQL snapshots with 7-day retention pruning.
+- **Production Verification**: Fully verified from cellular mobile devices (4G/5G off local Wi-Fi) across user onboarding, family creation, Google Sign-In, transaction management, and automated database backups.
 
 ---
 
 ## Immediate Next Milestone
 
-With the complete application, all AI intelligence capabilities, Docker containerization, CI/CD, bare-metal server deployment, and Cloudflare Tunnel operational, the next milestones are:
-- **Persistent Cloudflare Named Tunnel / Systemd Service**: Configuring `cloudflared` as a background `systemd` service with a fixed custom domain or named tunnel for persistent reboots.
-- **Automated Host Cron Backups**: Scheduling `scripts/backup-database.sh` via Linux cron for nightly automated database snapshots.
+With the complete application, all AI intelligence capabilities, Docker containerization, CI/CD, bare-metal server deployment, background Cloudflare Tunnel, and automated backups fully operational, the remaining optional enhancement is:
+- **Permanent Custom Domain / Named Tunnel**: Connecting a registered custom domain to Cloudflare Zero Trust whenever a custom domain is acquired.
 
 ---
 
