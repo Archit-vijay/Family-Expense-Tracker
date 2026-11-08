@@ -209,28 +209,136 @@ export async function googleAuthController(
   res: Response,
 ) {
   try {
-    const { email, name, credential } = req.body;
+    const { email, name, credential, accessToken } = req.body;
 
     let userEmail = email?.trim().toLowerCase();
     let userName = name?.trim();
 
-    // If a Google ID token credential was provided, decode its payload
+    // 1. Verify Google OAuth2 access token if provided
+    if (accessToken && typeof accessToken === "string") {
+      try {
+        const tokenInfoRes = await fetch(
+          `https://oauth2.googleapis.com/tokeninfo?access_token=${encodeURIComponent(accessToken)}`
+        );
+
+        if (!tokenInfoRes.ok) {
+          const errData = (await tokenInfoRes.json().catch(() => ({}))) as any;
+          console.error("Google access token verification failed:", errData);
+          res.status(401).json({
+            success: false,
+            message: "Google authentication failed: invalid access token or expired session.",
+          });
+          return;
+        }
+
+        const tokenInfo = (await tokenInfoRes.json()) as any;
+        const expectedClientId = process.env.GOOGLE_CLIENT_ID;
+
+        // Verify that the token was minted specifically for our OAuth Client ID
+        if (
+          expectedClientId &&
+          tokenInfo.audience !== expectedClientId &&
+          tokenInfo.issued_to !== expectedClientId
+        ) {
+          console.error(
+            "Google access token audience mismatch. Expected:",
+            expectedClientId,
+            "Received:",
+            tokenInfo.audience || tokenInfo.issued_to
+          );
+          res.status(401).json({
+            success: false,
+            message: "Google token audience mismatch.",
+          });
+          return;
+        }
+
+        // Fetch verified user profile from Google's UserInfo endpoint
+        const userInfoRes = await fetch(
+          "https://www.googleapis.com/oauth2/v3/userinfo",
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
+        );
+
+        if (!userInfoRes.ok) {
+          res.status(401).json({
+            success: false,
+            message: "Unable to retrieve user profile from Google.",
+          });
+          return;
+        }
+
+        const userInfo = (await userInfoRes.json()) as any;
+        if (!userInfo.email) {
+          res.status(400).json({
+            success: false,
+            message: "Google account did not provide an email address.",
+          });
+          return;
+        }
+
+        userEmail = userInfo.email.toLowerCase();
+        userName = userInfo.name || userInfo.given_name || userEmail.split("@")[0];
+      } catch (err) {
+        console.error("Error contacting Google token verification service:", err);
+        res.status(500).json({
+          success: false,
+          message: "Unable to verify Google credential with Google's authentication servers.",
+        });
+        return;
+      }
+    }
+
+    // 2. Verify Google ID token credential if provided
     if (credential && typeof credential === "string") {
       try {
-        const parts = credential.split(".");
-        if (parts.length === 3) {
-          const payload = JSON.parse(
-            Buffer.from(parts[1], "base64").toString("utf8")
-          );
-          if (payload.email) {
-            userEmail = payload.email.toLowerCase();
-          }
-          if (payload.name) {
-            userName = payload.name;
-          }
+        const verifyRes = await fetch(
+          `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`
+        );
+
+        if (!verifyRes.ok) {
+          const errData = (await verifyRes.json().catch(() => ({}))) as any;
+          console.error("Google token verification failed:", errData);
+          res.status(401).json({
+            success: false,
+            message: "Google authentication failed: invalid token signature or expired session.",
+          });
+          return;
         }
+
+        const payload = (await verifyRes.json()) as any;
+
+        // Verify that the token was minted specifically for our OAuth Client ID
+        const expectedClientId = process.env.GOOGLE_CLIENT_ID;
+        if (expectedClientId && payload.aud !== expectedClientId) {
+          console.error("Google token audience mismatch. Expected:", expectedClientId, "Received:", payload.aud);
+          res.status(401).json({
+            success: false,
+            message: "Google token audience mismatch.",
+          });
+          return;
+        }
+
+        if (!payload.email) {
+          res.status(400).json({
+            success: false,
+            message: "Google token did not provide an email address.",
+          });
+          return;
+        }
+
+        userEmail = payload.email.toLowerCase();
+        userName = payload.name || payload.given_name || userEmail.split("@")[0];
       } catch (err) {
-        console.warn("Failed to decode Google credential payload:", err);
+        console.error("Error contacting Google token verification service:", err);
+        res.status(500).json({
+          success: false,
+          message: "Unable to verify Google credential with Google's authentication servers.",
+        });
+        return;
       }
     }
 

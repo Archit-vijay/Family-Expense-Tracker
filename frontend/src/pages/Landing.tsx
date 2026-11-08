@@ -225,7 +225,7 @@ export default function Landing() {
                 <ArrowRight size={16} />
               </Link>
 
-              <GoogleSignInButton text="Sign in with Google" />
+              <GoogleSignInButton text="Sign in with Google" variant="landing" />
             </div>
 
             {/* Supporting Micro-Highlights */}

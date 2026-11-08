@@ -111,6 +111,7 @@ export async function googleAuth(input: {
   email?: string;
   name?: string;
   credential?: string;
+  accessToken?: string;
 }): Promise<AuthResponse["data"]> {
   const response = await fetch(`${API_URL}/auth/google`, {
     method: "POST",

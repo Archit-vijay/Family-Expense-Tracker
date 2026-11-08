@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../context/AuthContext";
+import GoogleSignInButton from "../components/GoogleSignInButton";
 import { signup } from "../services/authService";
 
 function Signup() {
@@ -649,6 +650,17 @@ function Signup() {
                       )}
                     </button>
                   </form>
+
+                  {/* Divider */}
+                  <div className="relative my-5 flex items-center justify-center">
+                    <div className="w-full border-t border-[#e8e5ef] dark:border-[#2e265c]" />
+                    <span className="absolute bg-white px-3 text-[11px] font-semibold uppercase tracking-wider text-[#77738a] dark:bg-[#161130] dark:text-[#a5a0ba]">
+                      or continue with
+                    </span>
+                  </div>
+
+                  {/* Google OAuth Button */}
+                  <GoogleSignInButton text="Sign up with Google" className="w-full" variant="form" />
 
                   {/* Switch to Login */}
                   <div className="mt-5 text-center">
