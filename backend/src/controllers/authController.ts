@@ -233,18 +233,22 @@ export async function googleAuthController(
 
         const tokenInfo = (await tokenInfoRes.json()) as any;
         const expectedClientId = process.env.GOOGLE_CLIENT_ID;
+        const tokenAudience =
+          tokenInfo.aud ||
+          tokenInfo.azp ||
+          tokenInfo.audience ||
+          tokenInfo.issued_to;
 
         // Verify that the token was minted specifically for our OAuth Client ID
         if (
           expectedClientId &&
-          tokenInfo.audience !== expectedClientId &&
-          tokenInfo.issued_to !== expectedClientId
+          tokenAudience !== expectedClientId
         ) {
           console.error(
             "Google access token audience mismatch. Expected:",
             expectedClientId,
             "Received:",
-            tokenInfo.audience || tokenInfo.issued_to
+            tokenAudience
           );
           res.status(401).json({
             success: false,
@@ -313,8 +317,9 @@ export async function googleAuthController(
 
         // Verify that the token was minted specifically for our OAuth Client ID
         const expectedClientId = process.env.GOOGLE_CLIENT_ID;
-        if (expectedClientId && payload.aud !== expectedClientId) {
-          console.error("Google token audience mismatch. Expected:", expectedClientId, "Received:", payload.aud);
+        const tokenAudience = payload.aud || payload.azp || payload.audience;
+        if (expectedClientId && tokenAudience !== expectedClientId) {
+          console.error("Google token audience mismatch. Expected:", expectedClientId, "Received:", tokenAudience);
           res.status(401).json({
             success: false,
             message: "Google token audience mismatch.",
