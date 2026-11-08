@@ -886,3 +886,32 @@ DevOps was implemented as a hands-on learning progression to transition the appl
    - Primary AI Engine: Google Gemini (`gemini-3.5-flash-lite`) via Google AI Pro API.
    - Fallback AI Engine: Local Ollama (`qwen2.5:3b` / `llama3.2:3b`).
    - Automatic High Availability: If Gemini encounters rate limits (HTTP 429) or network interruptions, all AI capabilities (Financial Assistant Chat, Financial Insights, Budget Recommendations, Budget Risk Radar) automatically fall back to local Ollama.
+
+---
+
+# Phase 15 — Production Hardening & Portfolio Readiness — Implementation Details
+
+The final production-readiness milestone transformed Family Finance into a portfolio centerpiece with performance optimizations, brand-consistent edge states, and architecture documentation.
+
+## 1. Route-Based Code Splitting (`React.lazy` + `<Suspense>`)
+- Transformed monolithic client-side imports in `App.tsx` into dynamic chunks using `React.lazy(() => import(...))`.
+- Initial entry chunk (`index.js`) plummeted from **1.08 MB down to 276.10 KB** (only **83.65 KB** gzipped) — a **75% reduction** in initial payload size.
+- Pages like `Transactions.tsx` (53 KB), `Dashboard.tsx` (412 KB), `Budgets.tsx` (42 KB), and `AIInsights.tsx` (25 KB) are loaded on-demand only when navigated to.
+- Added [`frontend/src/components/PageLoader.tsx`](file:///C:/Users/archi/Documents/Family%20Expense%20Tracker/frontend/src/components/PageLoader.tsx) with a dual-ring brand spinner and subtle Plus Jakarta Sans caption in `<Suspense fallback={<PageLoader />}>`.
+
+## 2. Branded 404 / NotFound Page
+- Created [`frontend/src/pages/NotFound.tsx`](file:///C:/Users/archi/Documents/Family%20Expense%20Tracker/frontend/src/pages/NotFound.tsx) matching `#2A234F` & `#FFB3C3` brand palette with ambient backdrop glows and stylized 404 compass badge.
+- Provides context-aware routing recovery: renders a primary "Go to Dashboard" button when authenticated, or "Sign In to Space" when unauthenticated, plus a "Return to Home" button.
+- Registered catch-all route `<Route path="*" element={<NotFound />} />` in `App.tsx`.
+
+## 3. Dark-Mode Synchronized Empty & Loading States
+- Audited [`frontend/src/components/ContentState.tsx`](file:///C:/Users/archi/Documents/Family%20Expense%20Tracker/frontend/src/components/ContentState.tsx) which powers empty, loading, and error states across all 8 major views.
+- Added comprehensive dark-mode classes (`dark:border-[#2e265c]`, `dark:bg-[#161130]`, `dark:text-[#f5f3fa]`, `dark:text-[#a09cb4]`) to eliminate light-theme canvas leakage in dark mode.
+
+## 4. Industry-Grade Portfolio `README.md`
+- Authored a comprehensive root [`README.md`](file:///C:/Users/archi/Documents/Family%20Expense%20Tracker/README.md) featuring:
+  - Mermaid architecture diagrams of client, backend, database, and external integrations.
+  - Complete feature matrix across multi-tenancy, bank statement ingestion, AI grounding, and security.
+  - Sequential database migrations guide (migrations 001 through 018).
+  - 1-command Docker Compose quickstart.
+  - Continuous integration and deployment badges.

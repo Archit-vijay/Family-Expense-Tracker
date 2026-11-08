@@ -22,9 +22,9 @@ const stateIcons = {
 };
 
 const stateIconClasses = {
-  loading: "bg-[#ffb3c3]/20 text-[#2a234f]",
-  empty: "bg-[#ffb3c3]/20 text-[#2a234f]",
-  error: "bg-rose-50 text-rose-600",
+  loading: "bg-[#ffb3c3]/20 text-[#2a234f] dark:bg-[#ffb3c3]/15 dark:text-[#ffb3c3]",
+  empty: "bg-[#ffb3c3]/20 text-[#2a234f] dark:bg-[#ffb3c3]/15 dark:text-[#ffb3c3]",
+  error: "bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400",
 };
 
 function ContentState({
@@ -37,7 +37,7 @@ function ContentState({
 
   return (
     <div
-      className="flex min-h-56 flex-col items-center justify-center rounded-2xl border border-dashed border-[#e8e5ef] bg-[#f8f7fb] px-6 py-10 text-center"
+      className="flex min-h-56 flex-col items-center justify-center rounded-2xl border border-dashed border-[#e8e5ef] bg-[#f8f7fb] px-6 py-10 text-center transition-colors dark:border-[#2e265c] dark:bg-[#161130]"
       role={variant === "error" ? "alert" : undefined}
       aria-live={variant === "loading" ? "polite" : undefined}
     >
@@ -50,12 +50,12 @@ function ContentState({
         />
       </div>
 
-      <h3 className="mt-4 text-sm font-semibold text-[#2a234f]">
+      <h3 className="mt-4 text-sm font-semibold text-[#2a234f] dark:text-[#f5f3fa]">
         {title}
       </h3>
 
       {description && (
-        <p className="mt-1 max-w-sm text-sm leading-6 text-[#77738a]">
+        <p className="mt-1 max-w-sm text-sm leading-6 text-[#77738a] dark:text-[#a09cb4]">
           {description}
         </p>
       )}
