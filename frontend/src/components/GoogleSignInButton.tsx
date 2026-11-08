@@ -152,7 +152,7 @@ export default function GoogleSignInButton({
   const isLanding = variant === "landing";
 
   const buttonClasses = isLanding
-    ? "inline-flex h-12 items-center justify-center gap-2.5 rounded-xl border border-white/20 bg-white/10 px-6 text-sm font-semibold text-white shadow-sm backdrop-blur-md transition-all duration-200 hover:bg-white/20 hover:border-white/35 active:scale-[0.98] disabled:opacity-60"
+    ? "inline-flex h-12 items-center justify-center gap-2.5 rounded-xl border border-white/20 bg-white/10 px-6 text-sm font-semibold text-white whitespace-nowrap shadow-sm backdrop-blur-md transition-all duration-200 hover:bg-white/20 hover:border-white/35 active:scale-[0.98] disabled:opacity-60"
     : "inline-flex h-11 w-full items-center justify-center gap-2.5 rounded-xl border border-[#e8e5ef] bg-white px-5 text-sm font-semibold text-[#2a234f] shadow-xs transition-all duration-200 hover:bg-[#f8f7fb] hover:border-[#d6d2e1] active:scale-[0.99] disabled:opacity-60 dark:border-[#2e265c] dark:bg-[#1a153b] dark:text-[#f5f3fa] dark:hover:bg-[#231c4f] dark:hover:border-[#3d3372]";
 
   return (

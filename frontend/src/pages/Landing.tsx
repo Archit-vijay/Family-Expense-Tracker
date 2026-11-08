@@ -216,16 +216,16 @@ export default function Landing() {
             </p>
 
             {/* Action buttons */}
-            <div className="mt-8 flex flex-col gap-3.5 sm:flex-row sm:items-center">
+            <div className="mt-8 flex flex-col items-start gap-3.5 sm:flex-row sm:items-center">
               <Link
                 to="/signup"
-                className="inline-flex h-12 items-center justify-center gap-2.5 rounded-xl bg-[#ffb3c3] px-6 text-sm font-bold text-[#2a234f] shadow-xl shadow-[#ffb3c3]/20 transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#ff9fb4] hover:shadow-2xl hover:shadow-[#ffb3c3]/30 active:translate-y-0"
+                className="inline-flex h-12 w-[220px] items-center justify-center gap-2.5 rounded-xl bg-[#ffb3c3] text-sm font-semibold text-[#2a234f] whitespace-nowrap shadow-xl shadow-[#ffb3c3]/20 transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#ff9fb4] hover:shadow-2xl hover:shadow-[#ffb3c3]/30 active:translate-y-0"
               >
                 <span>Create Family Space</span>
                 <ArrowRight size={16} />
               </Link>
 
-              <GoogleSignInButton text="Sign in with Google" variant="landing" />
+              <GoogleSignInButton text="Sign in with Google" variant="landing" className="w-[220px]" />
             </div>
 
             {/* Supporting Micro-Highlights */}
