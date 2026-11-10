@@ -282,12 +282,11 @@ The repository includes enterprise-grade GitHub Actions workflows:
 
 ---
 
-## Engineering Documentation
+## Architecture Decision Records (ADRs)
 
-The project maintains detailed architectural records and living roadmaps:
+Key product, security, and architectural choices are documented in:
 
-- **[ROADMAP.md](ROADMAP.md)**: Tracked milestones across all 15 project phases, design guidelines, and feature scopes.
-- **[PROJECT_CONTEXT.md](PROJECT_CONTEXT.md)**: In-depth technical rationale, authentication models, AI tool structures, and implementation specifications.
+- **[Architecture Decision Records (docs/DECISIONS.md)](docs/DECISIONS.md)**: Architectural rationale for multi-tenant isolation, soft-deletion ledger integrity, grounded AI tool guardrails, and single-origin reverse proxying.
 
 ---
 
