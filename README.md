@@ -13,6 +13,50 @@
 
 ---
 
+## Visual Tour & Application Showcase
+
+<div align="center">
+  <img src="docs/screenshots/01_landing_hero.png" alt="Family Finance Landing Page" width="100%" />
+  <p><em>Interactive 3D Solid Metallic Rupee Landing Page with Luxury Obsidian Dark Theme</em></p>
+</div>
+
+### 1. Financial Dashboard & Cash Flow Analytics
+Real-time KPI overview featuring Net Savings, Income, Expenses, and Savings Rate, paired with interactive Recharts daily cash flow graphs and category spending distribution.
+
+| Financial KPI Overview | Cash Flow Analytics & Member Spending |
+| :---: | :---: |
+| <img src="docs/screenshots/02_dashboard_kpi.png" alt="Family Dashboard Overview" width="100%" /> | <img src="docs/screenshots/03_dashboard_charts.png" alt="Income vs Expenses Charts" width="100%" /> |
+
+### 2. Grounded AI Financial Intelligence
+Dual-provider AI architecture (Google Gemini primary with local Ollama fallback) executing deterministic, authenticated database tools with 2-hour session memory.
+
+| Natural-Language AI Advisor Chat | Statistical Anomaly & Velocity Radar |
+| :---: | :---: |
+| <img src="docs/screenshots/06_ai_assistant_chat.png" alt="AI Financial Assistant Chat" width="100%" /> | <img src="docs/screenshots/04_ai_financial_insights.png" alt="AI Financial Insights" width="100%" /> |
+
+### 3. Multi-Format Bank Statement Ingestion
+Parses CSV, Excel, and password-protected PDF bank statements. Features Indian UPI/NEFT narration normalization, automatic duplicate prevention, and self-learning category mappings.
+
+<div align="center">
+  <img src="docs/screenshots/07_statement_ingestion.png" alt="Bank Statement Ingestion and Review Staging Modal" width="100%" />
+</div>
+
+### 4. Deterministic Budgets & Overrun Risk Radar
+Tracks category spending against monthly caps with visual threshold warnings (safe, 80% warning amber, 100% cap red), daily burn rate forecasting, and 1-click recommendations.
+
+| Budget Health & Risk Radar | Category Limits & Allocation Cards |
+| :---: | :---: |
+| <img src="docs/screenshots/08_budgets_risk_radar.png" alt="Budget Health and Velocity Radar" width="100%" /> | <img src="docs/screenshots/09_category_budgets.png" alt="Category Budgets View" width="100%" /> |
+
+### 5. Touch-Native Mobile Experience
+Fully responsive design optimized for mobile viewports, thumb-friendly navigation, centered action triggers, and single-origin API routing.
+
+<div align="center">
+  <img src="docs/screenshots/10_mobile_responsive.jpeg" alt="Mobile Responsive Experience" width="340px" />
+</div>
+
+---
+
 ## Architecture Overview
 
 Family Finance is built on a decoupled, containerized client-server architecture with strict domain boundaries and role-based access control.

@@ -928,3 +928,7 @@ The final production-readiness milestone transformed Family Finance into a portf
   - Sequential database migrations guide (migrations 001 through 018).
   - 1-command Docker Compose quickstart.
   - Continuous integration and deployment badges.
+
+## 5. Live Visual Tour & Application Showcase
+- Curated and organized 10 production screenshots into `docs/screenshots/` and integrated an interactive visual showcase into root [`README.md`](file:///C:/Users/archi/Documents/Family%20Expense%20Tracker/README.md).
+- Visual tour highlights: 3D Rupee landing page hero, KPI dashboard cards, Recharts daily money flow and category donut graphs, grounded AI financial advisor chat, multi-format bank statement ingestion staging modal, budget health and velocity radar, and touch-native mobile responsiveness.
